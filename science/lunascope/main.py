@@ -27,6 +27,8 @@ from .api_models import (
     load_catalog,
     parse_comparison,
     parse_request,
+    parse_variant,
+    shifted_request,
 )
 from .canonical import canonical_bytes
 from .cards import run_cards
@@ -51,8 +53,10 @@ from .responses import (
     RunSummaryResponse,
     SitesResponse,
     ValidationResponse,
+    VariantAdmissionResponse,
+    VariantsResponse,
 )
-from .stacks import ServiceConfig, analysis_identity
+from .stacks import ServiceConfig, analysis_identity, identity_from_canonical
 from .store import NOT_FOUND, QUEUE_FULL, RunStore
 
 EXPORT_BLOCKED_UNVERIFIED = "EXPORT_BLOCKED_UNVERIFIED"
@@ -219,6 +223,51 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
         body = {**_summary(adm.run), "attached": not adm.created,
                 "status_url": f"/api/v1/analyses/{ident.run_id}"}
         return JSONResponse(body, status_code=202 if adm.created else 200)
+
+    @app.post("/api/v1/analyses/{run_id}/variants", response_model=VariantAdmissionResponse, status_code=202,
+              responses={200: {"model": VariantAdmissionResponse}, 404: {"model": ErrorEnvelope},
+                         422: {"model": ErrorEnvelope}, 503: {"model": ErrorEnvelope}})
+    async def create_variant(run_id: str, request: Request) -> Response:
+        """Time Machine (FR-10, spec 8.4): copy the parent's canonical request, change only the
+        start, admit it as an ordinary run and link it. Same inputs as a fresh request = same run."""
+        parent = store.require(_run_id(run_id))
+        v = parse_variant(await request.body())
+        parent_canon = json.loads(parent["request_json"])
+        child_canon = shifted_request(parent_canon, v.changes.start_offset_s)
+        ident = identity_from_canonical(child_canon, cfg)
+        changed = ["mission.start_utc"]
+        if cfg.mode == "replay":
+            row = store.get(ident.run_id)
+            if row is None:
+                raise LunaScopeError(REPLAY_ONLY, "this packaged service replays packaged variants only")
+            adm_run, created = row, False
+        else:
+            adm = store.admit(
+                run_id=ident.run_id, request_hash=ident.request_hash, resource_digest=ident.resource_digest,
+                algorithm_id=ident.algorithm_id, request_json=ident.request_json(),
+                effective_json=json.dumps({"effective": ident.effective_settings,
+                                           "resources": ident.resources}, sort_keys=True),
+                stack_kind=cfg.stack_kind, result_state=ident.result_state)
+            adm_run, created = adm.run, adm.created
+        store.link(child_run_id=ident.run_id, parent_run_id=run_id, variant_type=v.variant_type,
+                   changed_fields=changed)
+        log_event("variant_admitted", run_id=ident.run_id, parent_run_id=run_id,
+                  outcome="created" if created else "attached", cid=request.state.cid)
+        if created:
+            runner.notify()
+        body = {**_summary(adm_run), "attached": not created,
+                "status_url": f"/api/v1/analyses/{ident.run_id}", "parent_run_id": run_id,
+                "variant_type": v.variant_type, "changed_fields": changed,
+                "start_utc": child_canon["mission"]["start_utc"],
+                "parent_start_utc": parent_canon["mission"]["start_utc"]}
+        return JSONResponse(body, status_code=202 if created else 200)
+
+    @app.get("/api/v1/analyses/{run_id}/variants", response_model=VariantsResponse,
+             responses={404: {"model": ErrorEnvelope}})
+    def list_variants(run_id: str) -> dict:
+        row = store.require(_run_id(run_id))
+        return {"run_id": run_id, "start_utc": json.loads(row["request_json"])["mission"]["start_utc"],
+                "parents": store.parents(run_id), "children": store.children(run_id)}
 
     @app.get("/api/v1/analyses/{run_id}")
     def get_analysis(run_id: str) -> dict:

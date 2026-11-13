@@ -743,6 +743,17 @@
       "title": "Horizon El Deg",
       "type": "array"
      },
+     "payload_sha256": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Payload Sha256"
+     },
      "result_state": {
       "enum": [
        "synthetic_demonstration",
@@ -1635,6 +1646,256 @@
     ],
     "title": "ValidationSummary",
     "type": "object"
+   },
+   "VariantAdmissionResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "algorithm_id": {
+      "title": "Algorithm Id",
+      "type": "string"
+     },
+     "attached": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Attached"
+     },
+     "attempt": {
+      "title": "Attempt",
+      "type": "integer"
+     },
+     "changed_fields": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Changed Fields",
+      "type": "array"
+     },
+     "created_utc": {
+      "title": "Created Utc",
+      "type": "string"
+     },
+     "error": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/RunError"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "finished_utc": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Finished Utc"
+     },
+     "parent_run_id": {
+      "title": "Parent Run Id",
+      "type": "string"
+     },
+     "parent_start_utc": {
+      "title": "Parent Start Utc",
+      "type": "string"
+     },
+     "progress": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Progress"
+     },
+     "result_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Result Id"
+     },
+     "result_state": {
+      "enum": [
+       "synthetic_demonstration",
+       "real_data_unverified",
+       "validated"
+      ],
+      "title": "Result State",
+      "type": "string"
+     },
+     "run_id": {
+      "title": "Run Id",
+      "type": "string"
+     },
+     "stage": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stage"
+     },
+     "start_utc": {
+      "title": "Start Utc",
+      "type": "string"
+     },
+     "status": {
+      "enum": [
+       "queued",
+       "running",
+       "complete",
+       "complete_with_warnings",
+       "failed"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "status_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Status Url"
+     },
+     "variant_type": {
+      "const": "date_shift",
+      "title": "Variant Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "run_id",
+     "result_id",
+     "status",
+     "stage",
+     "progress",
+     "result_state",
+     "attempt",
+     "created_utc",
+     "finished_utc",
+     "algorithm_id",
+     "parent_run_id",
+     "variant_type",
+     "changed_fields",
+     "start_utc",
+     "parent_start_utc"
+    ],
+    "title": "VariantAdmissionResponse",
+    "type": "object"
+   },
+   "VariantLink": {
+    "additionalProperties": false,
+    "properties": {
+     "changed_fields": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Changed Fields",
+      "type": "array"
+     },
+     "child_run_id": {
+      "title": "Child Run Id",
+      "type": "string"
+     },
+     "created_utc": {
+      "title": "Created Utc",
+      "type": "string"
+     },
+     "parent_run_id": {
+      "title": "Parent Run Id",
+      "type": "string"
+     },
+     "start_utc": {
+      "title": "Start Utc",
+      "type": "string"
+     },
+     "status": {
+      "enum": [
+       "queued",
+       "running",
+       "complete",
+       "complete_with_warnings",
+       "failed"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "variant_type": {
+      "const": "date_shift",
+      "title": "Variant Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "child_run_id",
+     "parent_run_id",
+     "variant_type",
+     "changed_fields",
+     "status",
+     "created_utc",
+     "start_utc"
+    ],
+    "title": "VariantLink",
+    "type": "object"
+   },
+   "VariantsResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "children": {
+      "items": {
+       "$ref": "#/components/schemas/VariantLink"
+      },
+      "title": "Children",
+      "type": "array"
+     },
+     "parents": {
+      "items": {
+       "$ref": "#/components/schemas/VariantLink"
+      },
+      "title": "Parents",
+      "type": "array"
+     },
+     "run_id": {
+      "title": "Run Id",
+      "type": "string"
+     },
+     "start_utc": {
+      "title": "Start Utc",
+      "type": "string"
+     }
+    },
+    "required": [
+     "run_id",
+     "start_utc",
+     "parents",
+     "children"
+    ],
+    "title": "VariantsResponse",
+    "type": "object"
    }
   }
  },
@@ -2104,6 +2365,123 @@
      }
     },
     "summary": "Validation"
+   }
+  },
+  "/api/v1/analyses/{run_id}/variants": {
+   "get": {
+    "operationId": "list_variants_api_v1_analyses__run_id__variants_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/VariantsResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "List Variants"
+   },
+   "post": {
+    "description": "Time Machine (FR-10, spec 8.4): copy the parent's canonical request, change only the\nstart, admit it as an ordinary run and link it. Same inputs as a fresh request = same run.",
+    "operationId": "create_variant_api_v1_analyses__run_id__variants_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/VariantAdmissionResponse"
+        }
+       }
+      },
+      "description": "OK"
+     },
+     "202": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/VariantAdmissionResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Unprocessable Content"
+     },
+     "503": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Service Unavailable"
+     }
+    },
+    "summary": "Create Variant"
    }
   },
   "/api/v1/comparisons": {

@@ -21,7 +21,7 @@ from typing import ClassVar
 import numpy as np
 
 from . import ALGORITHM_VERSION
-from .api_models import AnalysisRequest, canonical_request, resolve_sites, to_run_config
+from .api_models import AnalysisRequest, canonical_request, resolve_sites
 from .canonical import hash_of, make_run_id
 from .codes import ResultState
 from .dem import MANIFESTS, RAW, DemTerrain, GeoTiffSource, PdsImgSource
@@ -143,21 +143,28 @@ class Identity:
 
 def analysis_identity(req: AnalysisRequest, cfg: ServiceConfig) -> Identity:
     sites = resolve_sites(req)
-    run_cfg = to_run_config(req)
-    canon = canonical_request(req, sites)
+    return identity_from_canonical(canonical_request(req, sites), cfg)
+
+
+def identity_from_canonical(canon: dict, cfg: ServiceConfig) -> Identity:
+    """Identity of an already-canonical request (a stored parent with one field changed, say).
+    A variant and a fresh request with the same inputs get the same run_id, so they attach."""
+    run_cfg, _ = run_config_from_canonical(canon)
+    dem_profile = canon["terrain"]["dem_profile"]
+    sensitivity = canon["options"]["sensitivity"]
     synthetic = cfg.stack_kind == "synthetic"
     if synthetic:
         resources = [{"role": "dem", "sha256": SYNTHETIC_DEM_SHA}]
         geometry_identity = AnalyticGeometry.identity
     else:
-        rid = DEM_FILES[req.terrain.dem_profile][0]
+        rid = DEM_FILES[dem_profile][0]
         resources = [{"role": "dem", "sha256": manifest_sha(rid)},
                      {"role": "spice_kernels", "sha256": kernel_digest(cfg)}]
         geometry_identity = HorizonsProvider.identity
     effective = {**run_cfg.effective_settings(), "geometry_provider": geometry_identity,
                  "interpolation": "cubic_hermite_enu_vectors", "horizon_algorithm": HORIZON_ALGORITHM,
                  "event_algorithm": ALGORITHM_VERSION, "stack_kind": cfg.stack_kind,
-                 "dem_profile": req.terrain.dem_profile, "sensitivity": req.options.sensitivity}
+                 "dem_profile": dem_profile, "sensitivity": sensitivity}
     algorithm_id = f"lunascope-science/{ALGORITHM_VERSION}"
     run_id = make_run_id(canon, effective, resources, algorithm_id)
     return Identity(
@@ -187,5 +194,6 @@ __all__ = [
     "analysis_identity",
     "build_stack",
     "dataclasses",
+    "identity_from_canonical",
     "run_config_from_canonical",
 ]

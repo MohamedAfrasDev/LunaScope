@@ -16,11 +16,11 @@ Dates are intended work windows, not evidence that a gate will pass.
 | --- | --- | --- | --- | --- |
 | **0. Decision & contract gate** | 13 Nov | Settle science/contract decisions before real data | SDR-001 approved | `[~]` draft written, not approved |
 | **1. Validity foundation** | 13 Nov | One real site end to end through the science pipeline | **Gate 1** | `[~]` synthetic slice done (~45 %) |
-| **2. Core experience** | 14 Nov | Three-site reference run, all workspaces, evidence | **Gate 2** | `[ ]` |
+| **2. Core experience** | 14 Nov | Three-site reference run, all workspaces, evidence | **Gate 2** | `[~]` started 13 Nov: Time Machine, GR-001 tooling, case 13/14 |
 | **3. Extras, presentation, reliability** | 15 Nov | Animation, alternatives, fallback, submission | **Gate 3** | `[ ]` |
 
 ```
-Phase 0 ████████░░ 80 %   Phase 1 ████░░░░░░ 40 %   Phase 2 ░░░░░░░░░░ 0 %   Phase 3 ░░░░░░░░░░ 0 %
+Phase 0 ████████░░ 80 %   Phase 1 ████░░░░░░ 40 %   Phase 2 ███░░░░░░░ 25 %   Phase 3 ░░░░░░░░░░ 0 %
 ```
 
 **Done so far (summary)**
@@ -178,13 +178,13 @@ Ends only when **one real site** passes through the approved geometry provider, 
 Priority order: validity → relevance → core experience.
 
 ### 2.1 Reference run `GR-001`
-- [ ] Choose three verified candidate sites with coordinate and terrain provenance (D-09)
-- [ ] Freeze the request, window, DEM identity, settings (D-08)
-- [ ] Run and cache; record commit, build, algorithm version, checksums
-- [ ] Convergence report: step 10 → 1 min, azimuth 0.5° → 0.25° → 0.1°, radius 100/150/200 km
-- [ ] Mark unstable cases `SENSITIVITY_HIGH`
+- [ ] Choose three verified candidate sites with coordinate and terrain provenance (D-09). **Blocks freezing GR-001.** The draft definition [`data/reference/GR-001.json`](../data/reference/GR-001.json) uses the RUN-001 rule points, labelled `PLACEHOLDER`
+- [~] Freeze the request, window, DEM identity, settings (D-08): draft written with a recorded selection reason per field (start 2027-01-10, 7 days, ADJ DEM, 150 km, 0.1 deg); not frozen until D-09
+- [~] Run and cache; record commit, build, algorithm version, checksums: `science/scripts/reference_run.py run GR-001` writes bundles plus a manifest (commit, dirty flag, algorithm version, definition SHA-256, resource pins, per-site bundle/horizon/geometry hashes, readiness). Built and tested on the synthetic stack; not yet run live
+- [~] Convergence report: `reference.convergence_report` runs step 60 s, azimuth 0.5/0.25 deg, radius 100/200 km one change at a time against the base (0.1 deg, 150 km, 600 s); base-equal cases are skipped and listed; DEM near-field on/off recorded as not applicable (no multi-resolution merge). Tested on synthetic; real numbers pending the live run
+- [x] Mark unstable cases `SENSITIVITY_HIGH` (`apply_convergence`; tested: a 1 km radius cutting off a 5 km ridge is flagged)
 - [ ] Disk-edge sensitivity for Earth (S-2, OQ-06)
-- [ ] Apply the implementation freeze rule: later changes create `GR-002`, never edit `GR-001`
+- [x] Apply the implementation freeze rule: a frozen definition pins its run_id; `check_freeze` raises "create GR-002" when any scientific input changes (tested by changing the radius)
 
 ### 2.2 Workspaces
 - [ ] **Mission** — draft form with field-level errors, sample-count preview (FR-01)
@@ -193,13 +193,13 @@ Priority order: validity → relevance → core experience.
 - [x] **Local Sky**: polar (north up) and unrolled views, terrain skyline hatched, flat 0 deg horizon, Sun and Earth tracks styled by the service's classification, scrubber, event jumps, countdown, text alternative and table ([SkyView.tsx](../components/SkyView.tsx), [SkyPlots.tsx](../components/SkyPlots.tsx)); static SVG, no canvas layer
 - [ ] **Timeline** — aligned Sun/Earth bands, threshold line, interval table, longest outage (FR-07)
 - [x] **Compare** (`/runs/{id}/compare`): site selector (at least two, recomputed server-side), held-constant list, changed sites, typed facts by fixed templates, per-target table with the flat horizon labelled as comparison, paired timelines (one row per site, one shared axis) with tables ([CompareView.tsx](../components/CompareView.tsx)); comparing two runs has no page yet
-- [ ] **Time Machine** — 5-day shift, linked variant, deltas, alignment mode (FR-10)
+- [x] **Time Machine** (`/runs/{id}/time-machine`): `POST /analyses/{id}/variants` (`date_shift`, start only, ±30 d, whole minutes) admits an ordinary run and links it (`run_links`); a fresh request with the same inputs is the same run; `GET /analyses/{id}/variants` lists parents and children. Page: day offset with field errors, shifted-runs list, labelled elapsed/calendar control, held/changed fields, per-site per-target deltas and outcome changes, two panels each on its own UTC with countdown at start and timelines, changed spans on both clocks; late replies for another alignment are dropped. Replay mode serves packaged variants only. Checked in a headless browser on the synthetic stack (13 Nov). Tested-dates strip with pass/fail counts and alternatives search are Phase 3 (FR-11)
 - [ ] **Evidence** — provenance, three validation cards, export (FR-09, FR-13)
 - [ ] Home — one button starts the reference mission
 
 ### 2.3 Cross-cutting
 - [~] Countdown rules: the Local Sky countdown is asked from the service at the cursor time (`GET /countdown`), covering at-event, mission-end, no-event, unknown and decision-band cases; the terrain-variant range (sensitivity) is not shown yet
-- [~] Alignment modes: the service names them `elapsed` and `calendar` with an explanatory note and refuses non-overlapping calendar windows; the labelled UI control comes with the Time Machine page
+- [x] Alignment modes: the service names them `elapsed` and `calendar` with an explanatory note and refuses non-overlapping calendar windows; the Time Machine has the labelled control and shows the shared window
 - [ ] Evidence bundle export (JSON) with frozen validation snapshot; investigative vs verified designation
 - [~] Keyboard-complete core flow; chart text alternatives and table views; pass/fail not by colour alone: icon+word on every state, SVG has title/desc and a table per band, focus rings, skip link, reduced-motion rule; manual keyboard pass and axe checks not done (AC-15)
 - [ ] Playwright core-flow test + axe checks
@@ -207,9 +207,9 @@ Priority order: validity → relevance → core experience.
 
 ### Gate 2 checklist
 - [ ] `GR-001` passes geometry, horizon, aggregation, event-search and convergence checks
-- [ ] Three validation cards populated; corrupted-horizon test fails readiness (case 13)
+- [~] Three validation cards populated (cards exist; GR-001 not run); corrupted-horizon test fails readiness (case 13) **done**: `reference.readiness` recomputes the new skyline digest and re-derives events, intervals and metrics from the stored series and skyline; the real RUN-001 bundles re-derive exactly but lack the digest (written before it existed), so they read not ready
 - [ ] Core flow works by keyboard
-- [ ] Time Machine five-day shift verified (case 14)
+- [x] Time Machine five-day shift verified (case 14): `test_variants.py` (own UTC, events, countdown per run; calendar refusal) and `time-machine.test.tsx` (panels on their own clocks); Playwright spec still pending
 
 ---
 
@@ -264,9 +264,9 @@ Only after Gate 2.
 | 10 | Cursor at event / mission end | `[x]` | `test_countdown.py` |
 | 11 | Equal availability, different longest outage | `[~]` metric difference done; explanation text pending | `test_requirements.py` |
 | 12 | Wrong unit/direction/height fails | `[~]` checked by hand-mutation; no committed test yet | — |
-| 13 | Corrupted horizon fails readiness | `[ ]` | — |
-| 14 | 5-day shift, own UTC per panel | `[ ]` | — |
-| 15 | Out-of-order responses don't overwrite | `[ ]` | — |
+| 13 | Corrupted horizon fails readiness | `[x]` | `test_reference.py` |
+| 14 | 5-day shift, own UTC per panel | `[x]` API + component; Playwright spec pending | `test_variants.py`, `tests/web/time-machine.test.tsx` |
+| 15 | Out-of-order responses don't overwrite | `[~]` Time Machine alignment race tested; not yet across all pages | `tests/web/time-machine.test.tsx` |
 | 16 | Network off → fallback opens demo | `[ ]` | — |
 
 **Review adversarial cases (from the plan review)**
@@ -304,7 +304,7 @@ Only after Gate 2.
 | 3 | Portal mistaken for a pinned DEM; missed ridge | Mitigated in code for nodata; real DEM and refinement pending |
 | 4 | Geometry agreement presented as full validation | Pending validation service (three cards) |
 | 5 | Same-sign samples hide two events | Mitigated: subdivision + certification tested on analytic models |
-| 6 | Baseline and shifted run share one UTC | Pending Time Machine |
+| 6 | Baseline and shifted run share one UTC | Mitigated: each run keeps its own UTC; alignment mode is explicit and tested (case 14) |
 | 8 | Mock data mistaken for results | Partly: health reports synthetic; UI labels pending |
 | 9 | Scope too large for a solo build | Cut order above; keep one real site first |
 | 10 | Horizons/hosting/network failure at the pitch | Pending cache + fallback |

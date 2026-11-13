@@ -73,6 +73,31 @@ class RunSummaryResponse(_Out):
     error: RunError | None = None
 
 
+class VariantAdmissionResponse(RunSummaryResponse):
+    parent_run_id: str
+    variant_type: Literal["date_shift"]
+    changed_fields: list[str]
+    start_utc: str
+    parent_start_utc: str
+
+
+class VariantLink(_Out):
+    child_run_id: str
+    parent_run_id: str
+    variant_type: Literal["date_shift"]
+    changed_fields: list[str]
+    status: RunStatusName
+    created_utc: str
+    start_utc: str
+
+
+class VariantsResponse(_Out):
+    run_id: str
+    start_utc: str
+    parents: list[VariantLink]
+    children: list[VariantLink]
+
+
 class ValidationCardResponse(_Out):
     id: str
     title: str
@@ -257,3 +282,4 @@ class HorizonResponse(_Out):
     skyline_max_deg: float | None
     cache_key: str
     terrain_identity: dict
+    payload_sha256: str | None = None  # absent on bundles written before it was recorded

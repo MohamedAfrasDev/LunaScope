@@ -190,6 +190,55 @@ export interface ProvenanceResponse {
   }[];
 }
 
+/** Time Machine (FR-10): a linked date-shift variant and the runs linked to a run. */
+export type VariantAdmission = components["schemas"]["VariantAdmissionResponse"];
+export type VariantLink = components["schemas"]["VariantLink"];
+export type VariantsResponse = components["schemas"]["VariantsResponse"];
+export type Alignment = "elapsed" | "calendar";
+
+export interface RunCompareRow extends CompareRow {
+  window_s?: number; // calendar alignment: metrics restricted to the shared window
+}
+
+export interface ChangedInterval {
+  start_s: number; // on run a's elapsed axis
+  end_s: number;
+  a: IntervalClass | "?";
+  b: IntervalClass | "?";
+}
+
+/** POST /comparisons with two runs: baseline (a) and variant (b) under one stated alignment mode. */
+export interface RunComparisonResponse {
+  mode: "runs";
+  compatible: boolean;
+  alignment: Alignment;
+  runs: { a: { run_id: string; start_utc: string }; b: { run_id: string; start_utc: string } };
+  shift_s: number;
+  overlap: { start_utc: string; duration_s: number } | null;
+  held_constant: { field: string; value: string | number }[];
+  changed: { field: string; from: string | number; to: string | number }[];
+  sites: {
+    site_id: string;
+    site_status: { a: SiteStatus; b: SiteStatus };
+    targets: Record<
+      Target,
+      {
+        a: RunCompareRow;
+        b: RunCompareRow;
+        delta: { availability_lower: number; availability_upper: number; longest_known_hidden_s: number };
+        outcome_change: string | null;
+        event_count: [number, number];
+        changed_intervals: ChangedInterval[];
+        terrain_vs_flat: { a: Outcome; b: Outcome };
+      }
+    >;
+  }[];
+  result_state: ResultState | "mixed";
+  warnings: string[];
+  verified: boolean;
+  note: string;
+}
+
 /** What the analysis form sends to POST /analyses. */
 export interface AnalysisRequestBody {
   schema_version: "1";

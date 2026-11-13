@@ -117,6 +117,11 @@ export function RunView({ runId }: { runId: string }) {
 
       {run?.matrix && (run.status === "complete" || run.status === "complete_with_warnings") && (
         <>
+          <p className="text-sm">
+            <Link href={`/runs/${runId}/time-machine`} className="font-medium text-accent underline underline-offset-4">
+              What if the date slips? Open the Time Machine
+            </Link>
+          </p>
           <ResultStateFrame state={run.result_state}>
             <StatusMatrix runId={runId} rows={run.matrix} />
             {run.warnings && run.warnings.length > 0 && (

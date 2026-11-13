@@ -154,6 +154,36 @@ class RunStore:
             return [r["run_id"] for r in c.execute(
                 "SELECT run_id FROM runs WHERE status='queued' ORDER BY created_utc, run_id")]
 
+    # ------------------------------------------------------------------ variants
+    def link(self, *, child_run_id: str, parent_run_id: str, variant_type: str,
+             changed_fields: list[str]) -> None:
+        """Record that `child` is a variant of `parent` (spec 8.4). Idempotent: the same link
+        submitted twice is one row, and a link never changes once written."""
+        with self._conn() as c:
+            c.execute("INSERT OR IGNORE INTO run_links(child_run_id, parent_run_id, variant_type,"
+                      " changed_fields) VALUES(?,?,?,?)",
+                      (child_run_id, parent_run_id, variant_type, json.dumps(sorted(changed_fields))))
+
+    def _links(self, where: str, run_id: str) -> list[dict]:
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT l.child_run_id, l.parent_run_id, l.variant_type, l.changed_fields,"
+                " r.status, r.request_json, r.created_utc FROM run_links l JOIN runs r ON r.run_id ="
+                f" l.{'child_run_id' if where == 'parent_run_id' else 'parent_run_id'}"
+                f" WHERE l.{where}=? ORDER BY r.created_utc, r.run_id", (run_id,)).fetchall()
+        return [{"child_run_id": r["child_run_id"], "parent_run_id": r["parent_run_id"],
+                 "variant_type": r["variant_type"], "changed_fields": json.loads(r["changed_fields"]),
+                 "status": r["status"], "created_utc": r["created_utc"],
+                 "start_utc": json.loads(r["request_json"])["mission"]["start_utc"]} for r in rows]
+
+    def children(self, parent_run_id: str) -> list[dict]:
+        """Variants of a run, with the child's status and start time."""
+        return self._links("parent_run_id", parent_run_id)
+
+    def parents(self, child_run_id: str) -> list[dict]:
+        """Runs this one is a variant of (status and start time are the parent's)."""
+        return self._links("child_run_id", child_run_id)
+
     # ------------------------------------------------------------------ attempts
     def claim(self, run_id: str) -> tuple[int, Path] | None:
         """queued -> running with a NEW attempt number, or None if it is no longer queued."""

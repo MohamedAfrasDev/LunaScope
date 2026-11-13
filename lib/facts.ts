@@ -1,5 +1,5 @@
 import type { CompareFact } from "./api/types";
-import { duration, pct, siteLabel, targetLabel } from "./format";
+import { duration, pct, siteLabel, targetLabel, utc } from "./format";
 import { OUTCOME } from "./status";
 
 /**
@@ -41,7 +41,7 @@ export function factText(f: CompareFact): string {
 
 /** Friendly names for the held-constant fields the service lists. */
 const FIELD: Record<string, string> = {
-  "mission.start_utc": "Start (UTC)",
+  "mission.start_utc": "Start",
   "mission.duration_s": "Duration",
   "mission.step_s": "Base step",
   "requirements.sun_min_availability": "Sunlight requirement",
@@ -71,5 +71,6 @@ export function fieldValue(key: string, v: string | number): string {
   if (key.endsWith("_deg")) return `${v}°`;
   if (key.endsWith("_m")) return `${v} m`;
   if (key.startsWith("resource.")) return `${String(v).slice(0, 16)}…`;
+  if (key.endsWith("_utc")) return utc(String(v));
   return String(v);
 }
