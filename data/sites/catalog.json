@@ -1,0 +1,12 @@
+{
+  "catalog_version": "1",
+  "note": "Rule-chosen demonstration points. These are NOT candidate landing sites and carry no mission provenance. Real candidate sites are an open decision (SDR-001 D-09).",
+  "sites": [
+    {"site_id": "rule-89.5S-E0",   "label": "-89.5 deg, 0 E (rule point)",   "lat_deg": -89.5, "lon_east_deg": 0.0,
+     "convention": "planetocentric", "source": "rule: -89.5 deg at equally spaced longitudes (RUN-001)", "precision_m": 100.0, "kind": "demonstration_rule"},
+    {"site_id": "rule-89.5S-E120", "label": "-89.5 deg, 120 E (rule point)", "lat_deg": -89.5, "lon_east_deg": 120.0,
+     "convention": "planetocentric", "source": "rule: -89.5 deg at equally spaced longitudes (RUN-001)", "precision_m": 100.0, "kind": "demonstration_rule"},
+    {"site_id": "rule-89.5S-E240", "label": "-89.5 deg, 240 E (rule point)", "lat_deg": -89.5, "lon_east_deg": 240.0,
+     "convention": "planetocentric", "source": "rule: -89.5 deg at equally spaced longitudes (RUN-001)", "precision_m": 100.0, "kind": "demonstration_rule"}
+  ]
+}

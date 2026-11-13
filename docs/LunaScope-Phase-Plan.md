@@ -84,9 +84,9 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] Canonical JSON (RFC 8785) and hashing: `run_id`, `result_id` ([canonical.py](../science/lunascope/canonical.py))
 - [x] Shared enumerations / status codes ([codes.py](../science/lunascope/codes.py))
 - [x] `GET /api/v1/health` reporting `synthetic_demonstration` and `resources_ok: false`
-- [ ] Pydantic request/response models with bounds (strict, `extra="forbid"`)
-- [ ] Error envelope (stable code, field path, retryable flag, correlation ID)
-- [ ] `RunRepository` on SQLite (WAL) + content-addressed artifact store
+- [x] Pydantic request models: strict, `extra="forbid"`, bounded, no paths/URLs ([api_models.py](../science/lunascope/api_models.py)); responses are plain JSON for now
+- [x] Error envelope: stable code, field path, retryable flag, correlation id (header echoed or generated)
+- [x] Run store: SQLite (WAL) with unique run ids, attempts, content-addressed write-once artifacts verified on read ([store.py](../science/lunascope/store.py)); no hosted-DB adapter yet
 - [ ] Resource registry with startup checksum/coverage checks
 - [ ] Fixture (synthetic) geometry provider, labeled demonstration
 - [ ] Structured JSON logging (run ID, stage, timing, warning codes)
@@ -147,11 +147,11 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [~] Validation: geometry-agreement card data (SPICE vs Horizons) and holdout are produced per run; terrain-horizon and convergence cards are not yet formal services
 
 ### 1.8 Run lifecycle and thin application
-- [ ] Atomic admit-or-attach on `run_id`; `202` returned before any external work
-- [ ] Bounded runner: 2 running / 8 queued, `QUEUE_FULL`, per-run timeout
-- [ ] Supervised killable worker processes; slot freed only after exit
-- [ ] Attempt tokens, staging directory, conditional commit, startup reconciliation
-- [ ] `POST /analyses`, `GET /analyses/{id}`, `/results`, `/provenance`, `/horizon/{site}`
+- [x] Atomic admit-or-attach on `run_id` in one transaction; `202` before any external work; only the insert winner schedules (12-thread test admits exactly one)
+- [x] Bounded runner: 2 running / 8 queued, `QUEUE_FULL` + `Retry-After`, per-run timeout ([jobs.py](../science/lunascope/jobs.py)); existing runs still attach when the queue is full
+- [x] Supervised killable worker processes (one OS process per attempt); slot freed only after confirmed exit
+- [x] Attempt numbers, staging directory, conditional commit, start-up reconciliation (requeue or fail, staging removed); retry policy: crash x2 then `ATTEMPT_LIMIT`, timeout no retry, handled error keeps its code
+- [x] `POST /analyses`, `GET /analyses/{id}`, `/results`, `/provenance`, `/horizon/{site}`, `/export`, plus `/health`, `/resources`, `/sites`, `/sites/custom` ([API.md](API.md)); variants and comparisons not built
 - [ ] BFF route `app/api/v1/[...slug]/route.ts` (allow-list, 5 s timeout, no cookies forwarded)
 - [ ] Minimal pages: Mission → Sites → submit → status → bare status matrix
 - [ ] Persistent `DataStatusBanner` and `ResultStateFrame`
@@ -276,8 +276,8 @@ Only after Gate 2.
 - [x] Entering the ±ε band without crossing zero; tangent with no sign change
 - [x] Nodata gap: sector stays unknown unless a recorded bound covers it
 - [ ] Horizons HTTP 200 with JSON `error`; unsupported signature
-- [ ] Concurrent identical submits schedule one job; timeout kills process; stale attempt cannot commit; restart reconciliation
-- [ ] Two jobs never exceed one in-flight Horizons request
+- [x] Concurrent identical submits schedule one job; timeout kills the process and frees the slot only after exit; stale attempt cannot commit; restart reconciliation (a 15-variant burst is not applicable yet: no variants endpoint)
+- [x] Two jobs never exceed one in-flight Horizons request (8 concurrent threads, max in flight = 1)
 
 ---
 

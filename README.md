@@ -9,6 +9,8 @@ LunaScope is a **screening and education tool**. It is not a certification of la
 - [Product and Technical Specification v2.1](<LunaScope Product and Technical Specification v2.1.md>)
 - [Implementation Specification (v1.1)](docs/LunaScope-Implementation-Spec.md)
 - [Phase plan and to-do tracker](docs/LunaScope-Phase-Plan.md)
+- [API reference (implemented subset)](docs/API.md)
+- [RUN-001: first real end-to-end run](docs/runs/RUN-001-first-real-run.md)
 - [SDR-001 science decision record (draft)](docs/sdr/SDR-001.md)
 
 ## Layout
@@ -34,5 +36,5 @@ cd science
 python -m venv .venv
 .venv/Scripts/python -m pip install -e ".[dev]"   # Windows; use .venv/bin/python elsewhere
 .venv/Scripts/python -m pytest
-.venv/Scripts/python -m uvicorn lunascope.main:app --reload
+.venv/Scripts/python -m uvicorn lunascope.main:create_app --factory
 ```

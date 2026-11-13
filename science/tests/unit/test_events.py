@@ -86,14 +86,15 @@ def test_property_intervals_tile_and_sum(A, P, shift):
     assert p.intervals[-1].end == pytest.approx(50000.0)
     r = summarize(p.intervals, 0.0, 50000.0, theta=0.5)
     assert r.availability_lower <= r.availability_upper
-    # event times agree with analytic zeros
-    # Zeros sitting on the window edge are boundary cases (censored), not interior events.
+    # Event times agree with the analytic zeros. Zeros within 60 s of the window edge are boundary
+    # cases (censored), so they are compared only where both lists clearly lie inside the window.
     exact = m.zero_crossings(60.0, 50000.0 - 60.0)
-    inner = [e for e in p.events if 60.0 <= e.t <= 50000.0 - 60.0]
     if r.uncertified_s == 0:
-        assert len(inner) == len(exact)
-        for ev, (t, kind) in zip(inner, exact):
-            assert ev.type == kind and ev.t == pytest.approx(t, abs=1.5)
+        for t, kind in exact:  # every analytic zero is found, with the right type, to ~1 s
+            assert any(e.type == kind and abs(e.t - t) < 1.5 for e in p.events), (t, kind)
+        for e in p.events:  # and the engine invents nothing in the interior
+            if 61.5 <= e.t <= 50000.0 - 61.5:
+                assert any(kind == e.type and abs(e.t - t) < 1.5 for t, kind in exact), e
 
 
 class LinearModel:
