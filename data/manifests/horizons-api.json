@@ -1,0 +1,20 @@
+{
+  "resource_id": "horizons-api",
+  "role": "geometry_provider_primary",
+  "kind": "remote_service",
+  "readiness": "recorded_responses_only",
+  "decision": "PROPOSED primary geometry provider (SDR-001 D-04); not scientifically approved",
+  "publisher": "NASA JPL Solar System Dynamics",
+  "product_id": "JPL Horizons API",
+  "version": "API signature 1.x (1.2 observed)",
+  "url": "https://ssd.jpl.nasa.gov/api/horizons.api",
+  "landing_page": "https://ssd.jpl.nasa.gov/horizons/",
+  "citation": "JPL Horizons On-Line Ephemeris System, NASA JPL Solar System Dynamics",
+  "use_terms": "Public service with a fair-use policy: automated clients must identify themselves with contact information in the User-Agent and make sequential requests. The client refuses to send requests without LUNASCOPE_CONTACT.",
+  "accessed_utc": "2026-11-13",
+  "files": [],
+  "open_items": [
+    "Contact value (SDR-001 D-11) must be supplied by the team before any new request",
+    "Each response is cached verbatim and hash-checked; the recorded fixtures are the only pinned data"
+  ]
+}

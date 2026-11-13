@@ -10,4 +10,4 @@ def test_health_reports_synthetic_and_unverified_resources(tmp_path):
         body = c.get("/api/v1/health").json()
     assert body["status"] == "ok"
     assert body["result_state"] == "synthetic_demonstration"
-    assert body["resources_ok"] is False
+    assert isinstance(body["resources_ok"], bool) and body["resources_approved"] is False

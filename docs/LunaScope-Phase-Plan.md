@@ -70,11 +70,11 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [~] Add organizer-permission note to `docs/` (D-12): template added, no permission on file
 
 ### 1.1 Inventory of resources
-- [ ] Record LROC QuickMap, NASA Moon Trek, JPL Horizons as official resources with citations
+- [x] Record LROC QuickMap, NASA Moon Trek, JPL Horizons as official resources with citations (`docs/resources.md`; the portals are visual only, not numerical inputs)
 - [x] Catalog candidate DEM files: two manifests with product ID, version, URL, size, SHA-256, CRS, sphere, units, nodata, registration, coverage and use terms (readiness `integrity_verified`)
 - [x] Catalog SPICE kernels (LSK, PCK, SPK, lunar frame kernels) with checksums and time coverage (`data/manifests/spice-kernels.json`)
-- [~] Write one manifest per resource in `data/manifests/`: DEMs done (state `discovered`); SPICE kernels, Horizons and site catalog pending
-- [ ] Gate: no numerical resource is used without a manifest entry
+- [x] Write one manifest per resource in `data/manifests/`: two DEMs, SPICE kernels and Horizons (`horizons-api.json`); the site catalog is part of the API, not a data resource
+- [x] Gate: no numerical resource is used without a manifest entry (registry checks every manifest at start; `scripts/verify_resources.py` hashes them all, all pass)
 
 ### 1.2 Decide (see Phase 0)
 - [ ] Science owner approves SDR-001
@@ -87,9 +87,9 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] Pydantic request models: strict, `extra="forbid"`, bounded, no paths/URLs ([api_models.py](../science/lunascope/api_models.py)); responses are plain JSON for now
 - [x] Error envelope: stable code, field path, retryable flag, correlation id (header echoed or generated)
 - [x] Run store: SQLite (WAL) with unique run ids, attempts, content-addressed write-once artifacts verified on read ([store.py](../science/lunascope/store.py)); no hosted-DB adapter yet
-- [ ] Resource registry with startup checksum/coverage checks
+- [x] Resource registry with startup presence/size checks (`registry.py`, `/health` `resources_ok`, `/resources` per-file status) and a full-hash script; `resources_approved` stays false
 - [ ] Fixture (synthetic) geometry provider, labeled demonstration
-- [ ] Structured JSON logging (run ID, stage, timing, warning codes)
+- [x] Structured JSON logging (run ID, stage, timing, warning codes; `LUNASCOPE_LOG=json`; no coordinates or tokens logged)
 - [ ] OpenAPI → TypeScript type generation wired into CI
 
 ### 1.4 Observer and local frame
@@ -142,7 +142,7 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] Whole-interval Lipschitz bound from Hermite coefficients and every horizon bin crossed; `monotone` only granted inside one linear skyline piece
 - [x] `geometry_timing_bound_s` attached to every event with a `near_tangent` flag when the clearance rate is undefined or tiny (pipeline)
 - [ ] Contact events (touch without crossing) via derivative-sign analysis
-- [ ] Explanation facts and fixed templates (blocked, visible-over-depressed-skyline, unresolved, …)
+- [x] Explanation facts and fixed templates (`explain.py`, returned per target by the results endpoint): hidden whole window, unresolved range, terrain changes outcome, excluded
 - [x] Comparison service ([compare.py](../science/lunascope/compare.py), `POST /comparisons`): sites within a run, and two runs with explicit `elapsed` / `calendar` alignment, compatibility check with reasons, held and changed fields, deltas, changed intervals, typed facts (terrain changes outcome, outcomes same/differ, equal availability with different outage, unresolved time matters); no winner, rank or score anywhere
 - [~] Validation: geometry-agreement card data (SPICE vs Horizons) and holdout are produced per run; terrain-horizon and convergence cards are not yet formal services
 
@@ -158,7 +158,7 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] Read the Next 16.4 docs for Route Handlers, BFF proxying, caching and Suspense before writing routes: `params` awaited inside `<Suspense>`, no `export const dynamic`, `PageProps`/`RouteContext` types from `next typegen`
 
 ### 1.9 Measure
-- [ ] Record stage timings vs budgets in `docs/perf.md`
+- [x] Record stage timings vs budgets in `docs/perf.md` (single observations; showcase read time and Horizons latency not measured)
 
 ### First real run
 

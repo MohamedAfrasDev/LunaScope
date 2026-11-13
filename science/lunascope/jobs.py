@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import subprocess
 import sys
 import threading
@@ -21,6 +22,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
+from .logs import log_event
 from .stacks import ServiceConfig
 from .store import RunStore
 
@@ -115,6 +117,7 @@ class JobRunner:
             self.store.commit_failure(run_id, attempt, code="WORKER_START_FAILED", detail=str(e))
             return True
         self._running[run_id] = _Running(run_id, attempt, stage_dir, proc, time.time())
+        log_event("run_started", run_id=run_id, attempt=attempt)
         return True
 
     # ------------------------------------------------------------------ monitoring
@@ -141,6 +144,8 @@ class JobRunner:
         if rc is None:
             if time.time() - r.started > self.cfg.run_timeout_s:
                 self._kill(r.proc)  # slot is freed only after confirmed exit
+                log_event("run_timeout", level=logging.WARNING, run_id=r.run_id, attempt=r.attempt,
+                          code="TIMEOUT", duration_s=round(time.time() - r.started, 2))
                 self.store.commit_failure(r.run_id, r.attempt, code="TIMEOUT",
                                           detail=f"exceeded {self.cfg.run_timeout_s:.0f} s",
                                           outcome="killed")
@@ -167,6 +172,9 @@ class JobRunner:
             except Exception as e:  # noqa: BLE001 - e.g. a duplicate result_id: fail the run, never wedge the slot
                 self.store.commit_failure(r.run_id, r.attempt, code="RESULT_CONFLICT", detail=str(e))
                 return
+            log_event("run_finished", run_id=r.run_id, attempt=r.attempt, status=result["status"],
+                      result_state=result["result_state"], warnings=result.get("warnings", []),
+                      timing_s=result.get("timing_s"), duration_s=round(time.time() - r.started, 2))
             if ok:
                 import shutil
                 shutil.rmtree(r.stage_dir, ignore_errors=True)
@@ -177,8 +185,12 @@ class JobRunner:
                 e = json.loads(err.read_text(encoding="utf-8"))
             except ValueError:
                 e = {"code": "INTERNAL_ERROR", "message": "unreadable error file"}
+            log_event("run_failed", level=logging.WARNING, run_id=r.run_id, attempt=r.attempt,
+                      code=e.get("code", "INTERNAL_ERROR"), duration_s=round(time.time() - r.started, 2))
             self.store.commit_failure(r.run_id, r.attempt, code=e.get("code", "INTERNAL_ERROR"),
                                       detail=e.get("message", ""))
             return
+        log_event("run_crashed", level=logging.ERROR, run_id=r.run_id, attempt=r.attempt,
+                  code="WORKER_CRASH", exit_code=rc)
         self.store.commit_failure(r.run_id, r.attempt, code="WORKER_CRASH", detail=f"exit code {rc}",
                                   outcome="failed", retry=True)

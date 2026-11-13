@@ -35,6 +35,7 @@ export interface Health {
   algorithm_id: string;
   result_state: ResultState;
   resources_ok: boolean;
+  resources_approved: boolean;
   queue: Record<string, number>;
   running: string[];
   limits: { max_running: number; max_queued: number; run_timeout_s: number };

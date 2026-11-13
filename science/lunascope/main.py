@@ -35,8 +35,12 @@ from .countdown import countdown as compute_countdown
 from .dem import MANIFESTS, REPO, footprint_coverage
 from .errors import INVALID_INPUT, LunaScopeError
 from .events import Event, Interval
+from .explain import explain_target
 from .jobs import JobRunner
+from .logs import configure_logging, log_event
 from .observer import build_observer
+from .registry import check_all
+from .registry import summary as registry_summary
 from .stacks import ServiceConfig, analysis_identity
 from .store import NOT_FOUND, QUEUE_FULL, RunStore
 
@@ -79,6 +83,8 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
     store = store or RunStore(cfg.data_dir / "store", max_queued=cfg.max_queued)
     runner = runner or JobRunner(store, cfg)
     started = time.time()
+    configure_logging()
+    startup_checks = check_all(cfg.raw_dir)  # cheap: presence and size; hashes via scripts/verify_resources.py
 
     @contextlib.asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -122,7 +128,7 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
             # nothing is scientifically approved yet, whatever the stack
             "result_state": (ResultState.SYNTHETIC if cfg.stack_kind == "synthetic"
                              else ResultState.REAL_UNVERIFIED).value,
-            "resources_ok": False, "queue": store.counts(), "running": runner.running_ids(),
+            **registry_summary(startup_checks), "resources_approved": False, "queue": store.counts(), "running": runner.running_ids(),
             "limits": {"max_running": cfg.max_running, "max_queued": cfg.max_queued,
                        "run_timeout_s": cfg.run_timeout_s},
             "recovered_on_start": runner.reconciled, "uptime_s": round(time.time() - started, 1)}
@@ -137,6 +143,9 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
                         "decision": m.get("decision"), "sha256": m.get("sha256"),
                         "size_bytes": m.get("size_bytes"), "use_terms": m.get("use_terms"),
                         "open_items": m.get("open_items", [])})
+        status = {s.resource_id: s.to_dict() for s in check_all(cfg.raw_dir)}
+        for r in out:
+            r["checks"] = status.get(r["resource_id"])
         return {"resources": out,
                 "note": "readiness integrity_verified means the bytes match a pin, not that the "
                         "resource is scientifically approved"}
@@ -190,6 +199,8 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
             effective_json=json.dumps({"effective": ident.effective_settings, "resources": ident.resources},
                                       sort_keys=True),
             stack_kind=cfg.stack_kind, result_state=ident.result_state)
+        log_event("run_admitted", run_id=ident.run_id, outcome="created" if adm.created else "attached",
+                  cid=request.state.cid)
         if adm.created:
             runner.notify()  # only the insert winner schedules work
         body = {**_summary(adm.run), "attached": not adm.created,
@@ -247,6 +258,8 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
                     if "events" in inc:
                         d["events"] = v["events"]
                     tm[t][h] = d
+                if "terrain" in hs:
+                    tm[t]["explanations"] = explain_target(hs["terrain"], hs.get("flat"))
                 if "series" in inc:
                     tm[t]["series"] = s["geometry"][t]["series"]
             out_sites.append({"site_id": sid, "validity": "unverified", "site_status": s["site_status"],
