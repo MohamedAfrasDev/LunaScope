@@ -1,6 +1,433 @@
 {
  "components": {
   "schemas": {
+   "CatalogSiteResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "convention": {
+      "title": "Convention",
+      "type": "string"
+     },
+     "dem_coverage_150km": {
+      "$ref": "#/components/schemas/DemCoverage"
+     },
+     "kind": {
+      "title": "Kind",
+      "type": "string"
+     },
+     "label": {
+      "title": "Label",
+      "type": "string"
+     },
+     "lat_deg": {
+      "title": "Lat Deg",
+      "type": "number"
+     },
+     "lon_east_deg": {
+      "title": "Lon East Deg",
+      "type": "number"
+     },
+     "precision_m": {
+      "title": "Precision M",
+      "type": "number"
+     },
+     "site_id": {
+      "title": "Site Id",
+      "type": "string"
+     },
+     "source": {
+      "title": "Source",
+      "type": "string"
+     }
+    },
+    "required": [
+     "site_id",
+     "label",
+     "lat_deg",
+     "lon_east_deg",
+     "convention",
+     "source",
+     "precision_m",
+     "kind",
+     "dem_coverage_150km"
+    ],
+    "title": "CatalogSiteResponse",
+    "type": "object"
+   },
+   "ClearanceAtNodes": {
+    "additionalProperties": false,
+    "properties": {
+     "max_deg": {
+      "title": "Max Deg",
+      "type": "number"
+     },
+     "median_deg": {
+      "title": "Median Deg",
+      "type": "number"
+     },
+     "min_deg": {
+      "title": "Min Deg",
+      "type": "number"
+     },
+     "note": {
+      "title": "Note",
+      "type": "string"
+     },
+     "samples": {
+      "title": "Samples",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "min_deg",
+     "median_deg",
+     "max_deg",
+     "samples",
+     "note"
+    ],
+    "title": "ClearanceAtNodes",
+    "type": "object"
+   },
+   "CountdownBody": {
+    "additionalProperties": false,
+    "properties": {
+     "at": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "At"
+     },
+     "band": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "number"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Band"
+     },
+     "event_type": {
+      "anyOf": [
+       {
+        "enum": [
+         "rise",
+         "set"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Event Type"
+     },
+     "kind": {
+      "title": "Kind",
+      "type": "string"
+     },
+     "mission_end": {
+      "title": "Mission End",
+      "type": "number"
+     },
+     "quality": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Quality"
+     },
+     "remaining_s": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Remaining S"
+     },
+     "solver_bracket_s": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Solver Bracket S"
+     },
+     "state": {
+      "enum": [
+       "V",
+       "H",
+       "U",
+       "X",
+       "G"
+      ],
+      "title": "State",
+      "type": "string"
+     },
+     "t": {
+      "title": "T",
+      "type": "number"
+     },
+     "target": {
+      "title": "Target",
+      "type": "string"
+     },
+     "text": {
+      "title": "Text",
+      "type": "string"
+     },
+     "unknown_from": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Unknown From"
+     },
+     "unknown_until": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Unknown Until"
+     }
+    },
+    "required": [
+     "t",
+     "state",
+     "target",
+     "mission_end",
+     "kind",
+     "text"
+    ],
+    "title": "CountdownBody",
+    "type": "object"
+   },
+   "CountdownResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "at": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "At"
+     },
+     "band": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "number"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Band"
+     },
+     "event_type": {
+      "anyOf": [
+       {
+        "enum": [
+         "rise",
+         "set"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Event Type"
+     },
+     "horizon": {
+      "enum": [
+       "terrain",
+       "flat"
+      ],
+      "title": "Horizon",
+      "type": "string"
+     },
+     "kind": {
+      "title": "Kind",
+      "type": "string"
+     },
+     "mission_end": {
+      "title": "Mission End",
+      "type": "number"
+     },
+     "quality": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Quality"
+     },
+     "remaining_s": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Remaining S"
+     },
+     "result_state": {
+      "enum": [
+       "synthetic_demonstration",
+       "real_data_unverified",
+       "validated"
+      ],
+      "title": "Result State",
+      "type": "string"
+     },
+     "run_id": {
+      "title": "Run Id",
+      "type": "string"
+     },
+     "site_id": {
+      "title": "Site Id",
+      "type": "string"
+     },
+     "solver_bracket_s": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Solver Bracket S"
+     },
+     "state": {
+      "enum": [
+       "V",
+       "H",
+       "U",
+       "X",
+       "G"
+      ],
+      "title": "State",
+      "type": "string"
+     },
+     "t": {
+      "title": "T",
+      "type": "number"
+     },
+     "target": {
+      "title": "Target",
+      "type": "string"
+     },
+     "text": {
+      "title": "Text",
+      "type": "string"
+     },
+     "unknown_from": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Unknown From"
+     },
+     "unknown_until": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Unknown Until"
+     }
+    },
+    "required": [
+     "t",
+     "state",
+     "target",
+     "mission_end",
+     "kind",
+     "text",
+     "run_id",
+     "site_id",
+     "horizon",
+     "result_state"
+    ],
+    "title": "CountdownResponse",
+    "type": "object"
+   },
+   "DemCoverage": {
+    "additionalProperties": false,
+    "properties": {
+     "covered_fraction": {
+      "title": "Covered Fraction",
+      "type": "number"
+     },
+     "fully_covered": {
+      "title": "Fully Covered",
+      "type": "boolean"
+     },
+     "radius_km": {
+      "title": "Radius Km",
+      "type": "number"
+     },
+     "sectors_with_gap": {
+      "title": "Sectors With Gap",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "covered_fraction",
+     "fully_covered",
+     "sectors_with_gap",
+     "radius_km"
+    ],
+    "title": "DemCoverage",
+    "type": "object"
+   },
    "ErrorDetail": {
     "additionalProperties": false,
     "properties": {
@@ -60,6 +487,102 @@
      "error"
     ],
     "title": "ErrorEnvelope",
+    "type": "object"
+   },
+   "EventRow": {
+    "additionalProperties": false,
+    "properties": {
+     "clearance_rate_deg_per_s": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Clearance Rate Deg Per S"
+     },
+     "geometry_timing_bound_s": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Geometry Timing Bound S"
+     },
+     "horizon": {
+      "enum": [
+       "terrain",
+       "flat"
+      ],
+      "title": "Horizon",
+      "type": "string"
+     },
+     "quality": {
+      "title": "Quality",
+      "type": "string"
+     },
+     "solver_bracket_s": {
+      "title": "Solver Bracket S",
+      "type": "number"
+     },
+     "t_s": {
+      "title": "T S",
+      "type": "number"
+     },
+     "t_utc": {
+      "title": "T Utc",
+      "type": "string"
+     },
+     "type": {
+      "enum": [
+       "rise",
+       "set"
+      ],
+      "title": "Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "t_s",
+     "t_utc",
+     "type",
+     "solver_bracket_s",
+     "geometry_timing_bound_s",
+     "clearance_rate_deg_per_s",
+     "quality",
+     "horizon"
+    ],
+    "title": "EventRow",
+    "type": "object"
+   },
+   "Explanation": {
+    "additionalProperties": false,
+    "properties": {
+     "code": {
+      "title": "Code",
+      "type": "string"
+     },
+     "params": {
+      "additionalProperties": true,
+      "title": "Params",
+      "type": "object"
+     },
+     "text": {
+      "title": "Text",
+      "type": "string"
+     }
+    },
+    "required": [
+     "code",
+     "text",
+     "params"
+    ],
+    "title": "Explanation",
     "type": "object"
    },
    "HTTPValidationError": {
@@ -178,6 +701,127 @@
     "title": "HealthResponse",
     "type": "object"
    },
+   "HorizonResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "argmax_distance_km": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Argmax Distance Km",
+      "type": "array"
+     },
+     "azimuth_deg": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Azimuth Deg",
+      "type": "array"
+     },
+     "cache_key": {
+      "title": "Cache Key",
+      "type": "string"
+     },
+     "horizon_el_deg": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Horizon El Deg",
+      "type": "array"
+     },
+     "result_state": {
+      "enum": [
+       "synthetic_demonstration",
+       "real_data_unverified",
+       "validated"
+      ],
+      "title": "Result State",
+      "type": "string"
+     },
+     "sector_state": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Sector State",
+      "type": "array"
+     },
+     "sectors": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Sectors",
+      "type": "object"
+     },
+     "settings": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "title": "Settings",
+      "type": "object"
+     },
+     "site_id": {
+      "title": "Site Id",
+      "type": "string"
+     },
+     "skyline_max_deg": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Skyline Max Deg"
+     },
+     "skyline_min_deg": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Skyline Min Deg"
+     },
+     "terrain_identity": {
+      "additionalProperties": true,
+      "title": "Terrain Identity",
+      "type": "object"
+     }
+    },
+    "required": [
+     "site_id",
+     "result_state",
+     "azimuth_deg",
+     "horizon_el_deg",
+     "argmax_distance_km",
+     "sector_state",
+     "sectors",
+     "settings",
+     "skyline_min_deg",
+     "skyline_max_deg",
+     "cache_key",
+     "terrain_identity"
+    ],
+    "title": "HorizonResponse",
+    "type": "object"
+   },
    "Limits": {
     "additionalProperties": false,
     "properties": {
@@ -200,6 +844,212 @@
      "run_timeout_s"
     ],
     "title": "Limits",
+    "type": "object"
+   },
+   "MetricsResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "availability_lower": {
+      "title": "Availability Lower",
+      "type": "number"
+     },
+     "availability_upper": {
+      "title": "Availability Upper",
+      "type": "number"
+     },
+     "exclusion_reasons": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Exclusion Reasons",
+      "type": "array"
+     },
+     "gap_s": {
+      "title": "Gap S",
+      "type": "number"
+     },
+     "hidden_s": {
+      "title": "Hidden S",
+      "type": "number"
+     },
+     "known_time_fraction": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Known Time Fraction"
+     },
+     "longest_known_hidden_end": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Longest Known Hidden End"
+     },
+     "longest_known_hidden_s": {
+      "title": "Longest Known Hidden S",
+      "type": "number"
+     },
+     "longest_known_hidden_start": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Longest Known Hidden Start"
+     },
+     "margin_lower": {
+      "title": "Margin Lower",
+      "type": "number"
+     },
+     "margin_upper": {
+      "title": "Margin Upper",
+      "type": "number"
+     },
+     "outcome": {
+      "enum": [
+       "PASS",
+       "FAIL",
+       "INDETERMINATE",
+       "EXCLUDED"
+      ],
+      "title": "Outcome",
+      "type": "string"
+     },
+     "threshold": {
+      "title": "Threshold",
+      "type": "number"
+     },
+     "total_s": {
+      "title": "Total S",
+      "type": "number"
+     },
+     "uncertified_s": {
+      "title": "Uncertified S",
+      "type": "number"
+     },
+     "unknown_s": {
+      "title": "Unknown S",
+      "type": "number"
+     },
+     "visible_s": {
+      "title": "Visible S",
+      "type": "number"
+     },
+     "worst_case_not_visible_s": {
+      "title": "Worst Case Not Visible S",
+      "type": "number"
+     },
+     "worst_case_touches_edge": {
+      "title": "Worst Case Touches Edge",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "availability_lower",
+     "availability_upper",
+     "exclusion_reasons",
+     "gap_s",
+     "hidden_s",
+     "known_time_fraction",
+     "longest_known_hidden_end",
+     "longest_known_hidden_s",
+     "longest_known_hidden_start",
+     "margin_lower",
+     "margin_upper",
+     "outcome",
+     "threshold",
+     "total_s",
+     "uncertified_s",
+     "unknown_s",
+     "visible_s",
+     "worst_case_not_visible_s",
+     "worst_case_touches_edge"
+    ],
+    "title": "MetricsResponse",
+    "type": "object"
+   },
+   "ResultsResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "algorithm_id": {
+      "title": "Algorithm Id",
+      "type": "string"
+     },
+     "coverage_fraction": {
+      "title": "Coverage Fraction",
+      "type": "number"
+     },
+     "provenance_url": {
+      "title": "Provenance Url",
+      "type": "string"
+     },
+     "result_id": {
+      "title": "Result Id",
+      "type": "string"
+     },
+     "result_state": {
+      "enum": [
+       "synthetic_demonstration",
+       "real_data_unverified",
+       "validated"
+      ],
+      "title": "Result State",
+      "type": "string"
+     },
+     "run_id": {
+      "title": "Run Id",
+      "type": "string"
+     },
+     "sites": {
+      "items": {
+       "$ref": "#/components/schemas/SiteResultsResponse"
+      },
+      "title": "Sites",
+      "type": "array"
+     },
+     "status": {
+      "enum": [
+       "queued",
+       "running",
+       "complete",
+       "complete_with_warnings",
+       "failed"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "warnings": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+     }
+    },
+    "required": [
+     "run_id",
+     "result_id",
+     "status",
+     "result_state",
+     "algorithm_id",
+     "coverage_fraction",
+     "warnings",
+     "sites",
+     "provenance_url"
+    ],
+    "title": "ResultsResponse",
     "type": "object"
    },
    "RunError": {
@@ -364,6 +1214,247 @@
      "algorithm_id"
     ],
     "title": "RunSummaryResponse",
+    "type": "object"
+   },
+   "SiteResultsResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "result_state": {
+      "enum": [
+       "synthetic_demonstration",
+       "real_data_unverified",
+       "validated"
+      ],
+      "title": "Result State",
+      "type": "string"
+     },
+     "sensitivity": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "title": "Sensitivity",
+      "type": "array"
+     },
+     "site_id": {
+      "title": "Site Id",
+      "type": "string"
+     },
+     "site_status": {
+      "enum": [
+       "PASS",
+       "FAIL_SUN",
+       "FAIL_EARTH",
+       "FAIL_BOTH",
+       "INDETERMINATE",
+       "UNKNOWN_COVERAGE"
+      ],
+      "title": "Site Status",
+      "type": "string"
+     },
+     "target_metrics": {
+      "additionalProperties": {
+       "$ref": "#/components/schemas/TargetResults"
+      },
+      "title": "Target Metrics",
+      "type": "object"
+     },
+     "validity": {
+      "title": "Validity",
+      "type": "string"
+     },
+     "warnings": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+     }
+    },
+    "required": [
+     "site_id",
+     "validity",
+     "site_status",
+     "result_state",
+     "target_metrics",
+     "warnings",
+     "sensitivity"
+    ],
+    "title": "SiteResultsResponse",
+    "type": "object"
+   },
+   "SitesResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "note": {
+      "title": "Note",
+      "type": "string"
+     },
+     "sites": {
+      "items": {
+       "$ref": "#/components/schemas/CatalogSiteResponse"
+      },
+      "title": "Sites",
+      "type": "array"
+     }
+    },
+    "required": [
+     "note",
+     "sites"
+    ],
+    "title": "SitesResponse",
+    "type": "object"
+   },
+   "SkySeries": {
+    "additionalProperties": false,
+    "properties": {
+     "az_deg": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Az Deg",
+      "type": "array"
+     },
+     "el_deg": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "El Deg",
+      "type": "array"
+     },
+     "step_s": {
+      "title": "Step S",
+      "type": "number"
+     }
+    },
+    "required": [
+     "step_s",
+     "az_deg",
+     "el_deg"
+    ],
+    "title": "SkySeries",
+    "type": "object"
+   },
+   "TargetHorizonResult": {
+    "additionalProperties": false,
+    "properties": {
+     "clearance_at_nodes": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ClearanceAtNodes"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "countdown_at_start": {
+      "$ref": "#/components/schemas/CountdownBody"
+     },
+     "events": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/EventRow"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Events"
+     },
+     "intervals": {
+      "anyOf": [
+       {
+        "items": {
+         "additionalProperties": true,
+         "type": "object"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Intervals"
+     },
+     "metrics": {
+      "$ref": "#/components/schemas/MetricsResponse"
+     }
+    },
+    "required": [
+     "metrics",
+     "clearance_at_nodes",
+     "countdown_at_start"
+    ],
+    "title": "TargetHorizonResult",
+    "type": "object"
+   },
+   "TargetResults": {
+    "additionalProperties": false,
+    "properties": {
+     "explanations": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/Explanation"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Explanations"
+     },
+     "flat": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/TargetHorizonResult"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "series": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SkySeries"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "terrain": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/TargetHorizonResult"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "title": "TargetResults",
     "type": "object"
    },
    "ValidationCardResponse": {
@@ -699,9 +1790,7 @@
       "content": {
        "application/json": {
         "schema": {
-         "additionalProperties": true,
-         "title": "Response Countdown Api V1 Analyses  Run Id  Countdown Get",
-         "type": "object"
+         "$ref": "#/components/schemas/CountdownResponse"
         }
        }
       },
@@ -796,9 +1885,7 @@
       "content": {
        "application/json": {
         "schema": {
-         "additionalProperties": true,
-         "title": "Response Horizon Api V1 Analyses  Run Id  Horizon  Site Id  Get",
-         "type": "object"
+         "$ref": "#/components/schemas/HorizonResponse"
         }
        }
       },
@@ -920,13 +2007,31 @@
       "content": {
        "application/json": {
         "schema": {
-         "additionalProperties": true,
-         "title": "Response Results Api V1 Analyses  Run Id  Results Get",
-         "type": "object"
+         "$ref": "#/components/schemas/ResultsResponse"
         }
        }
       },
       "description": "Successful Response"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Conflict"
      },
      "422": {
       "content": {
@@ -1067,9 +2172,7 @@
       "content": {
        "application/json": {
         "schema": {
-         "additionalProperties": true,
-         "title": "Response Sites Api V1 Sites Get",
-         "type": "object"
+         "$ref": "#/components/schemas/SitesResponse"
         }
        }
       },

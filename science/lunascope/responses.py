@@ -96,3 +96,164 @@ class ValidationResponse(_Out):
     scopes_closed: list[str]
     summary: ValidationSummary
     note: str
+
+
+# ----------------------------------------------------------------------------- sites
+class DemCoverage(_Out):
+    covered_fraction: float
+    fully_covered: bool
+    sectors_with_gap: int
+    radius_km: float
+
+
+class CatalogSiteResponse(_Out):
+    site_id: str
+    label: str
+    lat_deg: float
+    lon_east_deg: float
+    convention: str
+    source: str
+    precision_m: float
+    kind: str
+    dem_coverage_150km: DemCoverage
+
+
+class SitesResponse(_Out):
+    note: str
+    sites: list[CatalogSiteResponse]
+
+
+# ----------------------------------------------------------------------------- results
+Outcome = Literal["PASS", "FAIL", "INDETERMINATE", "EXCLUDED"]
+IntervalClassName = Literal["V", "H", "U", "X", "G"]
+SiteStatusName = Literal["PASS", "FAIL_SUN", "FAIL_EARTH", "FAIL_BOTH", "INDETERMINATE", "UNKNOWN_COVERAGE"]
+
+
+class MetricsResponse(_Out):
+    availability_lower: float
+    availability_upper: float
+    exclusion_reasons: list[str]
+    gap_s: float
+    hidden_s: float
+    known_time_fraction: float | None
+    longest_known_hidden_end: float | None
+    longest_known_hidden_s: float
+    longest_known_hidden_start: float | None
+    margin_lower: float
+    margin_upper: float
+    outcome: Outcome
+    threshold: float
+    total_s: float
+    uncertified_s: float
+    unknown_s: float
+    visible_s: float
+    worst_case_not_visible_s: float
+    worst_case_touches_edge: bool
+
+
+class ClearanceAtNodes(_Out):
+    min_deg: float
+    median_deg: float
+    max_deg: float
+    samples: int
+    note: str
+
+
+class CountdownBody(_Out):
+    t: float
+    state: IntervalClassName
+    target: str
+    mission_end: float
+    kind: str
+    text: str
+    at: float | None = None
+    remaining_s: float | None = None
+    solver_bracket_s: float | None = None
+    event_type: Literal["rise", "set"] | None = None
+    unknown_from: float | None = None
+    unknown_until: float | None = None
+    band: list[float] | None = None
+    quality: str | None = None
+
+
+class EventRow(_Out):
+    t_s: float
+    t_utc: str
+    type: Literal["rise", "set"]
+    solver_bracket_s: float
+    geometry_timing_bound_s: float | None
+    clearance_rate_deg_per_s: float | None
+    quality: str
+    horizon: Literal["terrain", "flat"]
+
+
+class TargetHorizonResult(_Out):
+    metrics: MetricsResponse
+    clearance_at_nodes: ClearanceAtNodes | None
+    countdown_at_start: CountdownBody
+    intervals: list[dict] | None = None
+    events: list[EventRow] | None = None
+
+
+class SkySeries(_Out):
+    step_s: float
+    az_deg: list[float | None]
+    el_deg: list[float | None]
+
+
+class Explanation(_Out):
+    code: str
+    text: str
+    params: dict
+
+
+class TargetResults(_Out):
+    terrain: TargetHorizonResult | None = None
+    flat: TargetHorizonResult | None = None
+    series: SkySeries | None = None
+    explanations: list[Explanation] | None = None
+
+
+class SiteResultsResponse(_Out):
+    site_id: str
+    validity: str
+    site_status: SiteStatusName
+    result_state: ResultStateName
+    target_metrics: dict[str, TargetResults]
+    warnings: list[str]
+    sensitivity: list[dict]
+
+
+class ResultsResponse(_Out):
+    run_id: str
+    result_id: str
+    status: RunStatusName
+    result_state: ResultStateName
+    algorithm_id: str
+    coverage_fraction: float
+    warnings: list[str]
+    sites: list[SiteResultsResponse]
+    provenance_url: str
+
+
+# ----------------------------------------------------------------------------- countdown / horizon
+class CountdownResponse(CountdownBody):
+    run_id: str
+    site_id: str
+    horizon: Literal["terrain", "flat"]
+    result_state: ResultStateName
+
+
+class HorizonResponse(_Out):
+    site_id: str
+    result_state: ResultStateName
+    azimuth_deg: list[float]
+    horizon_el_deg: list[float | None]
+    argmax_distance_km: list[float | None]
+    sector_state: list[str]
+    sectors: dict[str, int]
+    settings: dict[str, float]
+    skyline_min_deg: float | None
+    skyline_max_deg: float | None
+    cache_key: str
+    terrain_identity: dict

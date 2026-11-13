@@ -42,7 +42,16 @@ from .logs import configure_logging, log_event
 from .observer import build_observer
 from .registry import check_all
 from .registry import summary as registry_summary
-from .responses import ErrorEnvelope, HealthResponse, RunSummaryResponse, ValidationResponse
+from .responses import (
+    CountdownResponse,
+    ErrorEnvelope,
+    HealthResponse,
+    HorizonResponse,
+    ResultsResponse,
+    RunSummaryResponse,
+    SitesResponse,
+    ValidationResponse,
+)
 from .stacks import ServiceConfig, analysis_identity
 from .store import NOT_FOUND, QUEUE_FULL, RunStore
 
@@ -152,7 +161,7 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
                 "note": "readiness integrity_verified means the bytes match a pin, not that the "
                         "resource is scientifically approved"}
 
-    @app.get("/api/v1/sites")
+    @app.get("/api/v1/sites", response_model=SitesResponse)
     def sites() -> dict:
         cat = load_catalog()
         out = []
@@ -236,7 +245,8 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
                                  ("queued", "running"))
         return store.get_analysis(run_id)
 
-    @app.get("/api/v1/analyses/{run_id}/results")
+    @app.get("/api/v1/analyses/{run_id}/results", response_model=ResultsResponse, response_model_exclude_unset=True,
+             responses={404: {"model": ErrorEnvelope}, 409: {"model": ErrorEnvelope}})
     def results(run_id: str, site: str | None = None, target: str | None = None,
                 include: str = "") -> dict:
         a = _ready(run_id)
@@ -302,7 +312,7 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
             return compare_sites(analyses[0], req.sites)
         return compare_runs(analyses[0], analyses[1], req.sites, req.alignment)
 
-    @app.get("/api/v1/analyses/{run_id}/countdown")
+    @app.get("/api/v1/analyses/{run_id}/countdown", response_model=CountdownResponse, response_model_exclude_unset=True)
     def countdown(run_id: str, site: str, target: str, t: float, horizon: str = "terrain") -> dict:
         """Server-decided countdown at an arbitrary cursor time (seconds from the window start).
         The browser only subtracts the cursor from the event time this returns."""
@@ -322,7 +332,7 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
         return {"run_id": a["run_id"], "site_id": site, "horizon": horizon,
                 "result_state": s["result_state"], **compute_countdown(intervals, events, t, target)}
 
-    @app.get("/api/v1/analyses/{run_id}/horizon/{site_id}")
+    @app.get("/api/v1/analyses/{run_id}/horizon/{site_id}", response_model=HorizonResponse)
     def horizon(run_id: str, site_id: str) -> dict:
         a = _ready(run_id)
         for s in a["sites"]:

@@ -33,21 +33,9 @@ export interface ApiErrorBody {
 
 export type Health = components["schemas"]["HealthResponse"];
 
-export interface CatalogSite {
-  site_id: string;
-  label: string;
-  lat_deg: number;
-  lon_east_deg: number;
-  source: string;
-  precision_m: number;
-  kind: string;
-  dem_coverage_150km: { covered_fraction: number; fully_covered: boolean; sectors_with_gap: number };
-}
+export type CatalogSite = components["schemas"]["CatalogSiteResponse"];
 
-export interface SitesResponse {
-  note: string;
-  sites: CatalogSite[];
-}
+export type SitesResponse = components["schemas"]["SitesResponse"];
 
 export type RunSummary = components["schemas"]["RunSummaryResponse"];
 

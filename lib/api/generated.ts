@@ -233,6 +233,132 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** CatalogSiteResponse */
+        CatalogSiteResponse: {
+            /** Convention */
+            convention: string;
+            dem_coverage_150km: components["schemas"]["DemCoverage"];
+            /** Kind */
+            kind: string;
+            /** Label */
+            label: string;
+            /** Lat Deg */
+            lat_deg: number;
+            /** Lon East Deg */
+            lon_east_deg: number;
+            /** Precision M */
+            precision_m: number;
+            /** Site Id */
+            site_id: string;
+            /** Source */
+            source: string;
+        };
+        /** ClearanceAtNodes */
+        ClearanceAtNodes: {
+            /** Max Deg */
+            max_deg: number;
+            /** Median Deg */
+            median_deg: number;
+            /** Min Deg */
+            min_deg: number;
+            /** Note */
+            note: string;
+            /** Samples */
+            samples: number;
+        };
+        /** CountdownBody */
+        CountdownBody: {
+            /** At */
+            at?: number | null;
+            /** Band */
+            band?: number[] | null;
+            /** Event Type */
+            event_type?: ("rise" | "set") | null;
+            /** Kind */
+            kind: string;
+            /** Mission End */
+            mission_end: number;
+            /** Quality */
+            quality?: string | null;
+            /** Remaining S */
+            remaining_s?: number | null;
+            /** Solver Bracket S */
+            solver_bracket_s?: number | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "V" | "H" | "U" | "X" | "G";
+            /** T */
+            t: number;
+            /** Target */
+            target: string;
+            /** Text */
+            text: string;
+            /** Unknown From */
+            unknown_from?: number | null;
+            /** Unknown Until */
+            unknown_until?: number | null;
+        };
+        /** CountdownResponse */
+        CountdownResponse: {
+            /** At */
+            at?: number | null;
+            /** Band */
+            band?: number[] | null;
+            /** Event Type */
+            event_type?: ("rise" | "set") | null;
+            /**
+             * Horizon
+             * @enum {string}
+             */
+            horizon: "terrain" | "flat";
+            /** Kind */
+            kind: string;
+            /** Mission End */
+            mission_end: number;
+            /** Quality */
+            quality?: string | null;
+            /** Remaining S */
+            remaining_s?: number | null;
+            /**
+             * Result State
+             * @enum {string}
+             */
+            result_state: "synthetic_demonstration" | "real_data_unverified" | "validated";
+            /** Run Id */
+            run_id: string;
+            /** Site Id */
+            site_id: string;
+            /** Solver Bracket S */
+            solver_bracket_s?: number | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "V" | "H" | "U" | "X" | "G";
+            /** T */
+            t: number;
+            /** Target */
+            target: string;
+            /** Text */
+            text: string;
+            /** Unknown From */
+            unknown_from?: number | null;
+            /** Unknown Until */
+            unknown_until?: number | null;
+        };
+        /** DemCoverage */
+        DemCoverage: {
+            /** Covered Fraction */
+            covered_fraction: number;
+            /** Fully Covered */
+            fully_covered: boolean;
+            /** Radius Km */
+            radius_km: number;
+            /** Sectors With Gap */
+            sectors_with_gap: number;
+        };
         /** ErrorDetail */
         ErrorDetail: {
             /** Code */
@@ -249,6 +375,42 @@ export interface components {
         /** ErrorEnvelope */
         ErrorEnvelope: {
             error: components["schemas"]["ErrorDetail"];
+        };
+        /** EventRow */
+        EventRow: {
+            /** Clearance Rate Deg Per S */
+            clearance_rate_deg_per_s: number | null;
+            /** Geometry Timing Bound S */
+            geometry_timing_bound_s: number | null;
+            /**
+             * Horizon
+             * @enum {string}
+             */
+            horizon: "terrain" | "flat";
+            /** Quality */
+            quality: string;
+            /** Solver Bracket S */
+            solver_bracket_s: number;
+            /** T S */
+            t_s: number;
+            /** T Utc */
+            t_utc: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "rise" | "set";
+        };
+        /** Explanation */
+        Explanation: {
+            /** Code */
+            code: string;
+            /** Params */
+            params: {
+                [key: string]: unknown;
+            };
+            /** Text */
+            text: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -298,6 +460,42 @@ export interface components {
             /** Uptime S */
             uptime_s: number;
         };
+        /** HorizonResponse */
+        HorizonResponse: {
+            /** Argmax Distance Km */
+            argmax_distance_km: (number | null)[];
+            /** Azimuth Deg */
+            azimuth_deg: number[];
+            /** Cache Key */
+            cache_key: string;
+            /** Horizon El Deg */
+            horizon_el_deg: (number | null)[];
+            /**
+             * Result State
+             * @enum {string}
+             */
+            result_state: "synthetic_demonstration" | "real_data_unverified" | "validated";
+            /** Sector State */
+            sector_state: string[];
+            /** Sectors */
+            sectors: {
+                [key: string]: number;
+            };
+            /** Settings */
+            settings: {
+                [key: string]: number;
+            };
+            /** Site Id */
+            site_id: string;
+            /** Skyline Max Deg */
+            skyline_max_deg: number | null;
+            /** Skyline Min Deg */
+            skyline_min_deg: number | null;
+            /** Terrain Identity */
+            terrain_identity: {
+                [key: string]: unknown;
+            };
+        };
         /** Limits */
         Limits: {
             /** Max Queued */
@@ -306,6 +504,77 @@ export interface components {
             max_running: number;
             /** Run Timeout S */
             run_timeout_s: number;
+        };
+        /** MetricsResponse */
+        MetricsResponse: {
+            /** Availability Lower */
+            availability_lower: number;
+            /** Availability Upper */
+            availability_upper: number;
+            /** Exclusion Reasons */
+            exclusion_reasons: string[];
+            /** Gap S */
+            gap_s: number;
+            /** Hidden S */
+            hidden_s: number;
+            /** Known Time Fraction */
+            known_time_fraction: number | null;
+            /** Longest Known Hidden End */
+            longest_known_hidden_end: number | null;
+            /** Longest Known Hidden S */
+            longest_known_hidden_s: number;
+            /** Longest Known Hidden Start */
+            longest_known_hidden_start: number | null;
+            /** Margin Lower */
+            margin_lower: number;
+            /** Margin Upper */
+            margin_upper: number;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "PASS" | "FAIL" | "INDETERMINATE" | "EXCLUDED";
+            /** Threshold */
+            threshold: number;
+            /** Total S */
+            total_s: number;
+            /** Uncertified S */
+            uncertified_s: number;
+            /** Unknown S */
+            unknown_s: number;
+            /** Visible S */
+            visible_s: number;
+            /** Worst Case Not Visible S */
+            worst_case_not_visible_s: number;
+            /** Worst Case Touches Edge */
+            worst_case_touches_edge: boolean;
+        };
+        /** ResultsResponse */
+        ResultsResponse: {
+            /** Algorithm Id */
+            algorithm_id: string;
+            /** Coverage Fraction */
+            coverage_fraction: number;
+            /** Provenance Url */
+            provenance_url: string;
+            /** Result Id */
+            result_id: string;
+            /**
+             * Result State
+             * @enum {string}
+             */
+            result_state: "synthetic_demonstration" | "real_data_unverified" | "validated";
+            /** Run Id */
+            run_id: string;
+            /** Sites */
+            sites: components["schemas"]["SiteResultsResponse"][];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "complete" | "complete_with_warnings" | "failed";
+            /** Warnings */
+            warnings: string[];
         };
         /** RunError */
         RunError: {
@@ -347,6 +616,69 @@ export interface components {
             status: "queued" | "running" | "complete" | "complete_with_warnings" | "failed";
             /** Status Url */
             status_url?: string | null;
+        };
+        /** SiteResultsResponse */
+        SiteResultsResponse: {
+            /**
+             * Result State
+             * @enum {string}
+             */
+            result_state: "synthetic_demonstration" | "real_data_unverified" | "validated";
+            /** Sensitivity */
+            sensitivity: {
+                [key: string]: unknown;
+            }[];
+            /** Site Id */
+            site_id: string;
+            /**
+             * Site Status
+             * @enum {string}
+             */
+            site_status: "PASS" | "FAIL_SUN" | "FAIL_EARTH" | "FAIL_BOTH" | "INDETERMINATE" | "UNKNOWN_COVERAGE";
+            /** Target Metrics */
+            target_metrics: {
+                [key: string]: components["schemas"]["TargetResults"];
+            };
+            /** Validity */
+            validity: string;
+            /** Warnings */
+            warnings: string[];
+        };
+        /** SitesResponse */
+        SitesResponse: {
+            /** Note */
+            note: string;
+            /** Sites */
+            sites: components["schemas"]["CatalogSiteResponse"][];
+        };
+        /** SkySeries */
+        SkySeries: {
+            /** Az Deg */
+            az_deg: (number | null)[];
+            /** El Deg */
+            el_deg: (number | null)[];
+            /** Step S */
+            step_s: number;
+        };
+        /** TargetHorizonResult */
+        TargetHorizonResult: {
+            clearance_at_nodes: components["schemas"]["ClearanceAtNodes"] | null;
+            countdown_at_start: components["schemas"]["CountdownBody"];
+            /** Events */
+            events?: components["schemas"]["EventRow"][] | null;
+            /** Intervals */
+            intervals?: {
+                [key: string]: unknown;
+            }[] | null;
+            metrics: components["schemas"]["MetricsResponse"];
+        };
+        /** TargetResults */
+        TargetResults: {
+            /** Explanations */
+            explanations?: components["schemas"]["Explanation"][] | null;
+            flat?: components["schemas"]["TargetHorizonResult"] | null;
+            series?: components["schemas"]["SkySeries"] | null;
+            terrain?: components["schemas"]["TargetHorizonResult"] | null;
         };
         /** ValidationCardResponse */
         ValidationCardResponse: {
@@ -518,9 +850,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["CountdownResponse"];
                 };
             };
             /** @description Validation Error */
@@ -585,9 +915,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["HorizonResponse"];
                 };
             };
             /** @description Validation Error */
@@ -655,9 +983,25 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["ResultsResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             /** @description Validation Error */
@@ -799,9 +1143,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SitesResponse"];
                 };
             };
         };
