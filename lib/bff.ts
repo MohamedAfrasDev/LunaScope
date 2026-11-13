@@ -37,6 +37,7 @@ const ROUTES: RouteDef[] = [
   { method: "GET", re: /^sites$/, upstream: () => "sites" },
   { method: "POST", re: /^sites\/custom$/, upstream: () => "sites/custom", maxBodyBytes: 4096 },
   { method: "POST", re: /^analyses$/, upstream: () => "analyses", maxBodyBytes: 64 * 1024 },
+  { method: "POST", re: /^comparisons$/, upstream: () => "comparisons", maxBodyBytes: 4096, timeoutMs: 20_000 },
   { method: "GET", re: new RegExp(`^analyses/(${RUN})$`), upstream: (m) => `analyses/${m[1]}` },
   {
     method: "GET",

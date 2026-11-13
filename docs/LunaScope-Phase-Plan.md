@@ -143,7 +143,7 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] `geometry_timing_bound_s` attached to every event with a `near_tangent` flag when the clearance rate is undefined or tiny (pipeline)
 - [ ] Contact events (touch without crossing) via derivative-sign analysis
 - [ ] Explanation facts and fixed templates (blocked, visible-over-depressed-skyline, unresolved, …)
-- [ ] Comparison service: held/changed fields, deltas, alignment modes
+- [x] Comparison service ([compare.py](../science/lunascope/compare.py), `POST /comparisons`): sites within a run, and two runs with explicit `elapsed` / `calendar` alignment, compatibility check with reasons, held and changed fields, deltas, changed intervals, typed facts (terrain changes outcome, outcomes same/differ, equal availability with different outage, unresolved time matters); no winner, rank or score anywhere
 - [~] Validation: geometry-agreement card data (SPICE vs Horizons) and holdout are produced per run; terrain-horizon and convergence cards are not yet formal services
 
 ### 1.8 Run lifecycle and thin application
@@ -192,14 +192,14 @@ Priority order: validity → relevance → core experience.
 - [ ] **Run summary** — status matrix, excluded group, progress (FR-03)
 - [x] **Local Sky**: polar (north up) and unrolled views, terrain skyline hatched, flat 0 deg horizon, Sun and Earth tracks styled by the service's classification, scrubber, event jumps, countdown, text alternative and table ([SkyView.tsx](../components/SkyView.tsx), [SkyPlots.tsx](../components/SkyPlots.tsx)); static SVG, no canvas layer
 - [ ] **Timeline** — aligned Sun/Earth bands, threshold line, interval table, longest outage (FR-07)
-- [ ] **Compare** — status matrix, paired timelines, held/changed fields, no winner (FR-08)
+- [x] **Compare** (`/runs/{id}/compare`): site selector (at least two, recomputed server-side), held-constant list, changed sites, typed facts by fixed templates, per-target table with the flat horizon labelled as comparison, paired timelines (one row per site, one shared axis) with tables ([CompareView.tsx](../components/CompareView.tsx)); comparing two runs has no page yet
 - [ ] **Time Machine** — 5-day shift, linked variant, deltas, alignment mode (FR-10)
 - [ ] **Evidence** — provenance, three validation cards, export (FR-09, FR-13)
 - [ ] Home — one button starts the reference mission
 
 ### 2.3 Cross-cutting
 - [~] Countdown rules: the Local Sky countdown is asked from the service at the cursor time (`GET /countdown`), covering at-event, mission-end, no-event, unknown and decision-band cases; the terrain-variant range (sensitivity) is not shown yet
-- [ ] Alignment modes labelled "Elapsed time" vs "Calendar (shared UTC)" (S-5)
+- [~] Alignment modes: the service names them `elapsed` and `calendar` with an explanatory note and refuses non-overlapping calendar windows; the labelled UI control comes with the Time Machine page
 - [ ] Evidence bundle export (JSON) with frozen validation snapshot; investigative vs verified designation
 - [~] Keyboard-complete core flow; chart text alternatives and table views; pass/fail not by colour alone: icon+word on every state, SVG has title/desc and a table per band, focus rings, skip link, reduced-motion rule; manual keyboard pass and axe checks not done (AC-15)
 - [ ] Playwright core-flow test + axe checks

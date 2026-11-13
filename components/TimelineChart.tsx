@@ -9,6 +9,8 @@ export interface Band {
   intervals: IntervalRow[];
   events: EventRow[];
   summary: string; // text alternative, built from server-decided values
+  label?: string; // row label when rows are not target/horizon (e.g. one row per site)
+  sub?: string;
 }
 
 const W = 1000;
@@ -82,11 +84,11 @@ export function TimelineChart({ bands, title }: { bands: Band[]; title: string }
       {bands.map((b, row) => {
         const y = TOP + row * (BAND + GAP);
         return (
-          <g key={`${b.target}-${b.horizon}`}>
+          <g key={`${b.label ?? ""}-${b.target}-${b.horizon}`}>
             <text x={0} y={y + BAND / 2 + 4} fontSize="13" style={{ fill: "var(--foreground)" }}>
-              {targetLabel(b.target)}
+              {b.label ?? targetLabel(b.target)}
               <tspan x={0} dy="14" fontSize="11" style={{ fill: "var(--muted)" }}>
-                {b.horizon === "terrain" ? "terrain-aware" : "flat horizon"}
+                {b.sub ?? (b.horizon === "terrain" ? "terrain-aware" : "flat horizon")}
               </tspan>
             </text>
             {b.intervals.map((i) => (
@@ -125,7 +127,7 @@ export function IntervalTable({ band }: { band: Band }) {
   return (
     <details className="rounded border border-border">
       <summary className="cursor-pointer px-3 py-2 text-sm font-medium">
-        {targetLabel(band.target)}, {band.horizon === "terrain" ? "terrain-aware" : "flat horizon"}: view as table ({band.intervals.length} intervals)
+        {band.label ?? targetLabel(band.target)}, {band.sub ?? (band.horizon === "terrain" ? "terrain-aware" : "flat horizon")}: view as table ({band.intervals.length} intervals)
       </summary>
       <div className="overflow-x-auto px-3 pb-3">
         <table className="w-full min-w-[34rem] text-left text-sm">

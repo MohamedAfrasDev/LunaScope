@@ -25,10 +25,12 @@ from .api_models import (
     MAX_BODY_BYTES,
     CustomSite,
     load_catalog,
+    parse_comparison,
     parse_request,
 )
 from .canonical import canonical_bytes
 from .codes import IntervalClass, ResultState
+from .compare import INCOMPATIBLE_RUNS, compare_runs, compare_sites
 from .countdown import countdown as compute_countdown
 from .dem import MANIFESTS, REPO, footprint_coverage
 from .errors import INVALID_INPUT, LunaScopeError
@@ -42,7 +44,7 @@ EXPORT_BLOCKED_UNVERIFIED = "EXPORT_BLOCKED_UNVERIFIED"
 REPLAY_ONLY = "REPLAY_ONLY"
 NOT_READY = "NOT_READY"
 RUN_ID = re.compile(r"^[0-9a-f]{64}$")
-HTTP = {INVALID_INPUT: 422, NOT_FOUND: 404, QUEUE_FULL: 503, NOT_READY: 409,
+HTTP = {INCOMPATIBLE_RUNS: 422, INVALID_INPUT: 422, NOT_FOUND: 404, QUEUE_FULL: 503, NOT_READY: 409,
         EXPORT_BLOCKED_UNVERIFIED: 409, REPLAY_ONLY: 409, "GEOMETRY_PROVIDER_UNAVAILABLE": 502,
         "RESOURCE_INTEGRITY_FAILED": 500}
 
@@ -274,6 +276,14 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
                 "geometry": {t: {k: v for k, v in g.items() if k not in ("series",)}
                              for t, g in s["geometry"].items()},
                 "warnings": s["warnings"], "caveats": s["caveats"]} for s in a["sites"]]}
+
+    @app.post("/api/v1/comparisons")
+    async def comparisons(request: Request) -> dict:
+        req = parse_comparison(await request.body())
+        analyses = [_ready(r) for r in req.runs]
+        if len(analyses) == 1:
+            return compare_sites(analyses[0], req.sites)
+        return compare_runs(analyses[0], analyses[1], req.sites, req.alignment)
 
     @app.get("/api/v1/analyses/{run_id}/countdown")
     def countdown(run_id: str, site: str, target: str, t: float, horizon: str = "terrain") -> dict:

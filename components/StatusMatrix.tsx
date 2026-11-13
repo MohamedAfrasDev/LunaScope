@@ -29,6 +29,13 @@ function Cell({ c, decides }: { c: MatrixCell; decides: boolean }) {
 export function StatusMatrix({ runId, rows }: { runId: string; rows: MatrixRow[] }) {
   return (
     <div className="overflow-x-auto">
+      {rows.length >= 2 && (
+        <p className="mb-3 text-sm">
+          <Link href={`/runs/${runId}/compare`} className="font-medium text-accent underline underline-offset-4">
+            Compare these sites side by side
+          </Link>
+        </p>
+      )}
       <table className="w-full min-w-[46rem] border-collapse text-left">
         <caption className="mb-2 text-left text-sm text-muted">
           Availability is shown as a lower to upper bound: the lower bound counts only certified visible time,

@@ -30,6 +30,7 @@ LUNASCOPE_STACK=live      .venv/Scripts/python -m uvicorn lunascope.main:create_
 | `GET /analyses/{run_id}/provenance` | Resources, settings, observers, horizon identity, geometry hashes and checks, caveats |
 | `GET /analyses/{run_id}/horizon/{site_id}` | Skyline profile |
 | `GET /analyses/{run_id}/countdown?site=&target=&horizon=&t=` | Server-decided countdown at a cursor time `t` (seconds from the window start): next set or rise with its solver bracket, `in_decision_band`, `unknown`, `no_event` or `mission_end`. The browser only subtracts the cursor from the returned time |
+| `POST /comparisons` | Body `{runs: [id] or [idA, idB], sites?: [...], alignment?: "elapsed" or "calendar"}`. One run: compares its sites (at least two) on identical inputs. Two runs: checks they are variants of each other (`422 INCOMPATIBLE_RUNS` with reasons otherwise), lists held and changed fields, deltas and changed intervals under the chosen alignment. Facts are typed records; there is no winner, rank or score |
 | `GET /analyses/{run_id}/export` | Investigative bundle + `X-Content-SHA256`; `?verified=true` is refused (`409 EXPORT_BLOCKED_UNVERIFIED`) |
 
 Not built yet: variants, comparisons, facts, share links.

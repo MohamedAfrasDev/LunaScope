@@ -227,3 +227,55 @@ def test_countdown_endpoint_is_server_decided_and_bounded(svc):
         r = c.get(cd, params={**q, **bad})
         assert r.status_code == 422, bad
     assert c.get(cd, params={**q, "site": "nope", "t": 0}).status_code == 404
+
+
+def compare(c, body):
+    return c.post("/api/v1/comparisons", content=json.dumps(body))
+
+
+def test_comparing_sites_within_a_run_is_server_side_with_typed_facts_and_no_winner(svc):
+    c, first, _ = svc
+    rid = first.json()["run_id"]
+    r = compare(c, {"runs": [rid]})
+    assert r.status_code == 200
+    j = r.json()
+    assert j["mode"] == "sites_in_run" and j["compatible"] is True and j["result_state"] == "synthetic_demonstration"
+    assert [s["site_id"] for s in j["targets"]["sun_center"]["sites"]] == ["rule-89.5S-E0", "rule-89.5S-E120"]
+    assert {h["field"] for h in j["held_constant"]} >= {"mission.start_utc", "terrain.radius_km", "algorithm_id"}
+    assert j["verified"] is False and j["validated_scopes"] == []
+    assert any(f["fact"] in ("outcomes_same", "outcomes_differ") for f in j["facts"])
+    for word in ("winner", "score", "rank"):
+        assert word not in r.text.lower()
+
+
+def test_comparison_input_errors(svc):
+    c, first, _ = svc
+    rid = first.json()["run_id"]
+    assert compare(c, {"runs": [rid], "sites": ["rule-89.5S-E0"]}).status_code == 422  # one site is no comparison
+    assert compare(c, {"runs": [rid], "sites": ["nowhere", "rule-89.5S-E0"]}).status_code == 422
+    assert compare(c, {"runs": [rid, rid]}).status_code == 422
+    assert compare(c, {"runs": ["zz"]}).status_code == 422
+    assert compare(c, {"runs": [rid], "extra": 1}).status_code == 422
+    assert compare(c, {"runs": [rid], "alignment": "sideways"}).status_code == 422
+    assert compare(c, {"runs": ["0" * 64]}).status_code == 404
+    assert c.post("/api/v1/comparisons", content=" " * 5000).status_code == 422
+
+
+def test_comparing_a_date_shift_shows_changed_and_held_fields_and_both_alignments(svc):
+    c, first, _ = svc
+    a = first.json()["run_id"]
+    shifted = json.loads(json.dumps(BODY))
+    shifted["mission"]["start_utc"] = "2027-01-11T00:00:00Z"
+    b = post(c, shifted).json()["run_id"]
+    wait(c, b)
+    el = compare(c, {"runs": [a, b], "alignment": "elapsed"}).json()
+    assert [x["field"] for x in el["changed"]] == ["mission.start_utc"]
+    assert el["alignment"] == "elapsed" and el["shift_s"] == 86400 and el["overlap"] is None
+    sun = el["sites"][0]["targets"]["sun_center"]
+    assert sun["delta"]["availability_lower"] == 0  # the synthetic track depends on elapsed time only
+    cal = compare(c, {"runs": [a, b], "alignment": "calendar"}).json()
+    assert cal["alignment"] == "calendar" and cal["overlap"]["duration_s"] == 86400
+    assert cal["overlap"]["start_utc"] == "2027-01-11T00:00:00Z" and "never counted" in cal["note"]
+    assert cal["sites"][0]["targets"]["sun_center"]["a"]["window_s"] == 86400
+    reverse = compare(c, {"runs": [b, a], "alignment": "calendar"}).json()
+    assert reverse["shift_s"] == -86400 and reverse["overlap"]["start_utc"] == "2027-01-11T00:00:00Z"

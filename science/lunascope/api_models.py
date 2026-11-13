@@ -128,6 +128,30 @@ class AnalysisRequest(_Strict):
         return self
 
 
+class ComparisonRequest(_Strict):
+    runs: list[str] = Field(min_length=1, max_length=2)
+    sites: list[str] | None = Field(default=None, max_length=6)
+    alignment: Literal["elapsed", "calendar"] = "elapsed"
+
+    @field_validator("runs")
+    @classmethod
+    def _ids(cls, v: list[str]) -> list[str]:
+        import re
+        if any(not re.fullmatch(r"[0-9a-f]{64}", x) for x in v):
+            raise ValueError("run ids are 64 lowercase hex characters")
+        if len(v) == 2 and v[0] == v[1]:
+            raise ValueError("compare two different runs, or one run with several sites")
+        return v
+
+    @field_validator("sites")
+    @classmethod
+    def _site_ids(cls, v: list[str] | None) -> list[str] | None:
+        import re
+        if v is not None and any(not re.fullmatch(r"[A-Za-z0-9._-]{1,64}", x) for x in v):
+            raise ValueError("site ids use letters, digits, '.', '_' and '-'")
+        return v
+
+
 # ----------------------------------------------------------------------------- parsing
 def load_catalog() -> dict:
     return json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
@@ -142,6 +166,16 @@ def parse_request(body: bytes) -> AnalysisRequest:
         err = e.errors()[0]
         field = ".".join(str(p) for p in err["loc"])
         raise LunaScopeError(INVALID_INPUT, err["msg"], field=field or None) from e
+
+
+def parse_comparison(body: bytes) -> ComparisonRequest:
+    if len(body) > 4096:
+        raise LunaScopeError(INVALID_INPUT, "request body exceeds 4096 bytes")
+    try:
+        return ComparisonRequest.model_validate_json(body)
+    except ValidationError as e:
+        err = e.errors()[0]
+        raise LunaScopeError(INVALID_INPUT, err["msg"], field=".".join(str(p) for p in err["loc"]) or None) from e
 
 
 def resolve_sites(req: AnalysisRequest) -> list[SiteSpec]:

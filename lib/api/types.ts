@@ -232,3 +232,47 @@ export interface AnalysisRequestBody {
   sites: ({ site_id: string } | { custom: Record<string, unknown> })[];
   options: { sensitivity: boolean };
 }
+
+/** POST /comparisons for several sites of one run. Facts are typed records, rendered by fixed templates. */
+export interface CompareRow {
+  outcome: Outcome;
+  availability_lower: number;
+  availability_upper: number;
+  margin_lower: number;
+  margin_upper: number;
+  longest_known_hidden_s: number;
+  worst_case_not_visible_s: number;
+  events: number;
+  exclusion_reasons: string[];
+}
+
+export type CompareFact =
+  | { fact: "terrain_changes_outcome"; site_id: string; target: Target; flat_outcome: Outcome; terrain_outcome: Outcome;
+      flat_availability_lower: number; terrain_availability_lower: number }
+  | { fact: "outcomes_differ" | "outcomes_same"; target: Target; outcomes: Record<string, Outcome> }
+  | { fact: "equal_availability_different_outage"; target: Target; sites: [string, string];
+      availability_lower: [number, number]; longest_known_hidden_s: [number, number] }
+  | { fact: "unresolved_time_matters"; target: Target; sites: string[] };
+
+export interface ComparisonResponse {
+  mode: "sites_in_run";
+  run_id: string;
+  result_state: ResultState;
+  compatible: boolean;
+  alignment: string;
+  held_constant: { field: string; value: string | number }[];
+  changed: { field: string; values: { site_id: string; lat_deg: number; lon_east_deg: number; ground_height_m: number }[] }[];
+  site_status: Record<string, SiteStatus>;
+  targets: Record<
+    Target,
+    {
+      sites: ({ site_id: string } & Record<HorizonKind, CompareRow>)[];
+      spread: { availability_lower_min: number; availability_lower_max: number; availability_lower_range: number };
+    }
+  >;
+  facts: CompareFact[];
+  caveats: string[];
+  warnings: string[];
+  validated_scopes: string[];
+  verified: boolean;
+}
