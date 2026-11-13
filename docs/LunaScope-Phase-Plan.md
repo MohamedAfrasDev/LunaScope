@@ -140,11 +140,11 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] Per-target outcome (`PASS`/`FAIL`/`INDETERMINATE`/`EXCLUDED`) and site summary ([requirements.py](../science/lunascope/requirements.py))
 - [x] Glue: `TerrainClearanceModel` from the interpolated geometry + horizon profile, or the flat horizon for the geometric-only comparison ([clearance.py](../science/lunascope/clearance.py))
 - [x] Whole-interval Lipschitz bound from Hermite coefficients and every horizon bin crossed; `monotone` only granted inside one linear skyline piece
-- [~] `geometry_timing_bound_s` helper done (returns no claim near a tangent); not yet attached to events, `near_tangent` flag not set
+- [x] `geometry_timing_bound_s` attached to every event with a `near_tangent` flag when the clearance rate is undefined or tiny (pipeline)
 - [ ] Contact events (touch without crossing) via derivative-sign analysis
 - [ ] Explanation facts and fixed templates (blocked, visible-over-depressed-skyline, unresolved, …)
 - [ ] Comparison service: held/changed fields, deltas, alignment modes
-- [ ] Validation service and three evidence cards (geometry / terrain / interval-decision)
+- [~] Validation: geometry-agreement card data (SPICE vs Horizons) and holdout are produced per run; terrain-horizon and convergence cards are not yet formal services
 
 ### 1.8 Run lifecycle and thin application
 - [ ] Atomic admit-or-attach on `run_id`; `202` returned before any external work
@@ -160,12 +160,16 @@ Ends only when **one real site** passes through the approved geometry provider, 
 ### 1.9 Measure
 - [ ] Record stage timings vs budgets in `docs/perf.md`
 
+### First real run
+
+- [x] `RUN-001` (13 Nov): three rule-chosen sites x 7 days, live Horizons + LOLA 20 m + SPICE, sensitivity variants. At all three sites flat-horizon Sun availability is 100% (PASS) and terrain-aware 0% (FAIL), with the Sun at best 2.5 to 22.7 degrees below the skyline. State `real_data_unverified`. See [the run record](runs/RUN-001-first-real-run.md).
+
 ### Gate 1 checklist
-- [ ] One real site: Horizons geometry + SPICE residual within tolerance
-- [ ] One pinned DEM horizon with complete manifest
-- [ ] Shared event list drives durations, outages and countdown
+- [x] Real sites: Horizons geometry + SPICE residual within tolerance (3 sites x 2 targets, 1,009 samples each; max 0.0017 arcsec) — [RUN-001](runs/RUN-001-first-real-run.md)
+- [x] Pinned DEM horizon with manifest (SHA-256, CRS, sphere, units, registration, terms); readiness `integrity_verified`, not scientifically approved
+- [x] Shared event list drives durations, outages and countdown (`countdown.py` consumes the same intervals and events)
 - [ ] End-to-end run through the thin UI
-- [ ] Evidence export includes request, raw-response hashes, manifests, intervals, events
+- [~] Evidence bundle (canonical JSON) includes request, settings, resource pins, raw-response hashes, horizon profile, angle series, intervals, events, metrics, sensitivity; no export endpoint or UI yet
 
 ---
 
@@ -257,7 +261,7 @@ Only after Gate 2.
 | 7 | Far obstacle / unsupported sector | `[x]` | `test_horizon.py` |
 | 8 | Narrow ridge, finer az/radius | `[~]` synthetic only; real DEM pending | `test_horizon.py` |
 | 9 | Two crossings; tangent = contact | `[~]` double crossing and tangent→uncertified done; contact reporting pending | `test_events.py` |
-| 10 | Cursor at event / mission end | `[ ]` needs countdown | — |
+| 10 | Cursor at event / mission end | `[x]` | `test_countdown.py` |
 | 11 | Equal availability, different longest outage | `[~]` metric difference done; explanation text pending | `test_requirements.py` |
 | 12 | Wrong unit/direction/height fails | `[~]` checked by hand-mutation; no committed test yet | — |
 | 13 | Corrupted horizon fails readiness | `[ ]` | — |

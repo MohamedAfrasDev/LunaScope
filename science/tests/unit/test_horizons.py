@@ -327,3 +327,14 @@ def test_never_more_than_one_request_in_flight_across_clients(tmp_path):
     [t.start() for t in ts]
     [t.join() for t in ts]
     assert srv.calls == 8 and srv.max_in_flight == 1
+
+
+def test_echo_rounding_is_tolerated_but_a_real_offset_is_not():
+    # real Horizons printed "-1.71201" for a requested -1.7120080313: rounding, not a mismatch
+    j = json.loads(raw("sun_pole_sample"))
+    text = j["result"].replace("0.0, -89.5, 0.0 ", "0.0, -89.50000, 0.00000")
+    j["result"] = text
+    assert len(parse("sun_pole_sample", "sun_center", text=json.dumps(j).encode())) == 7
+    off = j["result"].replace("0.0, -89.50000, 0.00000", "0.0, -89.50100, 0.00000")
+    j["result"] = off
+    assert codes(lambda: parse("sun_pole_sample", "sun_center", text=json.dumps(j).encode()))         == OBSERVER_MISMATCH

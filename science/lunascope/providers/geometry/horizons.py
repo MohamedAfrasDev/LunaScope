@@ -152,7 +152,9 @@ def _check_observer_echo(facts: dict, obs: CanonicalObserver) -> None:
     lon, lat, alt = geod
     dlon = (lon - obs.lon_deg_east + 180.0) % 360.0 - 180.0
     want_alt = (obs.ground_height_m + obs.observer_height_above_ground_m) / 1000.0
-    if abs(dlon) > 1e-6 or abs(lat - obs.lat_deg) > 1e-6 or abs(alt - want_alt) > 1e-6:
+    # Horizons prints the echo rounded (about 5 decimals: lon/lat 1e-5 deg ~ 0.3 m, altitude 1e-5 km
+    # = 1 cm), so the tolerance is the print precision, not float precision.
+    if abs(dlon) > 1.5e-5 or abs(lat - obs.lat_deg) > 1.5e-5 or abs(alt - want_alt) > 1.5e-5:
         fail(f"echoed site {geod} differs from requested "
              f"({obs.lon_deg_east}, {obs.lat_deg}, {want_alt})")
     echoed_r = math.hypot(cyl[1], cyl[2])

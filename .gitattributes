@@ -1,3 +1,4 @@
 # Recorded provider responses are hashed byte-for-byte: never normalise line endings.
 science/tests/fixtures/** -text
 data/manifests/*.json text eol=lf
+docs/runs/bundles/** -text

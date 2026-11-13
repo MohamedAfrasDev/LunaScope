@@ -31,6 +31,16 @@ class TerrainClearanceModel:
         h = 0.0 if self.profile is None else float(self.profile.lookup(az))
         return el - h - self.margin  # NaN when the skyline there is unknown
 
+    def rate(self, t: float) -> float | None:
+        """Analytic dd/dt (deg/s), or None when the skyline slope is not defined (a knot, or an
+        uncertified bin): callers must then claim no timing bound."""
+        az_r, el_r = self.spline.rates(t)
+        if self.profile is None:
+            return el_r
+        az = self.spline.az_el(t)[0]
+        slope = self.profile.single_piece_slope(az, az)
+        return None if slope is None else el_r - slope * az_r
+
     # -- bounds -----------------------------------------------------------------------------
     def _az_range(self, a: float, b: float, mb) -> tuple[float, float]:
         mid = (a + b) / 2
