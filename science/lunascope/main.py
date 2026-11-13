@@ -42,6 +42,7 @@ from .logs import configure_logging, log_event
 from .observer import build_observer
 from .registry import check_all
 from .registry import summary as registry_summary
+from .responses import ErrorEnvelope, HealthResponse, RunSummaryResponse, ValidationResponse
 from .stacks import ServiceConfig, analysis_identity
 from .store import NOT_FOUND, QUEUE_FULL, RunStore
 
@@ -121,7 +122,7 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
                             headers=headers)
 
     # ------------------------------------------------------------------ meta
-    @app.get("/api/v1/health")
+    @app.get("/api/v1/health", response_model=HealthResponse)
     def health() -> dict:
         return {
             "status": "ok", "mode": cfg.mode, "stack": cfg.stack_kind,
@@ -185,7 +186,9 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
                 "dem_coverage_150km": footprint_coverage(o, 150.0)}
 
     # ------------------------------------------------------------------ analyses
-    @app.post("/api/v1/analyses")
+    @app.post("/api/v1/analyses", response_model=RunSummaryResponse, status_code=202,
+              responses={200: {"model": RunSummaryResponse}, 422: {"model": ErrorEnvelope},
+                         503: {"model": ErrorEnvelope}})
     async def create_analysis(request: Request) -> Response:
         req = parse_request(await request.body())
         ident = analysis_identity(req, cfg)
@@ -327,7 +330,8 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
                 return {"site_id": site_id, "result_state": s["result_state"], **s["horizon"]}
         raise LunaScopeError(NOT_FOUND, f"no site {site_id!r} in this run")
 
-    @app.get("/api/v1/analyses/{run_id}/validation")
+    @app.get("/api/v1/analyses/{run_id}/validation", response_model=ValidationResponse,
+             responses={404: {"model": ErrorEnvelope}, 409: {"model": ErrorEnvelope}})
     def validation(run_id: str) -> dict:
         return run_cards(_ready(run_id))
 

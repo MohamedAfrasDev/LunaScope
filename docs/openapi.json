@@ -1,6 +1,67 @@
 {
  "components": {
   "schemas": {
+   "ErrorDetail": {
+    "additionalProperties": false,
+    "properties": {
+     "code": {
+      "title": "Code",
+      "type": "string"
+     },
+     "correlation_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Correlation Id"
+     },
+     "field": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Field"
+     },
+     "message": {
+      "title": "Message",
+      "type": "string"
+     },
+     "retryable": {
+      "title": "Retryable",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "code",
+     "message",
+     "field",
+     "retryable",
+     "correlation_id"
+    ],
+    "title": "ErrorDetail",
+    "type": "object"
+   },
+   "ErrorEnvelope": {
+    "additionalProperties": false,
+    "properties": {
+     "error": {
+      "$ref": "#/components/schemas/ErrorDetail"
+     }
+    },
+    "required": [
+     "error"
+    ],
+    "title": "ErrorEnvelope",
+    "type": "object"
+   },
    "HTTPValidationError": {
     "properties": {
      "detail": {
@@ -12,6 +73,363 @@
      }
     },
     "title": "HTTPValidationError",
+    "type": "object"
+   },
+   "HealthResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "algorithm_id": {
+      "title": "Algorithm Id",
+      "type": "string"
+     },
+     "checked": {
+      "title": "Checked",
+      "type": "integer"
+     },
+     "failing": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Failing",
+      "type": "array"
+     },
+     "limits": {
+      "$ref": "#/components/schemas/Limits"
+     },
+     "mode": {
+      "enum": [
+       "live",
+       "replay"
+      ],
+      "title": "Mode",
+      "type": "string"
+     },
+     "queue": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Queue",
+      "type": "object"
+     },
+     "recovered_on_start": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Recovered On Start",
+      "type": "object"
+     },
+     "resources_approved": {
+      "title": "Resources Approved",
+      "type": "boolean"
+     },
+     "resources_ok": {
+      "title": "Resources Ok",
+      "type": "boolean"
+     },
+     "result_state": {
+      "enum": [
+       "synthetic_demonstration",
+       "real_data_unverified",
+       "validated"
+      ],
+      "title": "Result State",
+      "type": "string"
+     },
+     "running": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Running",
+      "type": "array"
+     },
+     "stack": {
+      "enum": [
+       "synthetic",
+       "live"
+      ],
+      "title": "Stack",
+      "type": "string"
+     },
+     "status": {
+      "title": "Status",
+      "type": "string"
+     },
+     "uptime_s": {
+      "title": "Uptime S",
+      "type": "number"
+     }
+    },
+    "required": [
+     "status",
+     "mode",
+     "stack",
+     "algorithm_id",
+     "result_state",
+     "resources_ok",
+     "checked",
+     "failing",
+     "resources_approved",
+     "queue",
+     "running",
+     "limits",
+     "recovered_on_start",
+     "uptime_s"
+    ],
+    "title": "HealthResponse",
+    "type": "object"
+   },
+   "Limits": {
+    "additionalProperties": false,
+    "properties": {
+     "max_queued": {
+      "title": "Max Queued",
+      "type": "integer"
+     },
+     "max_running": {
+      "title": "Max Running",
+      "type": "integer"
+     },
+     "run_timeout_s": {
+      "title": "Run Timeout S",
+      "type": "number"
+     }
+    },
+    "required": [
+     "max_running",
+     "max_queued",
+     "run_timeout_s"
+    ],
+    "title": "Limits",
+    "type": "object"
+   },
+   "RunError": {
+    "additionalProperties": false,
+    "properties": {
+     "code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Code"
+     },
+     "message": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Message"
+     }
+    },
+    "required": [
+     "code",
+     "message"
+    ],
+    "title": "RunError",
+    "type": "object"
+   },
+   "RunSummaryResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "algorithm_id": {
+      "title": "Algorithm Id",
+      "type": "string"
+     },
+     "attached": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Attached"
+     },
+     "attempt": {
+      "title": "Attempt",
+      "type": "integer"
+     },
+     "created_utc": {
+      "title": "Created Utc",
+      "type": "string"
+     },
+     "error": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/RunError"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "finished_utc": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Finished Utc"
+     },
+     "progress": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Progress"
+     },
+     "result_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Result Id"
+     },
+     "result_state": {
+      "enum": [
+       "synthetic_demonstration",
+       "real_data_unverified",
+       "validated"
+      ],
+      "title": "Result State",
+      "type": "string"
+     },
+     "run_id": {
+      "title": "Run Id",
+      "type": "string"
+     },
+     "stage": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stage"
+     },
+     "status": {
+      "enum": [
+       "queued",
+       "running",
+       "complete",
+       "complete_with_warnings",
+       "failed"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "status_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Status Url"
+     }
+    },
+    "required": [
+     "run_id",
+     "result_id",
+     "status",
+     "stage",
+     "progress",
+     "result_state",
+     "attempt",
+     "created_utc",
+     "finished_utc",
+     "algorithm_id"
+    ],
+    "title": "RunSummaryResponse",
+    "type": "object"
+   },
+   "ValidationCardResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "facts": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Facts",
+      "type": "array"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "scope": {
+      "title": "Scope",
+      "type": "string"
+     },
+     "site_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Site Id"
+     },
+     "status": {
+      "enum": [
+       "met",
+       "not_met",
+       "not_evaluated"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "target": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Target"
+     },
+     "title": {
+      "title": "Title",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "title",
+     "status",
+     "site_id",
+     "target",
+     "facts",
+     "scope"
+    ],
+    "title": "ValidationCardResponse",
     "type": "object"
    },
    "ValidationError": {
@@ -53,6 +471,79 @@
     ],
     "title": "ValidationError",
     "type": "object"
+   },
+   "ValidationResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "cards": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationCardResponse"
+      },
+      "title": "Cards",
+      "type": "array"
+     },
+     "note": {
+      "title": "Note",
+      "type": "string"
+     },
+     "result_state": {
+      "enum": [
+       "synthetic_demonstration",
+       "real_data_unverified",
+       "validated"
+      ],
+      "title": "Result State",
+      "type": "string"
+     },
+     "run_id": {
+      "title": "Run Id",
+      "type": "string"
+     },
+     "scopes_closed": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Scopes Closed",
+      "type": "array"
+     },
+     "summary": {
+      "$ref": "#/components/schemas/ValidationSummary"
+     }
+    },
+    "required": [
+     "run_id",
+     "result_state",
+     "cards",
+     "scopes_closed",
+     "summary",
+     "note"
+    ],
+    "title": "ValidationResponse",
+    "type": "object"
+   },
+   "ValidationSummary": {
+    "additionalProperties": false,
+    "properties": {
+     "met": {
+      "title": "Met",
+      "type": "integer"
+     },
+     "not_evaluated": {
+      "title": "Not Evaluated",
+      "type": "integer"
+     },
+     "not_met": {
+      "title": "Not Met",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "met",
+     "not_met",
+     "not_evaluated"
+    ],
+    "title": "ValidationSummary",
+    "type": "object"
    }
   }
  },
@@ -69,10 +560,42 @@
      "200": {
       "content": {
        "application/json": {
-        "schema": {}
+        "schema": {
+         "$ref": "#/components/schemas/RunSummaryResponse"
+        }
+       }
+      },
+      "description": "OK"
+     },
+     "202": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RunSummaryResponse"
+        }
        }
       },
       "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Unprocessable Content"
+     },
+     "503": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Service Unavailable"
      }
     },
     "summary": "Create Analysis"
@@ -438,13 +961,31 @@
       "content": {
        "application/json": {
         "schema": {
-         "additionalProperties": true,
-         "title": "Response Validation Api V1 Analyses  Run Id  Validation Get",
-         "type": "object"
+         "$ref": "#/components/schemas/ValidationResponse"
         }
        }
       },
       "description": "Successful Response"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Conflict"
      },
      "422": {
       "content": {
@@ -488,9 +1029,7 @@
       "content": {
        "application/json": {
         "schema": {
-         "additionalProperties": true,
-         "title": "Response Health Api V1 Health Get",
-         "type": "object"
+         "$ref": "#/components/schemas/HealthResponse"
         }
        }
       },

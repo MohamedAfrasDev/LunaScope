@@ -90,7 +90,7 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] Resource registry with startup presence/size checks (`registry.py`, `/health` `resources_ok`, `/resources` per-file status) and a full-hash script; `resources_approved` stays false
 - [x] Fixture (synthetic) geometry provider, labeled demonstration (identity label, `DEMONSTRATION_DATA` flag and header; result state `synthetic_demonstration`)
 - [x] Structured JSON logging (run ID, stage, timing, warning codes; `LUNASCOPE_LOG=json`; no coordinates or tokens logged)
-- [~] OpenAPI: `docs/openapi.json` exported by `science/scripts/export_openapi.py`, with a test that fails when it is stale. TypeScript generation is NOT wired: responses are untyped plain JSON, so a generator would produce nothing useful until response models exist (and it needs a new npm dev dependency)
+- [~] OpenAPI -> TypeScript: response models for health, run admission/summary, validation cards and the error envelope (`responses.py`); `docs/openapi.json` (staleness test) -> `lib/api/generated.ts` via `npm run gen:api`, checked by `npm run check:api` inside `npm run verify`. Health, RunSummary and validation types in `lib/api/types.ts` now come from it. The other responses (results, provenance, countdown, comparison, horizon) are still untyped JSON with hand-written TS types. No CI service exists in this repo yet, so `npm run verify` is the gate to run
 
 ### 1.4 Observer and local frame
 - [x] Canonical observer with separate ground-height and mast-height terms

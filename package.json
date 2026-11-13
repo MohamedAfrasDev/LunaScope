@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "gen:api": "openapi-typescript docs/openapi.json -o lib/api/generated.ts",
+    "check:api": "node scripts/check-api-types.mjs",
+    "verify": "npm run check:api && npm run typecheck && npm run lint && npm test"
   },
   "dependencies": {
     "next": "16.4.6",
@@ -28,6 +31,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
     "jsdom": "^29.1.1",
+    "openapi-typescript": "^7.13.0",
     "tailwindcss": "4.3.3",
     "typescript": "^5",
     "vite": "^8.3.8",

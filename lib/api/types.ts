@@ -1,8 +1,11 @@
 /**
  * Hand-written subset of the science-service response shapes (docs/API.md).
- * TODO: generate from the service's OpenAPI schema once responses are Pydantic models.
+ * Health, RunSummary and the validation cards are generated from the service's OpenAPI schema
+ * (lib/api/generated.ts, `npm run gen:api`); the rest are still hand-written until they get models.
  * The browser displays these values; it never computes visibility, outages or comparisons.
  */
+
+import type { components } from "./generated";
 
 export type ResultState = "synthetic_demonstration" | "real_data_unverified" | "validated";
 export type Outcome = "PASS" | "FAIL" | "INDETERMINATE" | "EXCLUDED";
@@ -28,18 +31,7 @@ export interface ApiErrorBody {
   };
 }
 
-export interface Health {
-  status: string;
-  mode: "live" | "replay";
-  stack: "synthetic" | "live";
-  algorithm_id: string;
-  result_state: ResultState;
-  resources_ok: boolean;
-  resources_approved: boolean;
-  queue: Record<string, number>;
-  running: string[];
-  limits: { max_running: number; max_queued: number; run_timeout_s: number };
-}
+export type Health = components["schemas"]["HealthResponse"];
 
 export interface CatalogSite {
   site_id: string;
@@ -57,20 +49,7 @@ export interface SitesResponse {
   sites: CatalogSite[];
 }
 
-export interface RunSummary {
-  run_id: string;
-  result_id: string | null;
-  status: RunStatus;
-  stage: string | null;
-  progress: number | null;
-  result_state: ResultState;
-  attempt: number;
-  created_utc: string;
-  finished_utc: string | null;
-  algorithm_id: string;
-  attached?: boolean;
-  error?: { code: string; message: string };
-}
+export type RunSummary = components["schemas"]["RunSummaryResponse"];
 
 export interface MatrixCell {
   outcome: Outcome;
@@ -195,26 +174,9 @@ export interface ResultsResponse {
   sites: SiteResults[];
 }
 
-export type CardStatus = "met" | "not_met" | "not_evaluated";
-
-export interface ValidationCard {
-  id: string;
-  title: string;
-  status: CardStatus;
-  site_id: string | null;
-  target: string | null;
-  facts: string[];
-  scope: string;
-}
-
-export interface ValidationResponse {
-  run_id: string;
-  result_state: string;
-  cards: ValidationCard[];
-  scopes_closed: string[];
-  summary: Record<CardStatus, number>;
-  note: string;
-}
+export type ValidationCard = components["schemas"]["ValidationCardResponse"];
+export type CardStatus = ValidationCard["status"];
+export type ValidationResponse = components["schemas"]["ValidationResponse"];
 
 export interface ProvenanceResponse {
   run_id: string;
