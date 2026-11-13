@@ -36,6 +36,21 @@ yarn-error.log*
 # vercel
 .vercel
 
+# science service
+science/.venv/
+**/__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+data/raw/
+data/derived/
+var/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Playwright
+/test-results/
+/playwright-report/
+/.playwright-mcp/

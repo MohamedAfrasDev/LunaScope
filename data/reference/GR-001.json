@@ -1,0 +1,27 @@
+{
+  "reference_id": "GR-001",
+  "status": "draft",
+  "frozen": null,
+  "purpose": "The common scientific reference for integration tests, performance figures, screenshots, the live demo and exported evidence (product spec 6, implementation spec 14.2).",
+  "sites_status": "PLACEHOLDER. These are the RUN-001 rule points, not verified candidate sites. GR-001 cannot be frozen until the science owner chooses three sites with coordinate and terrain provenance (SDR-001 D-09).",
+  "selection_reasons": {
+    "mission.start_utc": "2027-01-10 00:00 UTC, the round date already used by the recorded fixtures and RUN-001, inside the kernel, Horizons and DEM coverage; fixed before looking at any result (S-11, D-08). Not chosen to contain or avoid an outage.",
+    "mission.duration_s": "seven days, the scenario length used throughout",
+    "requirements": "scenario values (Sun 60 %, Earth 50 %), not mission rules",
+    "terrain": "primary DEM release recommended in D-01, 150 km radius, 0.1 deg azimuth step (D-05), 2 m mast"
+  },
+  "request": {
+    "schema_version": "1",
+    "mission": {"start_utc": "2027-01-10T00:00:00Z", "duration_s": 604800, "step_s": 600},
+    "requirements": {"sun_min_availability": 0.6, "earth_min_availability": 0.5},
+    "terrain": {"dem_profile": "lola-80s-20m-adj", "radius_km": 150.0, "az_step_deg": 0.1,
+                "clearance_margin_deg": 0.0, "observer_height_m": 2.0},
+    "sites": [{"site_id": "rule-89.5S-E0"}, {"site_id": "rule-89.5S-E120"}, {"site_id": "rule-89.5S-E240"}],
+    "options": {"sensitivity": true}
+  },
+  "convergence": {
+    "cases": ["step_60s", "azimuth_0.5deg", "azimuth_0.25deg", "radius_100km", "radius_200km"],
+    "not_applicable": ["dem_near_field_on_off"]
+  },
+  "freeze_rule": "Once frozen, this file is never edited. Any change to provider settings, observer conventions, DEM identity, horizon parameters, event policy or algorithm version gives a new run_id and must become GR-002."
+}

@@ -1,0 +1,2687 @@
+{
+ "components": {
+  "schemas": {
+   "CatalogSiteResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "convention": {
+      "title": "Convention",
+      "type": "string"
+     },
+     "dem_coverage_150km": {
+      "$ref": "#/components/schemas/DemCoverage"
+     },
+     "kind": {
+      "title": "Kind",
+      "type": "string"
+     },
+     "label": {
+      "title": "Label",
+      "type": "string"
+     },
+     "lat_deg": {
+      "title": "Lat Deg",
+      "type": "number"
+     },
+     "lon_east_deg": {
+      "title": "Lon East Deg",
+      "type": "number"
+     },
+     "precision_m": {
+      "title": "Precision M",
+      "type": "number"
+     },
+     "site_id": {
+      "title": "Site Id",
+      "type": "string"
+     },
+     "source": {
+      "title": "Source",
+      "type": "string"
+     }
+    },
+    "required": [
+     "site_id",
+     "label",
+     "lat_deg",
+     "lon_east_deg",
+     "convention",
+     "source",
+     "precision_m",
+     "kind",
+     "dem_coverage_150km"
+    ],
+    "title": "CatalogSiteResponse",
+    "type": "object"
+   },
+   "ClearanceAtNodes": {
+    "additionalProperties": false,
+    "properties": {
+     "max_deg": {
+      "title": "Max Deg",
+      "type": "number"
+     },
+     "median_deg": {
+      "title": "Median Deg",
+      "type": "number"
+     },
+     "min_deg": {
+      "title": "Min Deg",
+      "type": "number"
+     },
+     "note": {
+      "title": "Note",
+      "type": "string"
+     },
+     "samples": {
+      "title": "Samples",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "min_deg",
+     "median_deg",
+     "max_deg",
+     "samples",
+     "note"
+    ],
+    "title": "ClearanceAtNodes",
+    "type": "object"
+   },
+   "CountdownBody": {
+    "additionalProperties": false,
+    "properties": {
+     "at": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "At"
+     },
+     "band": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "number"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Band"
+     },
+     "event_type": {
+      "anyOf": [
+       {
+        "enum": [
+         "rise",
+         "set"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Event Type"
+     },
+     "kind": {
+      "title": "Kind",
+      "type": "string"
+     },
+     "mission_end": {
+      "title": "Mission End",
+      "type": "number"
+     },
+     "quality": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Quality"
+     },
+     "remaining_s": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Remaining S"
+     },
+     "solver_bracket_s": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Solver Bracket S"
+     },
+     "state": {
+      "enum": [
+       "V",
+       "H",
+       "U",
+       "X",
+       "G"
+      ],
+      "title": "State",
+      "type": "string"
+     },
+     "t": {
+      "title": "T",
+      "type": "number"
+     },
+     "target": {
+      "title": "Target",
+      "type": "string"
+     },
+     "text": {
+      "title": "Text",
+      "type": "string"
+     },
+     "unknown_from": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Unknown From"
+     },
+     "unknown_until": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Unknown Until"
+     }
+    },
+    "required": [
+     "t",
+     "state",
+     "target",
+     "mission_end",
+     "kind",
+     "text"
+    ],
+    "title": "CountdownBody",
+    "type": "object"
+   },
+   "CountdownResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "at": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "At"
+     },
+     "band": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "number"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Band"
+     },
+     "event_type": {
+      "anyOf": [
+       {
+        "enum": [
+         "rise",
+         "set"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Event Type"
+     },
+     "horizon": {
+      "enum": [
+       "terrain",
+       "flat"
+      ],
+      "title": "Horizon",
+      "type": "string"
+     },
+     "kind": {
+      "title": "Kind",
+      "type": "string"
+     },
+     "mission_end": {
+      "title": "Mission End",
+      "type": "number"
+     },
+     "quality": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Quality"
+     },
+     "remaining_s": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Remaining S"
+     },
+     "result_state": {
+      "enum": [
+       "synthetic_demonstration",
+       "real_data_unverified",
+       "validated"
+      ],
+      "title": "Result State",
+      "type": "string"
+     },
+     "run_id": {
+      "title": "Run Id",
+      "type": "string"
+     },
+     "site_id": {
+      "title": "Site Id",
+      "type": "string"
+     },
+     "solver_bracket_s": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Solver Bracket S"
+     },
+     "state": {
+      "enum": [
+       "V",
+       "H",
+       "U",
+       "X",
+       "G"
+      ],
+      "title": "State",
+      "type": "string"
+     },
+     "t": {
+      "title": "T",
+      "type": "number"
+     },
+     "target": {
+      "title": "Target",
+      "type": "string"
+     },
+     "text": {
+      "title": "Text",
+      "type": "string"
+     },
+     "unknown_from": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Unknown From"
+     },
+     "unknown_until": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Unknown Until"
+     }
+    },
+    "required": [
+     "t",
+     "state",
+     "target",
+     "mission_end",
+     "kind",
+     "text",
+     "run_id",
+     "site_id",
+     "horizon",
+     "result_state"
+    ],
+    "title": "CountdownResponse",
+    "type": "object"
+   },
+   "DemCoverage": {
+    "additionalProperties": false,
+    "properties": {
+     "covered_fraction": {
+      "title": "Covered Fraction",
+      "type": "number"
+     },
+     "fully_covered": {
+      "title": "Fully Covered",
+      "type": "boolean"
+     },
+     "radius_km": {
+      "title": "Radius Km",
+      "type": "number"
+     },
+     "sectors_with_gap": {
+      "title": "Sectors With Gap",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "covered_fraction",
+     "fully_covered",
+     "sectors_with_gap",
+     "radius_km"
+    ],
+    "title": "DemCoverage",
+    "type": "object"
+   },
+   "ErrorDetail": {
+    "additionalProperties": false,
+    "properties": {
+     "code": {
+      "title": "Code",
+      "type": "string"
+     },
+     "correlation_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Correlation Id"
+     },
+     "field": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Field"
+     },
+     "message": {
+      "title": "Message",
+      "type": "string"
+     },
+     "retryable": {
+      "title": "Retryable",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "code",
+     "message",
+     "field",
+     "retryable",
+     "correlation_id"
+    ],
+    "title": "ErrorDetail",
+    "type": "object"
+   },
+   "ErrorEnvelope": {
+    "additionalProperties": false,
+    "properties": {
+     "error": {
+      "$ref": "#/components/schemas/ErrorDetail"
+     }
+    },
+    "required": [
+     "error"
+    ],
+    "title": "ErrorEnvelope",
+    "type": "object"
+   },
+   "EventRow": {
+    "additionalProperties": false,
+    "properties": {
+     "clearance_rate_deg_per_s": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Clearance Rate Deg Per S"
+     },
+     "geometry_timing_bound_s": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Geometry Timing Bound S"
+     },
+     "horizon": {
+      "enum": [
+       "terrain",
+       "flat"
+      ],
+      "title": "Horizon",
+      "type": "string"
+     },
+     "quality": {
+      "title": "Quality",
+      "type": "string"
+     },
+     "solver_bracket_s": {
+      "title": "Solver Bracket S",
+      "type": "number"
+     },
+     "t_s": {
+      "title": "T S",
+      "type": "number"
+     },
+     "t_utc": {
+      "title": "T Utc",
+      "type": "string"
+     },
+     "type": {
+      "enum": [
+       "rise",
+       "set"
+      ],
+      "title": "Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "t_s",
+     "t_utc",
+     "type",
+     "solver_bracket_s",
+     "geometry_timing_bound_s",
+     "clearance_rate_deg_per_s",
+     "quality",
+     "horizon"
+    ],
+    "title": "EventRow",
+    "type": "object"
+   },
+   "Explanation": {
+    "additionalProperties": false,
+    "properties": {
+     "code": {
+      "title": "Code",
+      "type": "string"
+     },
+     "params": {
+      "additionalProperties": true,
+      "title": "Params",
+      "type": "object"
+     },
+     "text": {
+      "title": "Text",
+      "type": "string"
+     }
+    },
+    "required": [
+     "code",
+     "text",
+     "params"
+    ],
+    "title": "Explanation",
+    "type": "object"
+   },
+   "HTTPValidationError": {
+    "properties": {
+     "detail": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationError"
+      },
+      "title": "Detail",
+      "type": "array"
+     }
+    },
+    "title": "HTTPValidationError",
+    "type": "object"
+   },
+   "HealthResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "algorithm_id": {
+      "title": "Algorithm Id",
+      "type": "string"
+     },
+     "checked": {
+      "title": "Checked",
+      "type": "integer"
+     },
+     "failing": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Failing",
+      "type": "array"
+     },
+     "limits": {
+      "$ref": "#/components/schemas/Limits"
+     },
+     "mode": {
+      "enum": [
+       "live",
+       "replay"
+      ],
+      "title": "Mode",
+      "type": "string"
+     },
+     "queue": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Queue",
+      "type": "object"
+     },
+     "recovered_on_start": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Recovered On Start",
+      "type": "object"
+     },
+     "resources_approved": {
+      "title": "Resources Approved",
+      "type": "boolean"
+     },
+     "resources_ok": {
+      "title": "Resources Ok",
+      "type": "boolean"
+     },
+     "result_state": {
+      "enum": [
+       "synthetic_demonstration",
+       "real_data_unverified",
+       "validated"
+      ],
+      "title": "Result State",
+      "type": "string"
+     },
+     "running": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Running",
+      "type": "array"
+     },
+     "stack": {
+      "enum": [
+       "synthetic",
+       "live"
+      ],
+      "title": "Stack",
+      "type": "string"
+     },
+     "status": {
+      "title": "Status",
+      "type": "string"
+     },
+     "uptime_s": {
+      "title": "Uptime S",
+      "type": "number"
+     }
+    },
+    "required": [
+     "status",
+     "mode",
+     "stack",
+     "algorithm_id",
+     "result_state",
+     "resources_ok",
+     "checked",
+     "failing",
+     "resources_approved",
+     "queue",
+     "running",
+     "limits",
+     "recovered_on_start",
+     "uptime_s"
+    ],
+    "title": "HealthResponse",
+    "type": "object"
+   },
+   "HorizonResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "argmax_distance_km": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Argmax Distance Km",
+      "type": "array"
+     },
+     "azimuth_deg": {
+      "items": {
+       "type": "number"
+      },
+      "title": "Azimuth Deg",
+      "type": "array"
+     },
+     "cache_key": {
+      "title": "Cache Key",
+      "type": "string"
+     },
+     "horizon_el_deg": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Horizon El Deg",
+      "type": "array"
+     },
+     "payload_sha256": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Payload Sha256"
+     },
+     "result_state": {
+      "enum": [
+       "synthetic_demonstration",
+       "real_data_unverified",
+       "validated"
+      ],
+      "title": "Result State",
+      "type": "string"
+     },
+     "sector_state": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Sector State",
+      "type": "array"
+     },
+     "sectors": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "title": "Sectors",
+      "type": "object"
+     },
+     "settings": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "title": "Settings",
+      "type": "object"
+     },
+     "site_id": {
+      "title": "Site Id",
+      "type": "string"
+     },
+     "skyline_max_deg": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Skyline Max Deg"
+     },
+     "skyline_min_deg": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Skyline Min Deg"
+     },
+     "terrain_identity": {
+      "additionalProperties": true,
+      "title": "Terrain Identity",
+      "type": "object"
+     }
+    },
+    "required": [
+     "site_id",
+     "result_state",
+     "azimuth_deg",
+     "horizon_el_deg",
+     "argmax_distance_km",
+     "sector_state",
+     "sectors",
+     "settings",
+     "skyline_min_deg",
+     "skyline_max_deg",
+     "cache_key",
+     "terrain_identity"
+    ],
+    "title": "HorizonResponse",
+    "type": "object"
+   },
+   "Limits": {
+    "additionalProperties": false,
+    "properties": {
+     "max_queued": {
+      "title": "Max Queued",
+      "type": "integer"
+     },
+     "max_running": {
+      "title": "Max Running",
+      "type": "integer"
+     },
+     "run_timeout_s": {
+      "title": "Run Timeout S",
+      "type": "number"
+     }
+    },
+    "required": [
+     "max_running",
+     "max_queued",
+     "run_timeout_s"
+    ],
+    "title": "Limits",
+    "type": "object"
+   },
+   "MetricsResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "availability_lower": {
+      "title": "Availability Lower",
+      "type": "number"
+     },
+     "availability_upper": {
+      "title": "Availability Upper",
+      "type": "number"
+     },
+     "exclusion_reasons": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Exclusion Reasons",
+      "type": "array"
+     },
+     "gap_s": {
+      "title": "Gap S",
+      "type": "number"
+     },
+     "hidden_s": {
+      "title": "Hidden S",
+      "type": "number"
+     },
+     "known_time_fraction": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Known Time Fraction"
+     },
+     "longest_known_hidden_end": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Longest Known Hidden End"
+     },
+     "longest_known_hidden_s": {
+      "title": "Longest Known Hidden S",
+      "type": "number"
+     },
+     "longest_known_hidden_start": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Longest Known Hidden Start"
+     },
+     "margin_lower": {
+      "title": "Margin Lower",
+      "type": "number"
+     },
+     "margin_upper": {
+      "title": "Margin Upper",
+      "type": "number"
+     },
+     "outcome": {
+      "enum": [
+       "PASS",
+       "FAIL",
+       "INDETERMINATE",
+       "EXCLUDED"
+      ],
+      "title": "Outcome",
+      "type": "string"
+     },
+     "threshold": {
+      "title": "Threshold",
+      "type": "number"
+     },
+     "total_s": {
+      "title": "Total S",
+      "type": "number"
+     },
+     "uncertified_s": {
+      "title": "Uncertified S",
+      "type": "number"
+     },
+     "unknown_s": {
+      "title": "Unknown S",
+      "type": "number"
+     },
+     "visible_s": {
+      "title": "Visible S",
+      "type": "number"
+     },
+     "worst_case_not_visible_s": {
+      "title": "Worst Case Not Visible S",
+      "type": "number"
+     },
+     "worst_case_touches_edge": {
+      "title": "Worst Case Touches Edge",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "availability_lower",
+     "availability_upper",
+     "exclusion_reasons",
+     "gap_s",
+     "hidden_s",
+     "known_time_fraction",
+     "longest_known_hidden_end",
+     "longest_known_hidden_s",
+     "longest_known_hidden_start",
+     "margin_lower",
+     "margin_upper",
+     "outcome",
+     "threshold",
+     "total_s",
+     "uncertified_s",
+     "unknown_s",
+     "visible_s",
+     "worst_case_not_visible_s",
+     "worst_case_touches_edge"
+    ],
+    "title": "MetricsResponse",
+    "type": "object"
+   },
+   "ResultsResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "algorithm_id": {
+      "title": "Algorithm Id",
+      "type": "string"
+     },
+     "coverage_fraction": {
+      "title": "Coverage Fraction",
+      "type": "number"
+     },
+     "provenance_url": {
+      "title": "Provenance Url",
+      "type": "string"
+     },
+     "result_id": {
+      "title": "Result Id",
+      "type": "string"
+     },
+     "result_state": {
+      "enum": [
+       "synthetic_demonstration",
+       "real_data_unverified",
+       "validated"
+      ],
+      "title": "Result State",
+      "type": "string"
+     },
+     "run_id": {
+      "title": "Run Id",
+      "type": "string"
+     },
+     "sites": {
+      "items": {
+       "$ref": "#/components/schemas/SiteResultsResponse"
+      },
+      "title": "Sites",
+      "type": "array"
+     },
+     "status": {
+      "enum": [
+       "queued",
+       "running",
+       "complete",
+       "complete_with_warnings",
+       "failed"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "warnings": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+     }
+    },
+    "required": [
+     "run_id",
+     "result_id",
+     "status",
+     "result_state",
+     "algorithm_id",
+     "coverage_fraction",
+     "warnings",
+     "sites",
+     "provenance_url"
+    ],
+    "title": "ResultsResponse",
+    "type": "object"
+   },
+   "RunError": {
+    "additionalProperties": false,
+    "properties": {
+     "code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Code"
+     },
+     "message": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Message"
+     }
+    },
+    "required": [
+     "code",
+     "message"
+    ],
+    "title": "RunError",
+    "type": "object"
+   },
+   "RunSummaryResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "algorithm_id": {
+      "title": "Algorithm Id",
+      "type": "string"
+     },
+     "attached": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Attached"
+     },
+     "attempt": {
+      "title": "Attempt",
+      "type": "integer"
+     },
+     "created_utc": {
+      "title": "Created Utc",
+      "type": "string"
+     },
+     "error": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/RunError"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "finished_utc": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Finished Utc"
+     },
+     "progress": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Progress"
+     },
+     "result_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Result Id"
+     },
+     "result_state": {
+      "enum": [
+       "synthetic_demonstration",
+       "real_data_unverified",
+       "validated"
+      ],
+      "title": "Result State",
+      "type": "string"
+     },
+     "run_id": {
+      "title": "Run Id",
+      "type": "string"
+     },
+     "stage": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stage"
+     },
+     "status": {
+      "enum": [
+       "queued",
+       "running",
+       "complete",
+       "complete_with_warnings",
+       "failed"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "status_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Status Url"
+     }
+    },
+    "required": [
+     "run_id",
+     "result_id",
+     "status",
+     "stage",
+     "progress",
+     "result_state",
+     "attempt",
+     "created_utc",
+     "finished_utc",
+     "algorithm_id"
+    ],
+    "title": "RunSummaryResponse",
+    "type": "object"
+   },
+   "SiteResultsResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "result_state": {
+      "enum": [
+       "synthetic_demonstration",
+       "real_data_unverified",
+       "validated"
+      ],
+      "title": "Result State",
+      "type": "string"
+     },
+     "sensitivity": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "title": "Sensitivity",
+      "type": "array"
+     },
+     "site_id": {
+      "title": "Site Id",
+      "type": "string"
+     },
+     "site_status": {
+      "enum": [
+       "PASS",
+       "FAIL_SUN",
+       "FAIL_EARTH",
+       "FAIL_BOTH",
+       "INDETERMINATE",
+       "UNKNOWN_COVERAGE"
+      ],
+      "title": "Site Status",
+      "type": "string"
+     },
+     "target_metrics": {
+      "additionalProperties": {
+       "$ref": "#/components/schemas/TargetResults"
+      },
+      "title": "Target Metrics",
+      "type": "object"
+     },
+     "validity": {
+      "title": "Validity",
+      "type": "string"
+     },
+     "warnings": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+     }
+    },
+    "required": [
+     "site_id",
+     "validity",
+     "site_status",
+     "result_state",
+     "target_metrics",
+     "warnings",
+     "sensitivity"
+    ],
+    "title": "SiteResultsResponse",
+    "type": "object"
+   },
+   "SitesResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "note": {
+      "title": "Note",
+      "type": "string"
+     },
+     "sites": {
+      "items": {
+       "$ref": "#/components/schemas/CatalogSiteResponse"
+      },
+      "title": "Sites",
+      "type": "array"
+     }
+    },
+    "required": [
+     "note",
+     "sites"
+    ],
+    "title": "SitesResponse",
+    "type": "object"
+   },
+   "SkySeries": {
+    "additionalProperties": false,
+    "properties": {
+     "az_deg": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Az Deg",
+      "type": "array"
+     },
+     "el_deg": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "El Deg",
+      "type": "array"
+     },
+     "step_s": {
+      "title": "Step S",
+      "type": "number"
+     }
+    },
+    "required": [
+     "step_s",
+     "az_deg",
+     "el_deg"
+    ],
+    "title": "SkySeries",
+    "type": "object"
+   },
+   "TargetHorizonResult": {
+    "additionalProperties": false,
+    "properties": {
+     "clearance_at_nodes": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ClearanceAtNodes"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "countdown_at_start": {
+      "$ref": "#/components/schemas/CountdownBody"
+     },
+     "events": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/EventRow"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Events"
+     },
+     "intervals": {
+      "anyOf": [
+       {
+        "items": {
+         "additionalProperties": true,
+         "type": "object"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Intervals"
+     },
+     "metrics": {
+      "$ref": "#/components/schemas/MetricsResponse"
+     }
+    },
+    "required": [
+     "metrics",
+     "clearance_at_nodes",
+     "countdown_at_start"
+    ],
+    "title": "TargetHorizonResult",
+    "type": "object"
+   },
+   "TargetResults": {
+    "additionalProperties": false,
+    "properties": {
+     "explanations": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/Explanation"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Explanations"
+     },
+     "flat": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/TargetHorizonResult"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "series": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SkySeries"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "terrain": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/TargetHorizonResult"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "title": "TargetResults",
+    "type": "object"
+   },
+   "ValidationCardResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "facts": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Facts",
+      "type": "array"
+     },
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "scope": {
+      "title": "Scope",
+      "type": "string"
+     },
+     "site_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Site Id"
+     },
+     "status": {
+      "enum": [
+       "met",
+       "not_met",
+       "not_evaluated"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "target": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Target"
+     },
+     "title": {
+      "title": "Title",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "title",
+     "status",
+     "site_id",
+     "target",
+     "facts",
+     "scope"
+    ],
+    "title": "ValidationCardResponse",
+    "type": "object"
+   },
+   "ValidationError": {
+    "properties": {
+     "ctx": {
+      "title": "Context",
+      "type": "object"
+     },
+     "input": {
+      "title": "Input"
+     },
+     "loc": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "integer"
+        }
+       ]
+      },
+      "title": "Location",
+      "type": "array"
+     },
+     "msg": {
+      "title": "Message",
+      "type": "string"
+     },
+     "type": {
+      "title": "Error Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "loc",
+     "msg",
+     "type"
+    ],
+    "title": "ValidationError",
+    "type": "object"
+   },
+   "ValidationGroup": {
+    "additionalProperties": false,
+    "properties": {
+     "card_ids": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Card Ids",
+      "type": "array"
+     },
+     "counts": {
+      "$ref": "#/components/schemas/ValidationSummary"
+     },
+     "id": {
+      "enum": [
+       "geometry",
+       "terrain_horizon",
+       "numerical_convergence"
+      ],
+      "title": "Id",
+      "type": "string"
+     },
+     "scope": {
+      "title": "Scope",
+      "type": "string"
+     },
+     "status": {
+      "enum": [
+       "met",
+       "not_met",
+       "not_evaluated"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "title": {
+      "title": "Title",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "title",
+     "status",
+     "scope",
+     "card_ids",
+     "counts"
+    ],
+    "title": "ValidationGroup",
+    "type": "object"
+   },
+   "ValidationResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "cards": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationCardResponse"
+      },
+      "title": "Cards",
+      "type": "array"
+     },
+     "groups": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationGroup"
+      },
+      "title": "Groups",
+      "type": "array"
+     },
+     "note": {
+      "title": "Note",
+      "type": "string"
+     },
+     "result_state": {
+      "enum": [
+       "synthetic_demonstration",
+       "real_data_unverified",
+       "validated"
+      ],
+      "title": "Result State",
+      "type": "string"
+     },
+     "run_id": {
+      "title": "Run Id",
+      "type": "string"
+     },
+     "scopes_closed": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Scopes Closed",
+      "type": "array"
+     },
+     "summary": {
+      "$ref": "#/components/schemas/ValidationSummary"
+     }
+    },
+    "required": [
+     "run_id",
+     "result_state",
+     "cards",
+     "groups",
+     "scopes_closed",
+     "summary",
+     "note"
+    ],
+    "title": "ValidationResponse",
+    "type": "object"
+   },
+   "ValidationSummary": {
+    "additionalProperties": false,
+    "properties": {
+     "met": {
+      "title": "Met",
+      "type": "integer"
+     },
+     "not_evaluated": {
+      "title": "Not Evaluated",
+      "type": "integer"
+     },
+     "not_met": {
+      "title": "Not Met",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "met",
+     "not_met",
+     "not_evaluated"
+    ],
+    "title": "ValidationSummary",
+    "type": "object"
+   },
+   "VariantAdmissionResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "algorithm_id": {
+      "title": "Algorithm Id",
+      "type": "string"
+     },
+     "attached": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Attached"
+     },
+     "attempt": {
+      "title": "Attempt",
+      "type": "integer"
+     },
+     "changed_fields": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Changed Fields",
+      "type": "array"
+     },
+     "created_utc": {
+      "title": "Created Utc",
+      "type": "string"
+     },
+     "error": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/RunError"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "finished_utc": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Finished Utc"
+     },
+     "parent_run_id": {
+      "title": "Parent Run Id",
+      "type": "string"
+     },
+     "parent_start_utc": {
+      "title": "Parent Start Utc",
+      "type": "string"
+     },
+     "progress": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Progress"
+     },
+     "result_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Result Id"
+     },
+     "result_state": {
+      "enum": [
+       "synthetic_demonstration",
+       "real_data_unverified",
+       "validated"
+      ],
+      "title": "Result State",
+      "type": "string"
+     },
+     "run_id": {
+      "title": "Run Id",
+      "type": "string"
+     },
+     "stage": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stage"
+     },
+     "start_utc": {
+      "title": "Start Utc",
+      "type": "string"
+     },
+     "status": {
+      "enum": [
+       "queued",
+       "running",
+       "complete",
+       "complete_with_warnings",
+       "failed"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "status_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Status Url"
+     },
+     "variant_type": {
+      "const": "date_shift",
+      "title": "Variant Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "run_id",
+     "result_id",
+     "status",
+     "stage",
+     "progress",
+     "result_state",
+     "attempt",
+     "created_utc",
+     "finished_utc",
+     "algorithm_id",
+     "parent_run_id",
+     "variant_type",
+     "changed_fields",
+     "start_utc",
+     "parent_start_utc"
+    ],
+    "title": "VariantAdmissionResponse",
+    "type": "object"
+   },
+   "VariantLink": {
+    "additionalProperties": false,
+    "properties": {
+     "changed_fields": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Changed Fields",
+      "type": "array"
+     },
+     "child_run_id": {
+      "title": "Child Run Id",
+      "type": "string"
+     },
+     "created_utc": {
+      "title": "Created Utc",
+      "type": "string"
+     },
+     "parent_run_id": {
+      "title": "Parent Run Id",
+      "type": "string"
+     },
+     "start_utc": {
+      "title": "Start Utc",
+      "type": "string"
+     },
+     "status": {
+      "enum": [
+       "queued",
+       "running",
+       "complete",
+       "complete_with_warnings",
+       "failed"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "variant_type": {
+      "const": "date_shift",
+      "title": "Variant Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "child_run_id",
+     "parent_run_id",
+     "variant_type",
+     "changed_fields",
+     "status",
+     "created_utc",
+     "start_utc"
+    ],
+    "title": "VariantLink",
+    "type": "object"
+   },
+   "VariantsResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "children": {
+      "items": {
+       "$ref": "#/components/schemas/VariantLink"
+      },
+      "title": "Children",
+      "type": "array"
+     },
+     "parents": {
+      "items": {
+       "$ref": "#/components/schemas/VariantLink"
+      },
+      "title": "Parents",
+      "type": "array"
+     },
+     "run_id": {
+      "title": "Run Id",
+      "type": "string"
+     },
+     "start_utc": {
+      "title": "Start Utc",
+      "type": "string"
+     }
+    },
+    "required": [
+     "run_id",
+     "start_utc",
+     "parents",
+     "children"
+    ],
+    "title": "VariantsResponse",
+    "type": "object"
+   }
+  }
+ },
+ "info": {
+  "title": "LunaScope science service",
+  "version": "0.2.0-phase1"
+ },
+ "openapi": "3.1.0",
+ "paths": {
+  "/api/v1/analyses": {
+   "post": {
+    "operationId": "create_analysis_api_v1_analyses_post",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RunSummaryResponse"
+        }
+       }
+      },
+      "description": "OK"
+     },
+     "202": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RunSummaryResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Unprocessable Content"
+     },
+     "503": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Service Unavailable"
+     }
+    },
+    "summary": "Create Analysis"
+   }
+  },
+  "/api/v1/analyses/{run_id}": {
+   "get": {
+    "operationId": "get_analysis_api_v1_analyses__run_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Get Analysis Api V1 Analyses  Run Id  Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Get Analysis"
+   }
+  },
+  "/api/v1/analyses/{run_id}/countdown": {
+   "get": {
+    "description": "Server-decided countdown at an arbitrary cursor time (seconds from the window start).\nThe browser only subtracts the cursor from the event time this returns.",
+    "operationId": "countdown_api_v1_analyses__run_id__countdown_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "site",
+      "required": true,
+      "schema": {
+       "title": "Site",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "target",
+      "required": true,
+      "schema": {
+       "title": "Target",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "t",
+      "required": true,
+      "schema": {
+       "title": "T",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "horizon",
+      "required": false,
+      "schema": {
+       "default": "terrain",
+       "title": "Horizon",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CountdownResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Countdown"
+   }
+  },
+  "/api/v1/analyses/{run_id}/export": {
+   "get": {
+    "description": "Evidence bundle (FR-13): the sealed analysis plus a frozen snapshot of the validation\ncards as they stand now. Deterministic: the same result and the same cards give the same bytes.",
+    "operationId": "export_api_v1_analyses__run_id__export_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "verified",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Verified",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Export"
+   }
+  },
+  "/api/v1/analyses/{run_id}/horizon/{site_id}": {
+   "get": {
+    "operationId": "horizon_api_v1_analyses__run_id__horizon__site_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "site_id",
+      "required": true,
+      "schema": {
+       "title": "Site Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HorizonResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Horizon"
+   }
+  },
+  "/api/v1/analyses/{run_id}/provenance": {
+   "get": {
+    "operationId": "provenance_api_v1_analyses__run_id__provenance_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Provenance Api V1 Analyses  Run Id  Provenance Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Provenance"
+   }
+  },
+  "/api/v1/analyses/{run_id}/results": {
+   "get": {
+    "operationId": "results_api_v1_analyses__run_id__results_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "site",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Site"
+      }
+     },
+     {
+      "in": "query",
+      "name": "target",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Target"
+      }
+     },
+     {
+      "in": "query",
+      "name": "include",
+      "required": false,
+      "schema": {
+       "default": "",
+       "title": "Include",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ResultsResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Results"
+   }
+  },
+  "/api/v1/analyses/{run_id}/validation": {
+   "get": {
+    "description": "Validation metadata is tagged separately from the result: its tag is the hash of the\ncards, and it is always revalidated, because a scope can close after the result is sealed.",
+    "operationId": "validation_api_v1_analyses__run_id__validation_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ValidationResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "409": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Conflict"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Validation"
+   }
+  },
+  "/api/v1/analyses/{run_id}/variants": {
+   "get": {
+    "operationId": "list_variants_api_v1_analyses__run_id__variants_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/VariantsResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "List Variants"
+   },
+   "post": {
+    "description": "Time Machine (FR-10, spec 8.4): copy the parent's canonical request, change only the\nstart, admit it as an ordinary run and link it. Same inputs as a fresh request = same run.",
+    "operationId": "create_variant_api_v1_analyses__run_id__variants_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/VariantAdmissionResponse"
+        }
+       }
+      },
+      "description": "OK"
+     },
+     "202": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/VariantAdmissionResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Unprocessable Content"
+     },
+     "503": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Service Unavailable"
+     }
+    },
+    "summary": "Create Variant"
+   }
+  },
+  "/api/v1/comparisons": {
+   "post": {
+    "operationId": "comparisons_api_v1_comparisons_post",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Comparisons Api V1 Comparisons Post",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Comparisons"
+   }
+  },
+  "/api/v1/health": {
+   "get": {
+    "operationId": "health_api_v1_health_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HealthResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Health"
+   }
+  },
+  "/api/v1/references/{ref_id}": {
+   "get": {
+    "description": "A golden reference definition (GR-001 ...): the exact request Home submits, with its\nstatus, so the one-button mission and the reference run are the same inputs.",
+    "operationId": "reference_api_v1_references__ref_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "ref_id",
+      "required": true,
+      "schema": {
+       "title": "Ref Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Reference Api V1 References  Ref Id  Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Reference"
+   }
+  },
+  "/api/v1/resources": {
+   "get": {
+    "operationId": "resources_api_v1_resources_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Resources Api V1 Resources Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Resources"
+   }
+  },
+  "/api/v1/sites": {
+   "get": {
+    "operationId": "sites_api_v1_sites_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SitesResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Sites"
+   }
+  },
+  "/api/v1/sites/custom": {
+   "post": {
+    "operationId": "custom_site_api_v1_sites_custom_post",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Custom Site Api V1 Sites Custom Post",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Custom Site"
+   }
+  }
+ }
+}

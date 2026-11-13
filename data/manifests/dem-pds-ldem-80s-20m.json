@@ -1,0 +1,120 @@
+{
+  "resource_id": "dem-pds-ldem-80s-20m",
+  "role": "dem_crosscheck",
+  "kind": "dem",
+  "readiness": "integrity_verified",
+  "decision": "PROPOSED independent cross-check DEM (SDR-001 D-01); not approved",
+  "publisher": "NASA PDS Geosciences Node; LRO LOLA team (D. E. Smith, GSFC)",
+  "product_id": "LDEM_80S_20M",
+  "data_set_id": "LRO-L-LOLA-4-GDR-V1.0",
+  "version": "V2.0 (PRODUCT_VERSION_ID); PRODUCT_CREATION_TIME 2017-06-15",
+  "url": "https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/ldem_80s_20m.img",
+  "label_url": "https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/ldem_80s_20m.lbl",
+  "mirror": "https://imbrium.mit.edu/DATA/LOLA_GDR/POLAR/IMG/LDEM_80S_20M.IMG",
+  "use_terms": "PDS Geosciences FAQ: data sets archived in the PDS are in the public domain; cite the data set in the same way as published research (publisher: NASA Planetary Data System). Source: https://pds-geosciences.wustl.edu/faq.html (checked 2026-11-13).",
+  "accessed_utc": "2026-11-13",
+  "filename": "LDEM_80S_20M.IMG",
+  "size_bytes": 1848320000,
+  "size_source": "downloaded 2026-11-13; on-disk size equals the server Content-Length (1848320000)",
+  "sha256": "db44c3b2444acff1af528301c8a6988934b490249aceff0ac55668bdf3eab365",
+  "format": "PDS3 detached label + raw 16-bit little-endian (LSB_INTEGER) image",
+  "dem": {
+    "crs": "polar stereographic, centre latitude -90, centre longitude 0, planetocentric latitude, east-positive longitude, spherical",
+    "coordinate_system": "BODY-FIXED ROTATING, MEAN EARTH/POLAR AXIS OF DE421",
+    "reference_surface": "sphere, A=B=C=1737.4 km (OFFSET = 1737400 m)",
+    "vertical_units": "metres; HEIGHT = DN * 0.5 m relative to the reference sphere",
+    "scaling_factor": 0.5,
+    "offset_m": 1737400,
+    "resolution_m": 20,
+    "map_resolution_pix_per_deg": 1516.17,
+    "grid": {
+      "lines": 30400,
+      "samples": 30400,
+      "sample_bits": 16,
+      "sample_type": "LSB_INTEGER"
+    },
+    "line_projection_offset_pix": 15199.5,
+    "sample_projection_offset_pix": 15199.5,
+    "pixel_registration": "pixel registration per label text; verify centre/corner convention with a known-location test",
+    "nodata": "No missing-value constant in the label; gridded by interpolation (GMT surface). About 0.004% of points were flagged erroneous and removed before gridding",
+    "derived_min_dn": -14594,
+    "derived_max_dn": 14054,
+    "coverage": "80S to 90S, about 304 km from the pole",
+    "gdal_view": "GDAL PDS driver reports int16, scale 0.5, offset 1737400, nodata -32768 (GDAL default; the label itself defines no missing constant)"
+  },
+  "caveats": [
+    "label calls the source preliminary LOLA data (through mission phase LRO_ES_54)",
+    "superseded in track geolocation by the 2023 adjusted product (Barker et al.)",
+    "all cells are filled by interpolation; sparse-coverage areas appear smooth"
+  ],
+  "open_items": [
+    "approve scientific suitability (metadata_verified -> scientifically_approved)"
+  ],
+  "preprocessing": [],
+  "decision_record": "docs/sdr/SDR-001.md",
+  "integrity": {
+    "verified_utc": "2026-11-13",
+    "method": "SHA-256 computed by the downloader and recomputed independently with sha256sum (identical)",
+    "label_file": {
+      "filename": "LDEM_80S_20M.LBL",
+      "size_bytes": 4993,
+      "sha256": "0793611cde045e6f8eec1365b2500084522fdc6d515ec30b5ab2427de62a6624"
+    },
+    "note": "A checksum proves the bytes are the ones we fetched, not scientific suitability. PDS does not publish a SHA-256 here, so this is a self-recorded pin."
+  },
+  "full_extent_comparison_vs_adj": {
+    "date": "2026-11-13",
+    "method": "every pixel of both files on the shared 30,400 x 30,400 grid; ADJ minus PDS (DN x 0.5 m); ring = distance of the pixel centre from the pole",
+    "pixels": 924160000,
+    "nan_in_adj": 0,
+    "mean_diff_m": -0.131,
+    "rms_diff_m": 1.764,
+    "max_abs_diff_m": 476.3,
+    "fraction_abs_gt_1m": 0.3251,
+    "fraction_abs_gt_10m": 0.00158,
+    "fraction_abs_gt_100m": 1.7e-05,
+    "by_ring_km": {
+      "0-25": {
+        "mean_m": 0.163,
+        "rms_m": 1.562,
+        "max_m": 83.0
+      },
+      "25-50": {
+        "mean_m": -0.124,
+        "rms_m": 1.326,
+        "max_m": 86.3
+      },
+      "50-100": {
+        "mean_m": -0.206,
+        "rms_m": 1.393,
+        "max_m": 97.9
+      },
+      "100-150": {
+        "mean_m": -0.105,
+        "rms_m": 1.543,
+        "max_m": 176.9
+      },
+      "150-200": {
+        "mean_m": -0.147,
+        "rms_m": 1.709,
+        "max_m": 384.7
+      },
+      "200-305": {
+        "mean_m": -0.132,
+        "rms_m": 1.852,
+        "max_m": 351.7
+      }
+    },
+    "within_150km": {
+      "pixels": 176714652,
+      "abs_gt_50m": 6214,
+      "abs_gt_100m": 219,
+      "largest_m": 176.9,
+      "largest_at_km_xy": [
+        131.1,
+        8.0
+      ]
+    },
+    "reading": "The two releases agree to about 1.5 m RMS. Rare large differences (0.0001% of pixels within 150 km exceed 100 m) mark steep terrain where the older track geolocation differs; the effect on a horizon needs a same-site horizon run on both DEMs."
+  }
+}
