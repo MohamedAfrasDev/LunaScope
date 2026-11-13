@@ -1,0 +1,318 @@
+# LunaScope — Phase Plan and To-Do Tracker
+
+**Companion to:** [Implementation Specification v1.1](LunaScope-Implementation-Spec.md) · [SDR-001 (draft)](sdr/SDR-001.md)
+**Last updated:** 13 Nov 2026 · **Code state:** commit `a974125` (73 science tests passing, ruff clean, web lint and build passing)
+
+Legend: `[x]` done and verified in this repo · `[~]` partly done (the note says what is missing) · `[ ]` not started.
+Dates are intended work windows, not evidence that a gate will pass.
+
+> **Honest status:** everything computed so far uses **synthetic** terrain and **analytic test functions**. No real lunar data (Horizons, SPICE, DEM) has been used. Nothing in the repository is a validated result.
+
+---
+
+## 1. Progress at a glance
+
+| Phase | Window | Goal | Gate | Status |
+| --- | --- | --- | --- | --- |
+| **0. Decision & contract gate** | 13 Nov | Settle science/contract decisions before real data | SDR-001 approved | `[~]` draft written, not approved |
+| **1. Validity foundation** | 13 Nov | One real site end to end through the science pipeline | **Gate 1** | `[~]` synthetic slice done (~45 %) |
+| **2. Core experience** | 14 Nov | Three-site reference run, all workspaces, evidence | **Gate 2** | `[ ]` |
+| **3. Extras, presentation, reliability** | 15 Nov | Animation, alternatives, fallback, submission | **Gate 3** | `[ ]` |
+
+```
+Phase 0 ██████░░░░ 60 %   Phase 1 ████░░░░░░ 40 %   Phase 2 ░░░░░░░░░░ 0 %   Phase 3 ░░░░░░░░░░ 0 %
+```
+
+**Done so far (summary)**
+
+- [x] Read product spec v2.1 (`.md` and `.pdf`) and analysed the scaffold
+- [x] Implementation spec v1.0 → revised to v1.1 after the plan review (I-01 … I-07 applied in the document)
+- [x] Repo hygiene: README rewritten as UTF-8, site metadata, `.gitignore`, ESLint ignores
+- [x] Science package scaffold with venv, pytest, ruff
+- [x] Synthetic numerical slice: canonical hashing, observer, az/el, event engine, metrics, requirement outcomes
+- [x] Synthetic terrain horizon engine with nodata/coverage handling
+- [x] Two commits: `774dc41`, `a974125`
+
+---
+
+## 2. Phase 0 — Decision and contract gate
+
+Goal: no real-data work starts until these are decided and written down. **Owner: science lead.** Gate: SDR-001 signed off.
+
+- [x] Draft [SDR-001](sdr/SDR-001.md) with 12 decision items and defaults clearly marked
+- [x] Adopt one uncertainty/requirement policy (PASS / FAIL / INDETERMINATE / EXCLUDED) — written in spec §7.1, implemented in code
+- [x] Define identities: stable `run_id` at admission, sealed `result_id` at completion (spec §8.1)
+- [~] **D-01** DEM product: **recommended** primary `LDEM_80S_20MPP_ADJ` (PGDA 2023) + cross-check PDS `LDEM_80S_20M` V2.0; header metadata verified by range read. Still open: SHA-256 (needs the 2.7 GB download), explicit licence text, sign-off
+- [ ] **D-02** Lunar frame and its realization across Horizons, SPICE and the DEM (OQ-02, S-6)
+- [~] **D-03** Latitude type, longitude direction, radius, datum: confirmed *for the chosen DEMs* (planetocentric, east-positive, 1,737.4 km sphere, heights relative to it); Horizons/SPICE side still open
+- [ ] **D-04** Horizons quantities, correction mode, time scale; SPICE kernel set (OQ-03)
+- [ ] **D-05** Justify decision band ε (default 0.01° is a placeholder)
+- [ ] **D-06** Confirm root tolerance τ, minimum interval width, evaluation cap
+- [ ] **D-08** Fix the reference window `start_utc` and record why (S-11)
+- [ ] **D-09** Choose demo sites and precision (OQ-05)
+- [ ] **D-10** Set geometry timing tolerance δ_geom and SPICE residual budget (OQ-08)
+- [ ] **D-11** Confirm Horizons User-Agent wording (no secrets or personal contact)
+- [ ] **D-12** File the organizer's written permission for the 12 Nov foundation work (OQ-10, Risk #1)
+- [ ] Science owner and product owner sign SDR-001
+
+---
+
+## 3. Phase 1 — Validity foundation (13 Nov)
+
+Ends only when **one real site** passes through the approved geometry provider, one pinned DEM horizon and the shared event/countdown pipeline.
+
+### 1.0 Repo hygiene
+- [x] Rewrite `README.md` as clean UTF-8 (removed stray UTF-16 line)
+- [x] Replace "Create Next App" metadata with LunaScope title/description
+- [x] Extend `.gitignore` (venv, caches, `data/raw`, `data/derived`, `var/`)
+- [x] Exclude `science/**` and `data/**` from ESLint
+- [x] Create `docs/sdr/`
+- [ ] Add organizer-permission note to `docs/` (D-12)
+
+### 1.1 Inventory of resources
+- [ ] Record LROC QuickMap, NASA Moon Trek, JPL Horizons as official resources with citations
+- [~] Catalog candidate DEM files: two manifests written (`data/manifests/dem-lola-80s-20mpp-adj.json`, `dem-pds-ldem-80s-20m.json`) with product ID, version, URL, size, CRS, sphere, units, nodata, registration, coverage; **SHA-256 and explicit terms still missing**
+- [ ] Catalog SPICE kernels (LSK, PCK, SPK, lunar frame kernels) with checksums and time coverage
+- [~] Write one manifest per resource in `data/manifests/`: DEMs done (state `discovered`); SPICE kernels, Horizons and site catalog pending
+- [ ] Gate: no numerical resource is used without a manifest entry
+
+### 1.2 Decide (see Phase 0)
+- [ ] Science owner approves SDR-001
+
+### 1.3 Service scaffold
+- [x] `science/` package, `pyproject.toml`, venv, pytest, ruff
+- [x] Canonical JSON (RFC 8785) and hashing: `run_id`, `result_id` ([canonical.py](../science/lunascope/canonical.py))
+- [x] Shared enumerations / status codes ([codes.py](../science/lunascope/codes.py))
+- [x] `GET /api/v1/health` reporting `synthetic_demonstration` and `resources_ok: false`
+- [ ] Pydantic request/response models with bounds (strict, `extra="forbid"`)
+- [ ] Error envelope (stable code, field path, retryable flag, correlation ID)
+- [ ] `RunRepository` on SQLite (WAL) + content-addressed artifact store
+- [ ] Resource registry with startup checksum/coverage checks
+- [ ] Fixture (synthetic) geometry provider, labeled demonstration
+- [ ] Structured JSON logging (run ID, stage, timing, warning codes)
+- [ ] OpenAPI → TypeScript type generation wired into CI
+
+### 1.4 Observer and local frame
+- [x] Canonical observer with separate ground-height and mast-height terms
+- [x] `ObserverUnresolved` when convention or vertical reference is missing
+- [x] Local east/north/up from 3D, stable at the exact pole
+- [x] Azimuth/elevation from a direction vector, wrapped differences
+- [x] Test case 1: zenith · case 2: horizon plane · case 3: N/E/S/W at several sites incl. pole
+- [x] Round-trip property test, longitude wrap and west-positive conversion, bad-input rejection
+- [ ] Cross-check the pole convention against SPICE once SPICE is available
+
+### 1.5 Geometry providers
+- [x] Horizons client: request builder from the canonical observer (quantity 4, airless, UTC); reproduces the recorded real requests ([horizons.py](../science/lunascope/providers/geometry/horizons.py))
+- [x] Parse JSON: explicit `error` field and `signature` checks; confirmed on a real HTTP-200 error response
+- [x] Parse `$$SOE…$$EOE` rows by column name; validate count, exact time grid, finite angles, ranges
+- [x] Store raw response verbatim + SHA-256 + retrieval time (filesystem `ResponseCache`; SQLite later)
+- [x] Geometry cache with full-identity key; integrity checked on every read, corrupted cache blocks instead of refetching
+- [x] Global limiter: one Horizons request in flight, exponential backoff + `Retry-After`, `LunaScope/<version>` User-Agent (tested with 8 concurrent threads)
+- [ ] Hermite interpolation on unit direction vectors with same-grid derivatives
+- [ ] Held-out finer series (`TLIST`) → measure δ_geom and timing bound
+- [ ] SPICE provider (`spkcpo` + own `az_el`) at selected epochs
+- [ ] Residual report Horizons vs SPICE (wrapped az, el), documented `LT+S` difference
+- [ ] Gate: provider, convention, residual and coverage tests pass
+
+### 1.6 Terrain and horizon
+- [x] `TerrainProvider` contract and synthetic terrains (flat sphere, ridge, crater rim) ([terrain.py](../science/lunascope/terrain.py))
+- [x] Horizon engine: max 3D elevation angle per azimuth, curvature included, chunked ([horizon.py](../science/lunascope/horizon.py))
+- [x] Missing terrain unknown by default; only a justified bound on the missing region certifies a sector
+- [x] Circular lookup; unknown if either neighbouring bin is uncertified
+- [x] Clearance `d = elevation − horizon − margin`, `NaN` = unknown
+- [x] Cooperative cancellation between chunks; cache key over observer/terrain/settings/algorithm
+- [x] Test case 4 (flat sphere dip) · 5 (ridge) · 6 (depressed skyline) · 7 (far obstacle / nodata) · 8 (narrow ridge, synthetic)
+- [x] Step-count check: ~7,500 radial steps per ray at default settings
+- [ ] DEM preprocessing script (checksummed, round-trip and metadata checks)
+- [ ] `DemTerrain` (Rasterio/pyproj): CRS transform, pixel registration, nodata, bilinear
+- [ ] Footprint-wide coverage report for the chosen radius
+- [ ] Real-terrain horizon checks and radius/azimuth refinement on the real DEM
+- [ ] Precomputed horizon storage for named showcase presets (< 300 ms read)
+- [ ] Benchmark time and memory at finest allowed settings (20 s target is still unmeasured)
+- [ ] Multi-resolution near/far merge (after the single-DEM pipeline is correct)
+
+### 1.7 Visibility, events, metrics
+- [x] Three-way classification (visible / hidden / unresolved) plus uncertified and gap classes
+- [x] Interval partition with per-level certification and subdivision ([events.py](../science/lunascope/events.py))
+- [x] Brent refinement only on brackets certified single-sign; evaluation cap → uncertified, never "no event"
+- [x] Events for rise/set found within tolerance on analytic models; double crossing and tangent cases
+- [x] Metrics from intervals: V/H/U, availability bounds, known-time fraction, longest hidden, worst-case-not-visible
+- [x] Per-target outcome (`PASS`/`FAIL`/`INDETERMINATE`/`EXCLUDED`) and site summary ([requirements.py](../science/lunascope/requirements.py))
+- [ ] Glue: build a `ClearanceModel` from geometry series + horizon profile
+- [ ] Whole-interval Lipschitz bound from Hermite coefficients and every horizon bin crossed
+- [ ] Report `geometry_timing_bound_s`; flag `near_tangent` events without claiming a bound
+- [ ] Contact events (touch without crossing) via derivative-sign analysis
+- [ ] Explanation facts and fixed templates (blocked, visible-over-depressed-skyline, unresolved, …)
+- [ ] Comparison service: held/changed fields, deltas, alignment modes
+- [ ] Validation service and three evidence cards (geometry / terrain / interval-decision)
+
+### 1.8 Run lifecycle and thin application
+- [ ] Atomic admit-or-attach on `run_id`; `202` returned before any external work
+- [ ] Bounded runner: 2 running / 8 queued, `QUEUE_FULL`, per-run timeout
+- [ ] Supervised killable worker processes; slot freed only after exit
+- [ ] Attempt tokens, staging directory, conditional commit, startup reconciliation
+- [ ] `POST /analyses`, `GET /analyses/{id}`, `/results`, `/provenance`, `/horizon/{site}`
+- [ ] BFF route `app/api/v1/[...slug]/route.ts` (allow-list, 5 s timeout, no cookies forwarded)
+- [ ] Minimal pages: Mission → Sites → submit → status → bare status matrix
+- [ ] Persistent `DataStatusBanner` and `ResultStateFrame`
+- [ ] Read the relevant `node_modules/next/dist/docs/` pages before writing each route (AGENTS.md)
+
+### 1.9 Measure
+- [ ] Record stage timings vs budgets in `docs/perf.md`
+
+### Gate 1 checklist
+- [ ] One real site: Horizons geometry + SPICE residual within tolerance
+- [ ] One pinned DEM horizon with complete manifest
+- [ ] Shared event list drives durations, outages and countdown
+- [ ] End-to-end run through the thin UI
+- [ ] Evidence export includes request, raw-response hashes, manifests, intervals, events
+
+---
+
+## 4. Phase 2 — Core experience (14 Nov)
+
+Priority order: validity → relevance → core experience.
+
+### 2.1 Reference run `GR-001`
+- [ ] Choose three verified candidate sites with coordinate and terrain provenance (D-09)
+- [ ] Freeze the request, window, DEM identity, settings (D-08)
+- [ ] Run and cache; record commit, build, algorithm version, checksums
+- [ ] Convergence report: step 10 → 1 min, azimuth 0.5° → 0.25° → 0.1°, radius 100/150/200 km
+- [ ] Mark unstable cases `SENSITIVITY_HIGH`
+- [ ] Disk-edge sensitivity for Earth (S-2, OQ-06)
+- [ ] Apply the implementation freeze rule: later changes create `GR-002`, never edit `GR-001`
+
+### 2.2 Workspaces
+- [ ] **Mission** — draft form with field-level errors, sample-count preview (FR-01)
+- [ ] **Sites** — presets, custom coordinates with convention/source/precision, DEM coverage flag (FR-02)
+- [ ] **Run summary** — status matrix, excluded group, progress (FR-03)
+- [ ] **Local Sky** — static SVG polar plot + unrolled view, terrain and flat horizons, scrubber, countdown (FR-06, FR-17)
+- [ ] **Timeline** — aligned Sun/Earth bands, threshold line, interval table, longest outage (FR-07)
+- [ ] **Compare** — status matrix, paired timelines, held/changed fields, no winner (FR-08)
+- [ ] **Time Machine** — 5-day shift, linked variant, deltas, alignment mode (FR-10)
+- [ ] **Evidence** — provenance, three validation cards, export (FR-09, FR-13)
+- [ ] Home — one button starts the reference mission
+
+### 2.3 Cross-cutting
+- [ ] Countdown rules: at-event, at-mission-end, no-event, across-unknown, terrain-variant range
+- [ ] Alignment modes labelled "Elapsed time" vs "Calendar (shared UTC)" (S-5)
+- [ ] Evidence bundle export (JSON) with frozen validation snapshot; investigative vs verified designation
+- [ ] Keyboard-complete core flow; chart text alternatives and table views; pass/fail not by colour alone (AC-15)
+- [ ] Playwright core-flow test + axe checks
+- [ ] Cache reads of finished runs by `result_id`; validation metadata tagged separately
+
+### Gate 2 checklist
+- [ ] `GR-001` passes geometry, horizon, aggregation, event-search and convergence checks
+- [ ] Three validation cards populated; corrupted-horizon test fails readiness (case 13)
+- [ ] Core flow works by keyboard
+- [ ] Time Machine five-day shift verified (case 14)
+
+---
+
+## 5. Phase 3 — Extras, presentation, reliability (15 Nov)
+
+Only after Gate 2.
+
+### 3.1 Extras (cut in this order if time runs out: share link → sensitivity UI → alternatives strip → animation → guided mode)
+- [ ] Animated local sky: canvas overlay, pause/scrub/jump-to-event, reduced-motion (FR-18)
+- [ ] Alternatives search with tested-dates strip, bounded batches (FR-11)
+- [ ] Guided mode from fixed templates (FR-14)
+- [ ] "Why the south pole is hard" explainer, one click from the main flow (FR-19)
+- [ ] Sensitivity variants UI (FR-12) — the numerical checks stay mandatory
+- [ ] Shareable link (FR-15, P2)
+
+### 3.2 Reliability
+- [ ] Deploy web (Vercel-compatible) and containerised service with persistent volume and `/health`
+- [ ] Smoke-test deployment early (not only at the end)
+- [ ] Offline fallback package: build, `MODE=replay`, labelled "Replay mode"
+- [ ] Rehearse with the network off (case 16)
+- [ ] Test on the event network; signed-out link test (AC-16)
+- [ ] Freeze versions; submit early
+
+### 3.3 Presentation and submission
+- [ ] Seven slides or 30-second subtitled video (OQ-11)
+- [ ] Rehearse the five-minute pitch and five-minute Q&A
+- [ ] Project page with 50–200 word summary
+- [ ] Cite NASA resources; record dataset/library/image licences
+- [ ] AI and software-tool use disclosed; no NASA logos generated or altered
+- [ ] Claims audit: nothing undelivered described as delivered
+- [ ] No voice or picture of anyone under 18
+
+### Gate 3 checklist
+- [ ] Demo ready: validated reference run cached, pitch rehearsed, fallback tested offline
+- [ ] Submission ready: public page, summary, demo link, NASA resource evidence, disclosures, signed-out access
+
+---
+
+## 6. The 16 minimum science test cases
+
+| # | Case | Status | Where |
+| --- | --- | --- | --- |
+| 1 | Target overhead | `[x]` | `tests/unit/test_observer.py` |
+| 2 | Target on flat horizon | `[x]` | `test_observer.py` |
+| 3 | N/E/S/W = 0/90/180/270 | `[x]` | `test_observer.py` |
+| 4 | Flat DEM → curved-surface horizon | `[x]` | `test_horizon.py` |
+| 5 | Ridge blocks lower, not higher target | `[x]` | `test_horizon.py` |
+| 6 | Depressed skyline visible | `[x]` | `test_horizon.py` |
+| 7 | Far obstacle / unsupported sector | `[x]` | `test_horizon.py` |
+| 8 | Narrow ridge, finer az/radius | `[~]` synthetic only; real DEM pending | `test_horizon.py` |
+| 9 | Two crossings; tangent = contact | `[~]` double crossing and tangent→uncertified done; contact reporting pending | `test_events.py` |
+| 10 | Cursor at event / mission end | `[ ]` needs countdown | — |
+| 11 | Equal availability, different longest outage | `[~]` metric difference done; explanation text pending | `test_requirements.py` |
+| 12 | Wrong unit/direction/height fails | `[~]` checked by hand-mutation; no committed test yet | — |
+| 13 | Corrupted horizon fails readiness | `[ ]` | — |
+| 14 | 5-day shift, own UTC per panel | `[ ]` | — |
+| 15 | Out-of-order responses don't overwrite | `[ ]` | — |
+| 16 | Network off → fallback opens demo | `[ ]` | — |
+
+**Review adversarial cases (from the plan review)**
+
+- [x] Bounds wholly above / below / straddling the threshold; one PASS + one INDETERMINATE; missing data
+- [~] Bounded crossing uncertainty propagates (done) — horizon-knot transition inside an interval (pending)
+- [x] Entering the ±ε band without crossing zero; tangent with no sign change
+- [x] Nodata gap: sector stays unknown unless a recorded bound covers it
+- [ ] Horizons HTTP 200 with JSON `error`; unsupported signature
+- [ ] Concurrent identical submits schedule one job; timeout kills process; stale attempt cannot commit; restart reconciliation
+- [ ] Two jobs never exceed one in-flight Horizons request
+
+---
+
+## 7. Plan-review items (I-01 … I-07)
+
+| Item | In the spec | In the code |
+| --- | --- | --- |
+| I-01 Uncertainty / requirement policy | `[x]` | `[x]` outcomes and site summary |
+| I-02 Event certification | `[x]` | `[~]` per-level certification done on test models; real Lipschitz bound pending |
+| I-03 Interpolation and Horizons parsing | `[x]` | `[ ]` |
+| I-04 Missing terrain | `[x]` | `[x]` synthetic; real DEM pending |
+| I-05 Admission and identity | `[x]` | `[~]` hashing done; admission/sealing pending |
+| I-06 Horizons concurrency | `[x]` | `[ ]` |
+| I-07 Timeout, publication, recovery | `[x]` | `[ ]` |
+
+---
+
+## 8. Risks to watch (from the spec, with current standing)
+
+| # | Risk | Standing |
+| --- | --- | --- |
+| 1 | Eligibility: pre-event work without written permission | **Open** — D-12, file the permission |
+| 2 | Wrong observer / frame / north | Partly mitigated: observer and az/el tested; Horizons/SPICE cross-check pending |
+| 3 | Portal mistaken for a pinned DEM; missed ridge | Mitigated in code for nodata; real DEM and refinement pending |
+| 4 | Geometry agreement presented as full validation | Pending validation service (three cards) |
+| 5 | Same-sign samples hide two events | Mitigated: subdivision + certification tested on analytic models |
+| 6 | Baseline and shifted run share one UTC | Pending Time Machine |
+| 8 | Mock data mistaken for results | Partly: health reports synthetic; UI labels pending |
+| 9 | Scope too large for a solo build | Cut order above; keep one real site first |
+| 10 | Horizons/hosting/network failure at the pitch | Pending cache + fallback |
+| 11 | DEM / convention / sites not approved in time | **Open** — D-01 … D-09 |
+
+---
+
+## 9. Immediate next actions
+
+1. [ ] Science owner signs off D-01 (recommendation ready) and decides D-02, D-04: **blocks all real-data work**
+2. [ ] Approve the 2.7 GB download of `LDEM_80S_20MPP_ADJ.TIF` (optionally also the 1.85 GB PDS file) to compute SHA-256
+3. [ ] Write the Horizons provider against recorded responses (parser, error checks, limiter, cache) — can start before the decisions
+4. [ ] Build the Hermite interpolation + whole-interval bound so the horizon connects to the event engine
+5. [ ] Pydantic request models, error envelope, SQLite `RunRepository`
+6. [ ] File the organizer permission (D-12)

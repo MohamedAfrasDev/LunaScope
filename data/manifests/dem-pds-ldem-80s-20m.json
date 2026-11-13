@@ -1,0 +1,55 @@
+{
+  "resource_id": "dem-pds-ldem-80s-20m",
+  "role": "dem_crosscheck",
+  "kind": "dem",
+  "readiness": "discovered",
+  "decision": "PROPOSED independent cross-check DEM (SDR-001 D-01); not approved",
+  "publisher": "NASA PDS Geosciences Node; LRO LOLA team (D. E. Smith, GSFC)",
+  "product_id": "LDEM_80S_20M",
+  "data_set_id": "LRO-L-LOLA-4-GDR-V1.0",
+  "version": "V2.0 (PRODUCT_VERSION_ID); PRODUCT_CREATION_TIME 2017-06-15",
+  "url": "https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/ldem_80s_20m.img",
+  "label_url": "https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/ldem_80s_20m.lbl",
+  "mirror": "https://imbrium.mit.edu/DATA/LOLA_GDR/POLAR/IMG/LDEM_80S_20M.IMG",
+  "use_terms": "PDS public archive; cite the PDS data set and the LOLA team. Confirm exact wording before publication.",
+  "accessed_utc": "2026-11-13",
+  "filename": "LDEM_80S_20M.IMG",
+  "size_bytes": 1848320000,
+  "size_source": "HTTP Content-Length; equals 30400 x 30400 x 2 bytes",
+  "sha256": null,
+  "format": "PDS3 detached label + raw 16-bit little-endian (LSB_INTEGER) image",
+  "dem": {
+    "crs": "polar stereographic, centre latitude -90, centre longitude 0, planetocentric latitude, east-positive longitude, spherical",
+    "coordinate_system": "BODY-FIXED ROTATING, MEAN EARTH/POLAR AXIS OF DE421",
+    "reference_surface": "sphere, A=B=C=1737.4 km (OFFSET = 1737400 m)",
+    "vertical_units": "metres; HEIGHT = DN * 0.5 m relative to the reference sphere",
+    "scaling_factor": 0.5,
+    "offset_m": 1737400,
+    "resolution_m": 20,
+    "map_resolution_pix_per_deg": 1516.17,
+    "grid": {
+      "lines": 30400,
+      "samples": 30400,
+      "sample_bits": 16,
+      "sample_type": "LSB_INTEGER"
+    },
+    "line_projection_offset_pix": 15199.5,
+    "sample_projection_offset_pix": 15199.5,
+    "pixel_registration": "pixel registration per label text; verify centre/corner convention with a known-location test",
+    "nodata": "No missing-value constant in the label; gridded by interpolation (GMT surface). About 0.004% of points were flagged erroneous and removed before gridding",
+    "derived_min_dn": -14594,
+    "derived_max_dn": 14054,
+    "coverage": "80S to 90S, about 304 km from the pole",
+    "gdal_view": "GDAL PDS driver reports int16, scale 0.5, offset 1737400, nodata -32768 (GDAL default; the label itself defines no missing constant)"
+  },
+  "caveats": [
+    "label calls the source preliminary LOLA data (through mission phase LRO_ES_54)",
+    "superseded in track geolocation by the 2023 adjusted product (Barker et al.)",
+    "all cells are filled by interpolation; sparse-coverage areas appear smooth"
+  ],
+  "open_items": [
+    "download and compute SHA-256"
+  ],
+  "preprocessing": [],
+  "decision_record": "docs/sdr/SDR-001.md"
+}

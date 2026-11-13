@@ -1,0 +1,90 @@
+{
+  "resource_id": "dem-lola-80s-20mpp-adj",
+  "role": "dem_primary",
+  "kind": "dem",
+  "readiness": "discovered",
+  "decision": "PROPOSED primary DEM (SDR-001 D-01); not approved",
+  "publisher": "NASA GSFC Planetary Geodesy Data Archive (PGDA); LOLA team product by M. K. Barker",
+  "product_id": "LDEM_80S_20MPP_ADJ",
+  "version": "unstated on the product page; file Last-Modified 2023-07-07T22:28:19Z",
+  "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_20MPP_ADJ.TIF",
+  "landing_page": "https://pgda.gsfc.nasa.gov/products/90",
+  "citation": "Barker, M. K. et al., 2023, Planetary Science Journal 4, 183, https://doi.org/10.3847/PSJ/acf3e1; data DOI 10.60903/gsfcpgda-lola-spole",
+  "use_terms": "Page requests citation of the paper; no explicit license text found. NASA open data assumed; confirm before publication.",
+  "accessed_utc": "2026-11-13",
+  "filename": "LDEM_80S_20MPP_ADJ.TIF",
+  "size_bytes": 2696082051,
+  "size_source": "HTTP Content-Length (HEAD request); file not yet downloaded",
+  "sha256": null,
+  "format": "cloud-optimized GeoTIFF; supports HTTP range requests (Accept-Ranges: bytes)",
+  "dem": {
+    "crs": "IAU 'Moon (2015) - Sphere / Ocentric / South Polar': Polar_Stereographic, latitude_of_origin -90, central_meridian 0, false easting/northing 0, units metres",
+    "reference_surface": "sphere, radius 1737400 m (IAU 30100), planetocentric — read from the GeoTIFF CRS",
+    "vertical_units": "metres (history shows grdmath x 1000; actual_range -7296.79..7027.23 matches the PDS product's -7297..7027)",
+    "resolution_m": 20,
+    "nodata": "declared NaN (_FillValue = nan); none present in the inspected 256x256 pole window",
+    "pixel_registration": "Area (AREA_OR_POINT=Area, node_offset=1): pixel centres lie half a pixel inside the corner transform",
+    "coverage": "80S to 90S, within about 304 km of the pole (stereographic)",
+    "quality_layers": [
+      {
+        "file": "LDEM_80S_20MPP_ADJ_ERR.TIF",
+        "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_20MPP_ADJ_ERR.TIF",
+        "size_bytes": 3954709201
+      },
+      {
+        "file": "LDEM_80S_20MPP_ADJ_EFFRES.TIF",
+        "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_20MPP_ADJ_EFFRES.TIF",
+        "size_bytes": 3974680758
+      },
+      {
+        "file": "LDEC_80S_20MPP_ADJ.TIF",
+        "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEC_80S_20MPP_ADJ.TIF",
+        "size_bytes_listed": "1.3G"
+      }
+    ],
+    "geotransform": [
+      20.0,
+      0.0,
+      -304000.0,
+      0.0,
+      -20.0,
+      304000.0
+    ],
+    "bounds_m": [
+      -304000.0,
+      -304000.0,
+      304000.0,
+      304000.0
+    ],
+    "cross_check_vs_pds": "64x64 window at the pole: mean difference 0.29 m, RMS 1.50 m, correlation 0.9997 against PDS DN*0.5; same grid and orientation (single small window, not a full comparison)"
+  },
+  "open_items": [
+    "download and compute SHA-256",
+    "confirm explicit use terms",
+    "decide how EFFRES / ERR feed the uncertainty budget (D-01b)",
+    "full-extent comparison against the PDS product"
+  ],
+  "preprocessing": [],
+  "decision_record": "docs/sdr/SDR-001.md",
+  "header_inspection": {
+    "date": "2026-11-13",
+    "method": "GDAL /vsicurl/ HTTP range reads of the GeoTIFF header and one 256x256 window; file not downloaded; no checksum yet",
+    "driver": "GTiff",
+    "width": 30400,
+    "height": 30400,
+    "dtype": "float32",
+    "block": [
+      512,
+      512
+    ],
+    "compression": "deflate",
+    "overviews": [
+      2,
+      4,
+      8,
+      16,
+      32,
+      64
+    ]
+  }
+}

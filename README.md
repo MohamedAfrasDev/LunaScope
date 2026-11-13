@@ -8,6 +8,7 @@ LunaScope is a **screening and education tool**. It is not a certification of la
 
 - [Product and Technical Specification v2.1](<LunaScope Product and Technical Specification v2.1.md>)
 - [Implementation Specification (v1.1)](docs/LunaScope-Implementation-Spec.md)
+- [Phase plan and to-do tracker](docs/LunaScope-Phase-Plan.md)
 - [SDR-001 science decision record (draft)](docs/sdr/SDR-001.md)
 
 ## Layout
