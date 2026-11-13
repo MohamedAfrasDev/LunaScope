@@ -130,6 +130,40 @@ export interface Countdown {
   text: string;
   at?: number;
   remaining_s?: number | null;
+  solver_bracket_s?: number;
+}
+
+export interface SkySeries {
+  step_s: number;
+  az_deg: number[];
+  el_deg: number[];
+}
+
+export interface HorizonProfileResponse {
+  site_id: string;
+  result_state: ResultState;
+  settings: { radius_km: number; az_step_deg: number };
+  azimuth_deg: number[];
+  horizon_el_deg: (number | null)[];
+  argmax_distance_km: (number | null)[];
+  sector_state: string[];
+  sectors: { certified: number; coverage_limited: number; unsupported: number };
+  skyline_min_deg: number;
+  skyline_max_deg: number;
+}
+
+export interface CountdownResponse extends Countdown {
+  run_id: string;
+  site_id: string;
+  horizon: HorizonKind;
+  result_state: ResultState;
+  state: IntervalClass;
+  t: number;
+  mission_end: number;
+  event_type?: "rise" | "set";
+  unknown_from?: number;
+  unknown_until?: number;
+  band?: [number, number];
 }
 
 export interface TargetHorizonResult {
@@ -140,12 +174,14 @@ export interface TargetHorizonResult {
   events?: EventRow[];
 }
 
+export type SiteTargetMetrics = Partial<Record<HorizonKind, TargetHorizonResult>> & { series?: SkySeries };
+
 export interface SiteResults {
   site_id: string;
   validity: string;
   site_status: SiteStatus;
   result_state: ResultState;
-  target_metrics: Partial<Record<Target, Partial<Record<HorizonKind, TargetHorizonResult>>>>;
+  target_metrics: Partial<Record<Target, SiteTargetMetrics>>;
   warnings: string[];
 }
 

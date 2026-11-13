@@ -205,3 +205,25 @@ def test_a_service_token_protects_everything_except_the_health_probe(tmp_path):
         assert ok.status_code == 200
         r = c.post(URL, content=json.dumps(BODY), headers={"authorization": "Bearer s3cret-token"})
         assert r.status_code == 202
+
+
+def test_countdown_endpoint_is_server_decided_and_bounded(svc):
+    c, first, _ = svc
+    rid = first.json()["run_id"]
+    res = c.get(f"{URL}/{rid}/results", params={"site": "rule-89.5S-E0", "target": "sun_center",
+                                                "include": "events"}).json()
+    ev = res["sites"][0]["target_metrics"]["sun_center"]["terrain"]["events"]
+    cd = f"{URL}/{rid}/countdown"
+    q = {"site": "rule-89.5S-E0", "target": "sun_center", "horizon": "terrain"}
+    start = c.get(cd, params={**q, "t": 0}).json()
+    assert start["kind"] == "set" and start["at"] == pytest.approx(ev[0]["t_s"])
+    assert start["remaining_s"] == pytest.approx(ev[0]["t_s"]) and start["result_state"] == "synthetic_demonstration"
+    mid = c.get(cd, params={**q, "t": ev[0]["t_s"] + 3600}).json()
+    assert mid["kind"] == "rise" and mid["state"] == "H"  # hidden after the set
+    last = c.get(cd, params={**q, "t": 172800}).json()
+    assert last["kind"] == "mission_end" and "censored" in last["text"]
+    assert c.get(cd, params={**q, "horizon": "flat", "t": 0}).json()["kind"] == "no_event"
+    for bad in ({"t": -1}, {"t": 172801}, {"t": "nan"}, {"t": 0, "target": "moon"}, {"t": 0, "horizon": "x"}):
+        r = c.get(cd, params={**q, **bad})
+        assert r.status_code == 422, bad
+    assert c.get(cd, params={**q, "site": "nope", "t": 0}).status_code == 404

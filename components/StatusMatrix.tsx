@@ -59,6 +59,12 @@ export function StatusMatrix({ runId, rows }: { runId: string; rows: MatrixRow[]
                   >
                     Timeline and evidence
                   </Link>
+                  <Link
+                    href={`/runs/${runId}/sky/${encodeURIComponent(r.site_id)}`}
+                    className="mt-1 block text-sm font-normal text-accent underline underline-offset-4"
+                  >
+                    Local sky
+                  </Link>
                 </th>
                 <td className="py-3 pr-3">
                   <StatusChip p={s} title={s.help} />

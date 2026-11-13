@@ -190,7 +190,7 @@ Priority order: validity → relevance → core experience.
 - [ ] **Mission** — draft form with field-level errors, sample-count preview (FR-01)
 - [ ] **Sites** — presets, custom coordinates with convention/source/precision, DEM coverage flag (FR-02)
 - [ ] **Run summary** — status matrix, excluded group, progress (FR-03)
-- [ ] **Local Sky** — static SVG polar plot + unrolled view, terrain and flat horizons, scrubber, countdown (FR-06, FR-17)
+- [x] **Local Sky**: polar (north up) and unrolled views, terrain skyline hatched, flat 0 deg horizon, Sun and Earth tracks styled by the service's classification, scrubber, event jumps, countdown, text alternative and table ([SkyView.tsx](../components/SkyView.tsx), [SkyPlots.tsx](../components/SkyPlots.tsx)); static SVG, no canvas layer
 - [ ] **Timeline** — aligned Sun/Earth bands, threshold line, interval table, longest outage (FR-07)
 - [ ] **Compare** — status matrix, paired timelines, held/changed fields, no winner (FR-08)
 - [ ] **Time Machine** — 5-day shift, linked variant, deltas, alignment mode (FR-10)
@@ -198,7 +198,7 @@ Priority order: validity → relevance → core experience.
 - [ ] Home — one button starts the reference mission
 
 ### 2.3 Cross-cutting
-- [ ] Countdown rules: at-event, at-mission-end, no-event, across-unknown, terrain-variant range
+- [~] Countdown rules: the Local Sky countdown is asked from the service at the cursor time (`GET /countdown`), covering at-event, mission-end, no-event, unknown and decision-band cases; the terrain-variant range (sensitivity) is not shown yet
 - [ ] Alignment modes labelled "Elapsed time" vs "Calendar (shared UTC)" (S-5)
 - [ ] Evidence bundle export (JSON) with frozen validation snapshot; investigative vs verified designation
 - [~] Keyboard-complete core flow; chart text alternatives and table views; pass/fail not by colour alone: icon+word on every state, SVG has title/desc and a table per band, focus rings, skip link, reduced-motion rule; manual keyboard pass and axe checks not done (AC-15)
@@ -218,7 +218,7 @@ Priority order: validity → relevance → core experience.
 Only after Gate 2.
 
 ### 3.1 Extras (cut in this order if time runs out: share link → sensitivity UI → alternatives strip → animation → guided mode)
-- [ ] Animated local sky: canvas overlay, pause/scrub/jump-to-event, reduced-motion (FR-18)
+- [x] Animated local sky (FR-18): play/pause, speed, scrub, jump to previous/next event, `prefers-reduced-motion` turns playback off; SVG driven by requestAnimationFrame, measured advancing 0.57 d in 2.5 s at 6 h/s; no canvas layer was needed
 - [ ] Alternatives search with tested-dates strip, bounded batches (FR-11)
 - [ ] Guided mode from fixed templates (FR-14)
 - [ ] "Why the south pole is hard" explainer, one click from the main flow (FR-19)

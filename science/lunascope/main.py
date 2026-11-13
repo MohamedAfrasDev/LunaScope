@@ -9,6 +9,7 @@ from __future__ import annotations
 import contextlib
 import hmac
 import json
+import math
 import os
 import re
 import time
@@ -27,9 +28,11 @@ from .api_models import (
     parse_request,
 )
 from .canonical import canonical_bytes
-from .codes import ResultState
+from .codes import IntervalClass, ResultState
+from .countdown import countdown as compute_countdown
 from .dem import MANIFESTS, REPO, footprint_coverage
 from .errors import INVALID_INPUT, LunaScopeError
+from .events import Event, Interval
 from .jobs import JobRunner
 from .observer import build_observer
 from .stacks import ServiceConfig, analysis_identity
@@ -271,6 +274,26 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
                 "geometry": {t: {k: v for k, v in g.items() if k not in ("series",)}
                              for t, g in s["geometry"].items()},
                 "warnings": s["warnings"], "caveats": s["caveats"]} for s in a["sites"]]}
+
+    @app.get("/api/v1/analyses/{run_id}/countdown")
+    def countdown(run_id: str, site: str, target: str, t: float, horizon: str = "terrain") -> dict:
+        """Server-decided countdown at an arbitrary cursor time (seconds from the window start).
+        The browser only subtracts the cursor from the event time this returns."""
+        a = _ready(run_id)
+        if target not in ("sun_center", "earth_center") or horizon not in ("terrain", "flat"):
+            raise LunaScopeError(INVALID_INPUT, "target or horizon is not one of the allowed values",
+                                 field="target" if target not in ("sun_center", "earth_center") else "horizon")
+        s = next((x for x in a["sites"] if x["request"]["site"]["site_id"] == site), None)
+        if s is None:
+            raise LunaScopeError(NOT_FOUND, f"no site {site!r} in this run")
+        block = s["targets"][target][horizon]
+        intervals = [Interval(i["start_s"], i["end_s"], IntervalClass(i["class"])) for i in block["intervals"]]
+        events = [Event(e["t_s"], e["type"], e["solver_bracket_s"], e["quality"]) for e in block["events"]]
+        end = intervals[-1].end
+        if not (math.isfinite(t) and 0.0 <= t <= end):  # NaN, infinite or outside the window
+            raise LunaScopeError(INVALID_INPUT, f"t must be within 0 and {end:g} seconds", field="t")
+        return {"run_id": a["run_id"], "site_id": site, "horizon": horizon,
+                "result_state": s["result_state"], **compute_countdown(intervals, events, t, target)}
 
     @app.get("/api/v1/analyses/{run_id}/horizon/{site_id}")
     def horizon(run_id: str, site_id: str) -> dict:

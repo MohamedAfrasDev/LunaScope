@@ -63,6 +63,17 @@ const ROUTES: RouteDef[] = [
   },
   {
     method: "GET",
+    re: new RegExp(`^analyses/(${RUN})/countdown$`),
+    upstream: (m) => `analyses/${m[1]}/countdown`,
+    query: {
+      site: (v) => new RegExp(`^${SITE}$`).test(v),
+      target: (v) => TARGETS.has(v),
+      horizon: (v) => v === "terrain" || v === "flat",
+      t: (v) => /^\d{1,9}(\.\d{1,3})?$/.test(v),
+    },
+  },
+  {
+    method: "GET",
     re: new RegExp(`^analyses/(${RUN})/export$`),
     upstream: (m) => `analyses/${m[1]}/export`,
     query: { verified: (v) => v === "true" || v === "false" },

@@ -91,6 +91,9 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">Timeline: {siteLabel(siteId)}</h1>
         <StatusChip p={sp} title={sp.help} />
+        <Link href={`/runs/${runId}/sky/${encodeURIComponent(siteId)}`} className="text-sm text-accent underline underline-offset-4">
+          Local sky
+        </Link>
       </div>
 
       <ResultStateFrame state={site.result_state}>
