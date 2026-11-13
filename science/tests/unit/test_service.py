@@ -279,3 +279,13 @@ def test_comparing_a_date_shift_shows_changed_and_held_fields_and_both_alignment
     assert cal["sites"][0]["targets"]["sun_center"]["a"]["window_s"] == 86400
     reverse = compare(c, {"runs": [b, a], "alignment": "calendar"}).json()
     assert reverse["shift_s"] == -86400 and reverse["overlap"]["start_utc"] == "2027-01-11T00:00:00Z"
+
+
+def test_fixture_geometry_labels_itself_as_demonstration():
+    from lunascope.stacks import AnalyticGeometry
+
+    g = AnalyticGeometry()
+    assert "DEMONSTRATION" in g.identity["label"]
+    from datetime import UTC, datetime
+    s = g.series(None, "sun_center", [datetime(2027, 1, 1, tzinfo=UTC), datetime(2027, 1, 1, 1, tzinfo=UTC)])
+    assert "DEMONSTRATION_DATA" in s.flags and s.header["label"].startswith("DEMONSTRATION")

@@ -174,3 +174,13 @@ def test_sensitivity_flags_a_changed_decision_and_stays_quiet_when_stable():
 def test_invalid_duration_rejected():
     with pytest.raises(ValueError):
         run_site(SITE, dataclasses.replace(cfg(), duration_s=1000), stack())
+
+
+def test_stored_horizon_gives_the_same_science_and_is_reported_as_cached(tmp_path):
+    s = stack().replace(horizon_dir=tmp_path)
+    first = run_site(SITE, cfg(), s)
+    second = run_site(SITE, cfg(), s)
+    assert first["timing_s"]["horizon_cached"] == 0.0 and second["timing_s"]["horizon_cached"] == 1.0
+    assert list(tmp_path.glob("*.horizon.npz"))
+    for k in ("horizon", "targets", "result_id"):
+        assert second[k] == first[k]

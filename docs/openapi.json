@@ -1,0 +1,523 @@
+{
+ "components": {
+  "schemas": {
+   "HTTPValidationError": {
+    "properties": {
+     "detail": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationError"
+      },
+      "title": "Detail",
+      "type": "array"
+     }
+    },
+    "title": "HTTPValidationError",
+    "type": "object"
+   },
+   "ValidationError": {
+    "properties": {
+     "ctx": {
+      "title": "Context",
+      "type": "object"
+     },
+     "input": {
+      "title": "Input"
+     },
+     "loc": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "integer"
+        }
+       ]
+      },
+      "title": "Location",
+      "type": "array"
+     },
+     "msg": {
+      "title": "Message",
+      "type": "string"
+     },
+     "type": {
+      "title": "Error Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "loc",
+     "msg",
+     "type"
+    ],
+    "title": "ValidationError",
+    "type": "object"
+   }
+  }
+ },
+ "info": {
+  "title": "LunaScope science service",
+  "version": "0.2.0-phase1"
+ },
+ "openapi": "3.1.0",
+ "paths": {
+  "/api/v1/analyses": {
+   "post": {
+    "operationId": "create_analysis_api_v1_analyses_post",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Create Analysis"
+   }
+  },
+  "/api/v1/analyses/{run_id}": {
+   "get": {
+    "operationId": "get_analysis_api_v1_analyses__run_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Get Analysis Api V1 Analyses  Run Id  Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Get Analysis"
+   }
+  },
+  "/api/v1/analyses/{run_id}/countdown": {
+   "get": {
+    "description": "Server-decided countdown at an arbitrary cursor time (seconds from the window start).\nThe browser only subtracts the cursor from the event time this returns.",
+    "operationId": "countdown_api_v1_analyses__run_id__countdown_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "site",
+      "required": true,
+      "schema": {
+       "title": "Site",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "target",
+      "required": true,
+      "schema": {
+       "title": "Target",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "t",
+      "required": true,
+      "schema": {
+       "title": "T",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "horizon",
+      "required": false,
+      "schema": {
+       "default": "terrain",
+       "title": "Horizon",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Countdown Api V1 Analyses  Run Id  Countdown Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Countdown"
+   }
+  },
+  "/api/v1/analyses/{run_id}/export": {
+   "get": {
+    "operationId": "export_api_v1_analyses__run_id__export_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "verified",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Verified",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Export"
+   }
+  },
+  "/api/v1/analyses/{run_id}/horizon/{site_id}": {
+   "get": {
+    "operationId": "horizon_api_v1_analyses__run_id__horizon__site_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "site_id",
+      "required": true,
+      "schema": {
+       "title": "Site Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Horizon Api V1 Analyses  Run Id  Horizon  Site Id  Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Horizon"
+   }
+  },
+  "/api/v1/analyses/{run_id}/provenance": {
+   "get": {
+    "operationId": "provenance_api_v1_analyses__run_id__provenance_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Provenance Api V1 Analyses  Run Id  Provenance Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Provenance"
+   }
+  },
+  "/api/v1/analyses/{run_id}/results": {
+   "get": {
+    "operationId": "results_api_v1_analyses__run_id__results_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "site",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Site"
+      }
+     },
+     {
+      "in": "query",
+      "name": "target",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Target"
+      }
+     },
+     {
+      "in": "query",
+      "name": "include",
+      "required": false,
+      "schema": {
+       "default": "",
+       "title": "Include",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Results Api V1 Analyses  Run Id  Results Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Results"
+   }
+  },
+  "/api/v1/comparisons": {
+   "post": {
+    "operationId": "comparisons_api_v1_comparisons_post",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Comparisons Api V1 Comparisons Post",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Comparisons"
+   }
+  },
+  "/api/v1/health": {
+   "get": {
+    "operationId": "health_api_v1_health_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Health Api V1 Health Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Health"
+   }
+  },
+  "/api/v1/resources": {
+   "get": {
+    "operationId": "resources_api_v1_resources_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Resources Api V1 Resources Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Resources"
+   }
+  },
+  "/api/v1/sites": {
+   "get": {
+    "operationId": "sites_api_v1_sites_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Sites Api V1 Sites Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Sites"
+   }
+  },
+  "/api/v1/sites/custom": {
+   "post": {
+    "operationId": "custom_site_api_v1_sites_custom_post",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Custom Site Api V1 Sites Custom Post",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Custom Site"
+   }
+  }
+ }
+}

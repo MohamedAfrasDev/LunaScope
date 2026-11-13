@@ -63,7 +63,7 @@ class ServiceConfig:
 class AnalyticGeometry:
     """Sun-like and Earth-like tracks: azimuth sweeps 40 deg over 2 days. Offline and instant."""
 
-    identity: ClassVar[dict] = {"name": "fixture-synthetic"}
+    identity: ClassVar[dict] = {"name": "fixture-synthetic", "label": "DEMONSTRATION: invented tracks, not an ephemeris"}
 
     def series(self, obs, target, times):
         t0 = times[0]
@@ -74,7 +74,8 @@ class AnalyticGeometry:
             target=target, t_utc=tuple(times), az_deg=az, el_deg=el, provider="fixture-synthetic",
             signature_version="0", raw_sha256=hash_of({"t": target, "n": len(times), "t0": times[0].isoformat()}),
             retrieved_utc="2027-01-01T00:00:00Z", request={"synthetic": True},
-            correction_mode="none", time_scale="UTC")
+            correction_mode="none", time_scale="UTC",
+            flags=("DEMONSTRATION_DATA",), header={"label": self.identity["label"]})
 
 
 def synthetic_terrain_factory(site: SiteSpec, cfg: RunConfig):

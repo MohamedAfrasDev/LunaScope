@@ -88,9 +88,9 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] Error envelope: stable code, field path, retryable flag, correlation id (header echoed or generated)
 - [x] Run store: SQLite (WAL) with unique run ids, attempts, content-addressed write-once artifacts verified on read ([store.py](../science/lunascope/store.py)); no hosted-DB adapter yet
 - [x] Resource registry with startup presence/size checks (`registry.py`, `/health` `resources_ok`, `/resources` per-file status) and a full-hash script; `resources_approved` stays false
-- [ ] Fixture (synthetic) geometry provider, labeled demonstration
+- [x] Fixture (synthetic) geometry provider, labeled demonstration (identity label, `DEMONSTRATION_DATA` flag and header; result state `synthetic_demonstration`)
 - [x] Structured JSON logging (run ID, stage, timing, warning codes; `LUNASCOPE_LOG=json`; no coordinates or tokens logged)
-- [ ] OpenAPI → TypeScript type generation wired into CI
+- [~] OpenAPI: `docs/openapi.json` exported by `science/scripts/export_openapi.py`, with a test that fails when it is stale. TypeScript generation is NOT wired: responses are untyped plain JSON, so a generator would produce nothing useful until response models exist (and it needs a new npm dev dependency)
 
 ### 1.4 Observer and local frame
 - [x] Canonical observer with separate ground-height and mast-height terms
@@ -123,11 +123,11 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] Cooperative cancellation between chunks; cache key over observer/terrain/settings/algorithm
 - [x] Test case 4 (flat sphere dip) · 5 (ridge) · 6 (depressed skyline) · 7 (far obstacle / nodata) · 8 (narrow ridge, synthetic)
 - [x] Step-count check: ~7,500 radial steps per ray at default settings
-- [ ] DEM preprocessing script (checksummed, round-trip and metadata checks)
+- [x] DEM preprocessing script (`science/scripts/dem_check.py`): hash, grid and label metadata, pixel-centre round trip (8.5e-8 m), terrain-at-pixel-centre equality, ADJ vs PDS window; all pass on the real files. The DEMs are read in place, nothing is rewritten
 - [x] `DemTerrain`: polar stereographic matches PROJ to micrometres, pixel-centre bilinear, NaN outside tile/window/next to NaN, GDAL sampling cross-check, both LOLA products ([dem.py](../science/lunascope/dem.py))
 - [x] Footprint-wide coverage report (`footprint_coverage`): fraction of the horizon disk inside the tile, sectors with a gap
 - [~] Real-terrain horizon checks and refinement: done for ONE site on both DEMs (radius converged; azimuth step 0.5 -> 0.1 deg still moves the skyline 0.017 deg, above the 0.01 deg band; ADJ vs PDS up to 0.45 deg). More sites and a finer-azimuth strategy needed
-- [ ] Precomputed horizon storage for named showcase presets (< 300 ms read)
+- [x] Precomputed horizon storage (`horizon_store.py`): hash-verified `.npz` keyed by the cache key, atomic writes, corrupt file = miss; read measured under 300 ms in a test; pipeline reports `horizon_cached`. Named showcase presets themselves are not chosen (they need the real demo sites, D-09)
 - [~] Benchmark: one site, 150 km, 0.5 deg: window load 3.3 s + horizon 1.8 s (0.1 deg: 8.6 s), 937 MB window; budget met. Other machines and cold caches not measured
 - [ ] Multi-resolution near/far merge (after the single-DEM pipeline is correct)
 
@@ -141,7 +141,7 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] Glue: `TerrainClearanceModel` from the interpolated geometry + horizon profile, or the flat horizon for the geometric-only comparison ([clearance.py](../science/lunascope/clearance.py))
 - [x] Whole-interval Lipschitz bound from Hermite coefficients and every horizon bin crossed; `monotone` only granted inside one linear skyline piece
 - [x] `geometry_timing_bound_s` attached to every event with a `near_tangent` flag when the clearance rate is undefined or tiny (pipeline)
-- [ ] Contact events (touch without crossing) via derivative-sign analysis
+- [x] Contact events (`contacts.py`): graze / near_miss / unresolved_dip from runs of the unresolved band with equal neighbours and no event; extremum search is numerical and labeled so; returned per model as `contacts`
 - [x] Explanation facts and fixed templates (`explain.py`, returned per target by the results endpoint): hidden whole window, unresolved range, terrain changes outcome, excluded
 - [x] Comparison service ([compare.py](../science/lunascope/compare.py), `POST /comparisons`): sites within a run, and two runs with explicit `elapsed` / `calendar` alignment, compatibility check with reasons, held and changed fields, deltas, changed intervals, typed facts (terrain changes outcome, outcomes same/differ, equal availability with different outage, unresolved time matters); no winner, rank or score anywhere
 - [~] Validation: geometry-agreement card data (SPICE vs Horizons) and holdout are produced per run; terrain-horizon and convergence cards are not yet formal services

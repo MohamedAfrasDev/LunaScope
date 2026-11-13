@@ -22,13 +22,14 @@ from pathlib import Path
 
 import numpy as np
 
-from . import ALGORITHM_VERSION
+from . import ALGORITHM_VERSION, horizon_store
 from .canonical import canonical_bytes, hash_of, make_result_id, make_run_id, sha256_hex
 from .clearance import TerrainClearanceModel
 from .codes import ResultState
+from .contacts import find_contacts
 from .countdown import countdown
 from .events import Settings, build_partition
-from .horizon import STATE_NAMES, HorizonSettings, compute_horizon
+from .horizon import STATE_NAMES, HorizonProfile, HorizonSettings, compute_horizon
 from .metrics import summarize
 from .observer import build_observer
 from .providers.geometry.interpolate import (
@@ -90,6 +91,7 @@ class Stack:
     reference: object | None = None  # independent geometry provider (SPICE)
     synthetic: bool = False
     extra_resources: list = field(default_factory=list)
+    horizon_dir: Path | None = None  # precomputed skylines (horizon_store); None = always compute
 
     def replace(self, **kw) -> Stack:
         return dataclasses.replace(self, **kw)
@@ -145,8 +147,18 @@ def run_site(site: SiteSpec, cfg: RunConfig, stack: Stack, *, with_reference: bo
     # -- horizon -----------------------------------------------------------------------------
     t0 = time.time()
     hs = HorizonSettings(radius_km=cfg.radius_km, az_step_deg=cfg.az_step_deg)
-    prof = compute_horizon(obs, terrain, hs)
+    prof, horizon_cached = None, False
+    if stack.horizon_dir is not None:
+        prof = horizon_store.load(HorizonProfile(
+            np.empty(0), np.empty(0), np.empty(0), np.empty(0, dtype=np.int8), hs, obs.digest(),
+            terrain.identity).cache_key(), stack.horizon_dir)
+        horizon_cached = prof is not None
+    if prof is None:
+        prof = compute_horizon(obs, terrain, hs)
+        if stack.horizon_dir is not None:
+            horizon_store.save(prof, stack.horizon_dir)
     timing["horizon_s"] = time.time() - t0
+    timing["horizon_cached"] = 1.0 if horizon_cached else 0.0
     sectors = prof.sector_summary()
     if sectors["coverage_limited"] or sectors["unsupported"]:
         warnings.append("DEM_COVERAGE_INCOMPLETE")
@@ -226,7 +238,11 @@ def run_site(site: SiteSpec, cfg: RunConfig, stack: Stack, *, with_reference: bo
             results[tgt][horizon_name] = {
                 "clearance_at_nodes": clearance,
                 "metrics": m.to_dict(), "intervals": _intervals_json(part.intervals, cfg.start_utc),
-                "events": evs, "evaluations": part.evals,
+                "events": evs,
+                "contacts": [{**vars(c), "t_utc": _iso(cfg.start_utc, c.t_extremum),
+                              "start_utc": _iso(cfg.start_utc, c.start), "end_utc": _iso(cfg.start_utc, c.end),
+                              "horizon": horizon_name} for c in find_contacts(model, part)],
+                "evaluations": part.evals,
                 "countdown_at_start": countdown(part.intervals, part.events, 0.0, tgt)}
             if horizon_name == "terrain":
                 outcomes[tgt] = m.outcome
