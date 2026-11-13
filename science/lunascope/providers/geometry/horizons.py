@@ -15,6 +15,7 @@ sphere (cylindric echo radius matches), and the lunar frame is MEAN_ME.
 from __future__ import annotations
 
 import math
+import os
 import re
 import threading
 import time
@@ -31,6 +32,7 @@ import numpy as np
 from ... import ALGORITHM_VERSION
 from ...canonical import hash_of, sha256_hex
 from ...errors import (
+    CONFIGURATION_MISSING,
     GEOMETRY_COVERAGE_MISSING,
     GEOMETRY_PROVIDER_REJECTED_REQUEST,
     GEOMETRY_PROVIDER_UNAVAILABLE,
@@ -301,6 +303,18 @@ class ExternalRequestLimiter:
 
 
 HORIZONS_LIMITER = ExternalRequestLimiter()
+CONTACT_ENV = "LUNASCOPE_CONTACT"
+
+
+def _clean_contact(contact: str | None) -> str | None:
+    """A header value: single line, printable, short. Anything else is refused, not repaired."""
+    if contact is None or contact.strip() == "":
+        return None
+    c = contact.strip()
+    if not (3 <= len(c) <= 200) or any(ord(ch) < 32 or ord(ch) == 127 for ch in c) or "(" in c or ")" in c:
+        raise LunaScopeError(INVALID_INPUT, f"{CONTACT_ENV} must be 3 to 200 printable characters on one line, "
+                             "without parentheses", field=CONTACT_ENV)
+    return c
 RETRYABLE_STATUS = {429, 500, 502, 503, 504}
 
 
@@ -308,16 +322,24 @@ class HorizonsClient:
     def __init__(self, cache: ResponseCache, http: httpx.Client | None = None,
                  limiter: ExternalRequestLimiter = HORIZONS_LIMITER,
                  sleep: Callable[[float], None] = time.sleep, max_attempts: int = 5,
-                 base_backoff_s: float = 2.0, timeout_s: float = 60.0):
+                 base_backoff_s: float = 2.0, timeout_s: float = 60.0, contact: str | None = None):
         self.cache, self.http, self.limiter, self._sleep = cache, http or httpx.Client(), limiter, sleep
         self.max_attempts, self.base_backoff_s, self.timeout_s = max_attempts, base_backoff_s, timeout_s
-        self.user_agent = f"LunaScope/{ALGORITHM_VERSION}"  # product + version only
+        # JPL's fair-use policy requires product name, version AND contact information in the
+        # User-Agent. The contact is project configuration (LUNASCOPE_CONTACT), never hard-coded.
+        self.contact = _clean_contact(contact if contact is not None else os.environ.get(CONTACT_ENV))
+        self.user_agent = f"LunaScope/{ALGORITHM_VERSION}" + (f" (contact: {self.contact})" if self.contact else "")
 
     def fetch(self, key: str, params: dict[str, str]) -> tuple[bytes, str, bool]:
         """Return (raw bytes, retrieved_utc, from_cache). Cache-first; never substitutes settings."""
         hit = self.cache.get(key)
         if hit is not None:
             return hit[0], hit[1]["retrieved_utc"], True
+        if not self.contact:  # fail closed: no request leaves without the contact JPL requires
+            raise LunaScopeError(
+                CONFIGURATION_MISSING,
+                f"set {CONTACT_ENV} to a project contact (email or URL): JPL's fair-use policy requires "
+                "contact information in the User-Agent of automated Horizons requests")
         last = "no attempt"
         with self.limiter:
             for attempt in range(self.max_attempts):

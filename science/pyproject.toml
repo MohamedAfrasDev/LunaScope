@@ -29,3 +29,6 @@ addopts = "-q"
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/**" = ["SIM115", "C408", "B023", "RUF007"]  # one-off study and report scripts

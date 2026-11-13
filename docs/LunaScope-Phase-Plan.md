@@ -20,7 +20,7 @@ Dates are intended work windows, not evidence that a gate will pass.
 | **3. Extras, presentation, reliability** | 15 Nov | Animation, alternatives, fallback, submission | **Gate 3** | `[ ]` |
 
 ```
-Phase 0 ██████░░░░ 60 %   Phase 1 ████░░░░░░ 40 %   Phase 2 ░░░░░░░░░░ 0 %   Phase 3 ░░░░░░░░░░ 0 %
+Phase 0 ████████░░ 80 %   Phase 1 ████░░░░░░ 40 %   Phase 2 ░░░░░░░░░░ 0 %   Phase 3 ░░░░░░░░░░ 0 %
 ```
 
 **Done so far (summary)**
@@ -43,16 +43,16 @@ Goal: no real-data work starts until these are decided and written down. **Owner
 - [x] Adopt one uncertainty/requirement policy (PASS / FAIL / INDETERMINATE / EXCLUDED) — written in spec §7.1, implemented in code
 - [x] Define identities: stable `run_id` at admission, sealed `result_id` at completion (spec §8.1)
 - [~] **D-01** DEM product: **recommended** primary `LDEM_80S_20MPP_ADJ` (PGDA 2023) + cross-check PDS `LDEM_80S_20M` V2.0. Both downloaded, SHA-256 pinned, metadata verified, full-extent comparison done (RMS 1.76 m), use terms checked. Still open: D-01b quality-mask decision, same-site horizon comparison on both DEMs, sign-off
-- [ ] **D-02** Lunar frame and its realization across Horizons, SPICE and the DEM (OQ-02, S-6)
-- [~] **D-03** Latitude type, longitude direction, radius, datum: confirmed *for the chosen DEMs* (planetocentric, east-positive, 1,737.4 km sphere, heights relative to it); Horizons/SPICE side still open
+- [x] **D-02** Frame `MOON_ME` = `MOON_ME_DE440_ME421`; 0.53 m from the DE421 ME frame the DEMs cite (skyline effect <= 0.016 deg); guard tests added. Decided on evidence, awaiting sign-off
+- [x] **D-03** Planetocentric, east-positive, 1,737.4 km sphere, heights relative to it: confirmed on the DEMs and against Horizons echo. Awaiting sign-off
 - [~] **D-04** Decided (proposed) and measured: Horizons quantity 4 airless vs SPICE `LT+S`, UTC, DE440 kernels pinned; awaiting sign-off, and a longer multi-date comparison
-- [ ] **D-05** Justify decision band ε (default 0.01° is a placeholder)
-- [ ] **D-06** Confirm root tolerance τ, minimum interval width, evaluation cap
-- [ ] **D-08** Fix the reference window `start_utc` and record why (S-11)
-- [ ] **D-09** Choose demo sites and precision (OQ-05)
-- [~] **D-10** Geometry tolerance proposed at 0.01 arcsec (measured max 0.0016"); interpolation residual measured; needs more dates
-- [ ] **D-11** Confirm Horizons User-Agent wording (no secrets or personal contact)
-- [ ] **D-12** File the organizer's written permission for the 12 Nov foundation work (OQ-10, Risk #1)
+- [x] **D-05** epsilon = 0.01 deg holds with azimuth step <= 0.1 deg (error > 0.01 deg in < 0.01% of azimuths); epsilon sweep flips no outcome. Awaiting sign-off
+- [x] **D-06** tau 1 s, w_min 5 s, cap 200 kept: no outcome change across the tested ranges. Awaiting sign-off
+- [x] **D-08** Window stays an explicit request input recorded in every bundle; timing error and EOP effects quantified (<= 1.4e-4 deg per second). Awaiting sign-off
+- [~] **D-09** Demo points are rule-chosen and labelled non-candidate; 100 m precision. Real demo sites still need the science owner
+- [~] **D-10** Tolerance 0.01 arcsec; one date measured. `science/scripts/geometry_agreement.py` ready for 6 dates x 5 sites; blocked on the Horizons contact
+- [~] **D-11** User-Agent format and fail-closed code done and tested; the contact value is MISSING (team email or URL needed)
+- [~] **D-12** Template (`docs/permissions/ORGANIZER-PERMISSION.md`, NOT ON FILE) and git work log prepared. Needs the organizer's written reply
 - [ ] Science owner and product owner sign SDR-001
 
 ---
@@ -67,7 +67,7 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] Extend `.gitignore` (venv, caches, `data/raw`, `data/derived`, `var/`)
 - [x] Exclude `science/**` and `data/**` from ESLint
 - [x] Create `docs/sdr/`
-- [ ] Add organizer-permission note to `docs/` (D-12)
+- [~] Add organizer-permission note to `docs/` (D-12): template added, no permission on file
 
 ### 1.1 Inventory of resources
 - [ ] Record LROC QuickMap, NASA Moon Trek, JPL Horizons as official resources with citations

@@ -1,0 +1,1076 @@
+{
+ "S89.5-E0": {
+  "base": {
+   "sun_center": {
+    "lower": 0.0,
+    "upper": 0.0,
+    "outcome": "FAIL",
+    "unc_s": 0.0,
+    "evals": 3024,
+    "evals_per_base": 3.0,
+    "n_events": 0
+   },
+   "earth_center": {
+    "lower": 0.7449777386979655,
+    "upper": 0.7469069896446283,
+    "outcome": "PASS",
+    "unc_s": 0.0,
+    "evals": 3033,
+    "evals_per_base": 3.0089285714285716,
+    "n_events": 1
+   }
+  },
+  "variants": {
+   "eps=0.005": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0004819758891813075,
+     "d_upper": -0.0004818188687096825,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "eps=0.02": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": -0.0009642066140634897,
+     "d_upper": 0.000963395177725701,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "eps=0.05": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": -0.003833133950183143,
+     "d_upper": 0.003851991839155744,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "tau=0.1": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 7.440476189612966e-07,
+     "d_upper": -7.440476191833412e-07,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "tau=10": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": -7.440476190501144e-06,
+     "d_upper": 7.440476190501144e-06,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "w_min=2.5": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "w_min=20": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "cap=400": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "cap=25": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "cap=10": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "cap=5": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   }
+  },
+  "max_rate_deg_per_s": {
+   "earth_center": 2.21847159706279e-05,
+   "sun_center": 0.00014102932932012776
+  }
+ },
+ "S89.5-E120": {
+  "base": {
+   "sun_center": {
+    "lower": 0.0,
+    "upper": 0.0,
+    "outcome": "FAIL",
+    "unc_s": 0.0,
+    "evals": 3024,
+    "evals_per_base": 3.0,
+    "n_events": 0
+   },
+   "earth_center": {
+    "lower": 0.0,
+    "upper": 0.0,
+    "outcome": "FAIL",
+    "unc_s": 0.0,
+    "evals": 3024,
+    "evals_per_base": 3.0,
+    "n_events": 0
+   }
+  },
+  "variants": {
+   "eps=0.005": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "eps=0.02": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "eps=0.05": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "tau=0.1": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "tau=10": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "w_min=2.5": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "w_min=20": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "cap=400": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "cap=25": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "cap=10": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "cap=5": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    }
+   }
+  },
+  "max_rate_deg_per_s": {
+   "earth_center": 2.218637042257945e-05,
+   "sun_center": 0.00014106092656618126
+  }
+ },
+ "S89.5-E240": {
+  "base": {
+   "sun_center": {
+    "lower": 0.0,
+    "upper": 0.0,
+    "outcome": "FAIL",
+    "unc_s": 0.0,
+    "evals": 3024,
+    "evals_per_base": 3.0,
+    "n_events": 0
+   },
+   "earth_center": {
+    "lower": 0.6500679161607417,
+    "upper": 0.6523852832083649,
+    "outcome": "PASS",
+    "unc_s": 0.0,
+    "evals": 3032,
+    "evals_per_base": 3.007936507936508,
+    "n_events": 1
+   }
+  },
+  "variants": {
+   "eps=0.005": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0005791236748411421,
+     "d_upper": -0.0005787113710303826,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "eps=0.02": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": -0.0011585675803662543,
+     "d_upper": 0.0011571531944488678,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "eps=0.05": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": -0.004637305114869261,
+     "d_upper": 0.004625773137109435,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "tau=0.1": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 7.853835997106984e-07,
+     "d_upper": -7.020755630193776e-07,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.026000000012572855,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "tau=10": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": -7.440476190390122e-06,
+     "d_upper": 7.440476190501144e-06,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "w_min=2.5": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "w_min=20": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "cap=400": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "cap=25": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "cap=10": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   },
+   "cap=5": {
+    "sun_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      0,
+      0
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "FAIL",
+      "FAIL"
+     ],
+     "unc_s": 0.0
+    },
+    "earth_center": {
+     "d_lower": 0.0,
+     "d_upper": 0.0,
+     "event_count": [
+      1,
+      1
+     ],
+     "max_event_shift_s": 0.0,
+     "outcome": [
+      "PASS",
+      "PASS"
+     ],
+     "unc_s": 0.0
+    }
+   }
+  },
+  "max_rate_deg_per_s": {
+   "earth_center": 2.21859576751004e-05,
+   "sun_center": 0.00014104281615187096
+  }
+ }
+}

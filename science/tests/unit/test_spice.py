@@ -88,8 +88,8 @@ def test_spice_agrees_with_recorded_horizons(provider, name, target, obs):
 
 
 def test_sun_matches_to_rounding_level_and_earth_has_a_small_systematic_offset(provider):
-    # Measured 13 Nov 2026: Sun ~0.00002", Earth ~0.0016" (likely Horizons' relativistic light
-    # bending, which SPICE LT+S omits). Pin both so a drift is noticed.
+    # Measured 13 Nov 2026: Sun ~0.00002", Earth ~0.0016". The Earth offset is not isolated; solar
+    # light deflection (~0.003 mas) is far too small to explain it. Pin both so a drift is noticed.
     sun = geometry_residuals(*_pair(provider, CASES[0]))
     earth = geometry_residuals(*_pair(provider, CASES[1]))
     assert sun.max_total_arcsec() < 1e-4
@@ -176,3 +176,20 @@ def test_series_carries_kernel_identity(provider):
     assert isinstance(s, GeometrySeries) and s.provider == "naif-spice"
     assert s.correction_mode == "spice_LT+S" and "de440s.bsp" in s.header["kernels"]
     assert s.request["kernels"] == provider.kernels.manifest_digest
+
+
+# ---- the frame is the one the DEM, Horizons and the decision record say it is (SDR-001 D-02) ----
+def test_moon_me_is_the_de440_mean_earth_realization_and_not_the_iau_report_frame(provider):
+    assert spice_module.FRAME == "MOON_ME"
+    assert spy.namfrm("MOON_ME") == 31001  # alias of MOON_ME_DE440_ME421 (31009) in moon_de440_250416.tf
+    assert spy.namfrm("MOON_ME_DE440_ME421") == 31009
+    assert spy.namfrm("MOON_ME") != spy.namfrm("IAU_MOON")  # the report-based frame differs by up to ~155 m
+
+
+def test_the_me_to_pa_rotation_matches_the_angle_the_kernel_documents(provider):
+    # The frame kernel states ~0.02886 deg (~875 m on the surface) between MOON_ME and MOON_PA.
+    with spice_module._LOCK:
+        et = provider._utc_to_et(GRID[0])
+        rot = spy.pxform("MOON_ME", "MOON_PA", et)
+    angle = np.degrees(np.arccos((np.trace(rot) - 1.0) / 2.0))
+    assert angle == pytest.approx(0.02886, abs=2e-4)

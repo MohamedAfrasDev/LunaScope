@@ -10,6 +10,7 @@ import httpx
 import pytest
 
 from lunascope.errors import (
+    CONFIGURATION_MISSING,
     GEOMETRY_COVERAGE_MISSING,
     GEOMETRY_PROVIDER_REJECTED_REQUEST,
     GEOMETRY_PROVIDER_UNAVAILABLE,
@@ -30,6 +31,7 @@ from lunascope.providers.geometry.horizons import (
     parse_response,
 )
 
+CONTACT = "lunascope-tests@example.invalid"
 FIX = Path(__file__).parent.parent / "fixtures" / "horizons"
 T0 = datetime(2027, 1, 10, 0, 0, tzinfo=UTC)
 GRID = [T0 + timedelta(hours=h) for h in range(7)]
@@ -222,6 +224,7 @@ def client(tmp_path, server, sleeps=None, **kw):
     sleeps = sleeps if sleeps is not None else []
     http = httpx.Client(transport=httpx.MockTransport(server.handler))
     lim = kw.pop("limiter", ExternalRequestLimiter(min_interval_s=0.0, sleep=sleeps.append))
+    kw.setdefault("contact", CONTACT)
     return HorizonsClient(ResponseCache(tmp_path / "c"), http, lim, sleeps.append, **kw)
 
 
@@ -236,11 +239,42 @@ def test_provider_end_to_end_and_cache_hit(tmp_path):
     assert s1.request == build_params(obs(), "sun_center", T0, T0 + timedelta(hours=6), 3600)
 
 
-def test_user_agent_is_product_and_version_only(tmp_path):
+def test_user_agent_has_product_version_and_the_configured_contact(tmp_path):
     srv = Server([ok()])
     HorizonsProvider(client(tmp_path, srv)).series(obs(), "sun_center", GRID)
     ua = srv.agents[0]
-    assert ua.startswith("LunaScope/") and "@" not in ua and "mailto" not in ua
+    assert ua.startswith("LunaScope/") and ua.endswith(f"(contact: {CONTACT})")
+    assert "Bearer" not in ua and "token" not in ua.lower()
+
+
+def test_no_request_leaves_without_a_contact_but_cached_responses_still_work(tmp_path, monkeypatch):
+    monkeypatch.delenv("LUNASCOPE_CONTACT", raising=False)
+    srv = Server([ok()])
+    http = httpx.Client(transport=httpx.MockTransport(srv.handler))
+    c = HorizonsClient(ResponseCache(tmp_path / "c"), http, ExternalRequestLimiter(min_interval_s=0.0), lambda s: None)
+    assert c.contact is None and c.user_agent.startswith("LunaScope/") and "contact" not in c.user_agent
+    assert codes(lambda: HorizonsProvider(c).series(obs(), "sun_center", GRID)) == CONFIGURATION_MISSING
+    assert srv.calls == 0  # nothing was sent
+    warm = client(tmp_path, Server([ok()]))  # fills the same cache directory with a contact
+    HorizonsProvider(warm).series(obs(), "sun_center", GRID)
+    assert len(HorizonsProvider(c).series(obs(), "sun_center", GRID)) == 7  # cache hit needs no contact
+
+
+def test_contact_comes_from_the_environment_and_is_validated(tmp_path, monkeypatch):
+    monkeypatch.setenv("LUNASCOPE_CONTACT", "team@example.invalid")
+    http = httpx.Client(transport=httpx.MockTransport(Server([ok()]).handler))
+    assert HorizonsClient(ResponseCache(tmp_path / "c"), http).user_agent.endswith("(contact: team@example.invalid)")
+    for bad in ("a\r\nX-Evil: 1", "x", "has (parens)", "y" * 201, "tab\there"):
+        with pytest.raises(LunaScopeError) as e:
+            HorizonsClient(ResponseCache(tmp_path / "c2"), http, contact=bad)
+        assert e.value.code == INVALID_INPUT
+    assert HorizonsClient(ResponseCache(tmp_path / "c3"), http, contact="   ").contact is None
+
+
+def test_the_contact_is_not_part_of_the_cache_key():
+    o = obs()
+    p = build_params(o, "sun_center", T0, T0 + timedelta(hours=6), 3600)
+    assert cache_key(o, "sun_center", p) == cache_key(o, "sun_center", dict(p))
 
 
 def test_cache_key_covers_identity_fields():
@@ -317,7 +351,7 @@ def test_never_more_than_one_request_in_flight_across_clients(tmp_path):
 
     def work(o):
         c = HorizonsClient(ResponseCache(tmp_path / f"c{o.observer_height_above_ground_m}"),
-                           httpx.Client(transport=httpx.MockTransport(srv.handler)), limiter)
+                           httpx.Client(transport=httpx.MockTransport(srv.handler)), limiter, contact=CONTACT)
         try:
             HorizonsProvider(c).series(o, "sun_center", GRID)
         except LunaScopeError as e:
