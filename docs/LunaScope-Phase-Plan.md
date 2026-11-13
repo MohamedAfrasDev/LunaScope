@@ -152,10 +152,10 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] Supervised killable worker processes (one OS process per attempt); slot freed only after confirmed exit
 - [x] Attempt numbers, staging directory, conditional commit, start-up reconciliation (requeue or fail, staging removed); retry policy: crash x2 then `ATTEMPT_LIMIT`, timeout no retry, handled error keeps its code
 - [x] `POST /analyses`, `GET /analyses/{id}`, `/results`, `/provenance`, `/horizon/{site}`, `/export`, plus `/health`, `/resources`, `/sites`, `/sites/custom` ([API.md](API.md)); variants and comparisons not built
-- [ ] BFF route `app/api/v1/[...slug]/route.ts` (allow-list, 5 s timeout, no cookies forwarded)
-- [ ] Minimal pages: Mission → Sites → submit → status → bare status matrix
-- [ ] Persistent `DataStatusBanner` and `ResultStateFrame`
-- [ ] Read the relevant `node_modules/next/dist/docs/` pages before writing each route (AGENTS.md)
+- [x] BFF route `app/api/v1/[...slug]/route.ts`: allow-listed routes only, upstream path rebuilt (never copied), query keys validated, cookies and browser headers not forwarded, server-side service token, per-route timeouts (8 s default), 413 over body limits, 502 in the same error envelope ([bff.ts](../lib/bff.ts), [route.ts](../app/api/v1/[...slug]/route.ts))
+- [x] First pages: Home (one-button reference mission), New analysis (mission, requirements, terrain, sites, field-level validation), Run (polling, status matrix, warnings, evidence), Timeline (bands, legend, table alternative, CSV). Mission and Sites share one form for now
+- [x] Persistent `DataStatusBanner` (reads /health, says so when the service is down) and `ResultStateFrame` around every numeric surface
+- [x] Read the Next 16.4 docs for Route Handlers, BFF proxying, caching and Suspense before writing routes: `params` awaited inside `<Suspense>`, no `export const dynamic`, `PageProps`/`RouteContext` types from `next typegen`
 
 ### 1.9 Measure
 - [ ] Record stage timings vs budgets in `docs/perf.md`
@@ -168,7 +168,7 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] Real sites: Horizons geometry + SPICE residual within tolerance (3 sites x 2 targets, 1,009 samples each; max 0.0017 arcsec) — [RUN-001](runs/RUN-001-first-real-run.md)
 - [x] Pinned DEM horizon with manifest (SHA-256, CRS, sphere, units, registration, terms); readiness `integrity_verified`, not scientifically approved
 - [x] Shared event list drives durations, outages and countdown (`countdown.py` consumes the same intervals and events)
-- [ ] End-to-end run through the thin UI
+- [x] End-to-end run through the thin UI: reference mission started from Home on the live stack, progress shown, matrix and evidence match RUN-001 (checked in the browser, 13 Nov)
 - [~] Evidence bundle (canonical JSON) includes request, settings, resource pins, raw-response hashes, horizon profile, angle series, intervals, events, metrics, sensitivity; no export endpoint or UI yet
 
 ---
@@ -201,7 +201,7 @@ Priority order: validity → relevance → core experience.
 - [ ] Countdown rules: at-event, at-mission-end, no-event, across-unknown, terrain-variant range
 - [ ] Alignment modes labelled "Elapsed time" vs "Calendar (shared UTC)" (S-5)
 - [ ] Evidence bundle export (JSON) with frozen validation snapshot; investigative vs verified designation
-- [ ] Keyboard-complete core flow; chart text alternatives and table views; pass/fail not by colour alone (AC-15)
+- [~] Keyboard-complete core flow; chart text alternatives and table views; pass/fail not by colour alone: icon+word on every state, SVG has title/desc and a table per band, focus rings, skip link, reduced-motion rule; manual keyboard pass and axe checks not done (AC-15)
 - [ ] Playwright core-flow test + axe checks
 - [ ] Cache reads of finished runs by `result_id`; validation metadata tagged separately
 

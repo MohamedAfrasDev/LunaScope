@@ -1,0 +1,301 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useEffect, useId, useState, type ReactNode } from "react";
+import { ApiError, describeError, getJson, postJson } from "@/lib/api/client";
+import type { RunSummary, SitesResponse } from "@/lib/api/types";
+import {
+  AZ_STEP_CHOICES,
+  MAX_SAMPLES,
+  STEP_CHOICES,
+  emptyCustom,
+  fieldKeyFromService,
+  referenceDraft,
+  sampleCount,
+  toRequest,
+  validateDraft,
+  type Draft,
+  type Errors,
+} from "@/lib/draft";
+import { siteLabel } from "@/lib/format";
+
+function Field({
+  id,
+  label,
+  error,
+  hint,
+  children,
+}: {
+  id: string;
+  label: string;
+  error?: string;
+  hint?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label htmlFor={id} className="text-sm font-medium">
+        {label}
+      </label>
+      {children}
+      {hint && !error && (
+        <p id={`${id}-hint`} className="text-xs text-muted">
+          {hint}
+        </p>
+      )}
+      {error && (
+        <p id={`${id}-err`} className="text-xs font-medium text-fail">
+          <span aria-hidden="true">✗ </span>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+const input =
+  "rounded border border-border bg-surface px-3 py-2 text-sm aria-[invalid=true]:border-fail aria-[invalid=true]:bg-fail-soft";
+
+export function AnalyzeForm() {
+  const router = useRouter();
+  const uid = useId();
+  const [catalog, setCatalog] = useState<SitesResponse | null>(null);
+  const [loadErr, setLoadErr] = useState<string | null>(null);
+  const [d, setD] = useState<Draft | null>(null);
+  const [errors, setErrors] = useState<Errors>({});
+  const [formErr, setFormErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    getJson<SitesResponse>("sites")
+      .then((c) => {
+        setCatalog(c);
+        setD(referenceDraft(c.sites.map((s) => s.site_id)));
+      })
+      .catch((e) => setLoadErr(describeError(e)));
+  }, []);
+
+  if (loadErr)
+    return (
+      <p role="alert" className="rounded border border-fail/40 bg-fail-soft px-3 py-2 text-fail">
+        {loadErr}
+      </p>
+    );
+  if (!d || !catalog) return <p className="text-muted">Loading the site catalog…</p>;
+
+  const set = <K extends keyof Draft>(k: K, v: Draft[K]) => {
+    setD({ ...d, [k]: v });
+    setErrors({});
+  };
+  const fid = (n: string) => `${uid}-${n}`;
+  const f = (key: string, n: string) => ({
+    id: fid(n),
+    "aria-invalid": errors[key] ? true : undefined,
+    "aria-describedby": errors[key] ? `${fid(n)}-err` : undefined,
+  });
+  const samples = sampleCount(d);
+
+  async function submit(ev: React.FormEvent) {
+    ev.preventDefault();
+    if (!d) return;
+    const errs = validateDraft(d);
+    setErrors(errs);
+    setFormErr(null);
+    if (Object.keys(errs).length) return;
+    setBusy(true);
+    try {
+      const run = await postJson<RunSummary>("analyses", toRequest(d));
+      router.push(`/runs/${run.run_id}`);
+    } catch (e) {
+      const key = e instanceof ApiError ? fieldKeyFromService(e.field) : null;
+      if (key) setErrors({ [key]: describeError(e) });
+      else setFormErr(describeError(e));
+      setBusy(false);
+    }
+  }
+
+  const fieldset = "rounded-lg border border-border bg-surface p-4";
+  const legend = "px-1 text-base font-semibold";
+
+  return (
+    <form onSubmit={submit} noValidate className="grid gap-6">
+      {Object.keys(errors).length > 0 && (
+        <div role="alert" className="rounded border border-fail/40 bg-fail-soft px-4 py-3 text-sm text-fail">
+          <strong>Fix {Object.keys(errors).length} field(s) before submitting.</strong> Nothing has been sent.
+        </div>
+      )}
+      {formErr && (
+        <p role="alert" className="rounded border border-fail/40 bg-fail-soft px-4 py-3 text-sm text-fail">
+          {formErr}
+        </p>
+      )}
+
+      <fieldset className={fieldset}>
+        <legend className={legend}>Mission window (UTC)</legend>
+        <div className="mt-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Field id={fid("date")} label="Start date" error={errors["mission.start_date"]} hint="YYYY-MM-DD">
+            <input {...f("mission.start_date", "date")} className={input} value={d.startDate}
+              onChange={(e) => set("startDate", e.target.value)} inputMode="numeric" />
+          </Field>
+          <Field id={fid("time")} label="Start time" error={errors["mission.start_time"]} hint="HH:MM">
+            <input {...f("mission.start_time", "time")} className={input} value={d.startTime}
+              onChange={(e) => set("startTime", e.target.value)} />
+          </Field>
+          <Field id={fid("days")} label="Duration (days)" error={errors["mission.duration"]} hint="1 hour to 30 days">
+            <input {...f("mission.duration", "days")} className={input} value={d.durationDays}
+              onChange={(e) => set("durationDays", e.target.value)} inputMode="decimal" />
+          </Field>
+          <Field id={fid("step")} label="Base step (minutes)" error={errors["mission.step"]}
+            hint="Provisional until convergence is shown">
+            <select {...f("mission.step", "step")} className={input} value={d.stepMin}
+              onChange={(e) => set("stepMin", e.target.value)}>
+              {STEP_CHOICES.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </Field>
+        </div>
+      </fieldset>
+
+      <fieldset className={fieldset}>
+        <legend className={legend}>Requirements (scenario values, not mission rules)</legend>
+        <div className="mt-2 grid gap-4 sm:grid-cols-2">
+          <Field id={fid("sun")} label="Minimum sunlight availability (%)" error={errors["requirements.sun"]}
+            hint="Sun centre above the terrain skyline">
+            <input {...f("requirements.sun", "sun")} className={input} value={d.sunMinPct}
+              onChange={(e) => set("sunMinPct", e.target.value)} inputMode="decimal" />
+          </Field>
+          <Field id={fid("earth")} label="Minimum Earth visibility (%)" error={errors["requirements.earth"]}
+            hint="Direct line of sight, not a link budget">
+            <input {...f("requirements.earth", "earth")} className={input} value={d.earthMinPct}
+              onChange={(e) => set("earthMinPct", e.target.value)} inputMode="decimal" />
+          </Field>
+        </div>
+        <p className="mt-3 text-xs text-muted">
+          Sunlight and Earth are judged separately. There is no combined score.
+        </p>
+      </fieldset>
+
+      <fieldset className={fieldset}>
+        <legend className={legend}>Terrain</legend>
+        <p className="text-xs text-muted">
+          Terrain is always on. The flat-horizon result is shown beside it for comparison.
+        </p>
+        <div className="mt-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Field id={fid("dem")} label="Elevation data">
+            <select id={fid("dem")} className={input} value={d.demProfile}
+              onChange={(e) => set("demProfile", e.target.value as Draft["demProfile"])}>
+              <option value="lola-80s-20m-adj">LOLA 20 m, adjusted (PGDA 2023)</option>
+              <option value="lola-80s-20m-pds">LOLA 20 m, PDS release (2017)</option>
+            </select>
+          </Field>
+          <Field id={fid("radius")} label="Horizon radius (km)" error={errors["terrain.radius"]}>
+            <input {...f("terrain.radius", "radius")} className={input} value={d.radiusKm}
+              onChange={(e) => set("radiusKm", e.target.value)} inputMode="decimal" />
+          </Field>
+          <Field id={fid("az")} label="Azimuth step (°)" error={errors["terrain.az_step"]}
+            hint="Finer is slower; 0.5° was too coarse in tests">
+            <select {...f("terrain.az_step", "az")} className={input} value={d.azStepDeg}
+              onChange={(e) => set("azStepDeg", e.target.value)}>
+              {AZ_STEP_CHOICES.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </Field>
+          <Field id={fid("mast")} label="Observer height (m)" error={errors["terrain.mast"]}
+            hint="Above the local ground">
+            <input {...f("terrain.mast", "mast")} className={input} value={d.mastM}
+              onChange={(e) => set("mastM", e.target.value)} inputMode="decimal" />
+          </Field>
+        </div>
+      </fieldset>
+
+      <fieldset className={fieldset} aria-describedby={errors.sites ? fid("sites-err") : undefined}>
+        <legend className={legend}>Sites</legend>
+        <p className="text-xs text-muted">{catalog.note}</p>
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+          {catalog.sites.map((s) => (
+            <li key={s.site_id}>
+              <label className="flex items-start gap-3 rounded border border-border p-3 text-sm">
+                <input type="checkbox" className="mt-1" checked={d.siteIds.includes(s.site_id)}
+                  onChange={(e) => set("siteIds", e.target.checked ? [...d.siteIds, s.site_id]
+                    : d.siteIds.filter((x) => x !== s.site_id))} />
+                <span>
+                  <strong>{siteLabel(s.site_id)}</strong>
+                  <span className="block text-xs text-muted">
+                    Source: {s.source}. Precision ±{s.precision_m} m. Terrain footprint{" "}
+                    {s.dem_coverage_150km.fully_covered ? "fully covered" : "partly outside the data"}.
+                  </span>
+                </span>
+              </label>
+            </li>
+          ))}
+        </ul>
+
+        {d.custom.map((c, i) => (
+          <div key={i} className="mt-4 grid gap-3 rounded border border-border p-3 sm:grid-cols-2 lg:grid-cols-5">
+            <Field id={fid(`clat${i}`)} label="Latitude (°)" error={errors[`custom.${i}.lat`]}>
+              <input id={fid(`clat${i}`)} className={input} value={c.lat}
+                aria-invalid={errors[`custom.${i}.lat`] ? true : undefined}
+                onChange={(e) => set("custom", d.custom.map((x, j) => (j === i ? { ...x, lat: e.target.value } : x)))} />
+            </Field>
+            <Field id={fid(`clon${i}`)} label="Longitude (°)" error={errors[`custom.${i}.lon`]}>
+              <input id={fid(`clon${i}`)} className={input} value={c.lon}
+                aria-invalid={errors[`custom.${i}.lon`] ? true : undefined}
+                onChange={(e) => set("custom", d.custom.map((x, j) => (j === i ? { ...x, lon: e.target.value } : x)))} />
+            </Field>
+            <Field id={fid(`cdir${i}`)} label="Longitude direction">
+              <select id={fid(`cdir${i}`)} className={input} value={c.direction}
+                onChange={(e) => set("custom", d.custom.map((x, j) => (j === i
+                  ? { ...x, direction: e.target.value as Draft["custom"][number]["direction"] } : x)))}>
+                <option value="east_positive">East positive</option>
+                <option value="west_positive">West positive</option>
+              </select>
+            </Field>
+            <Field id={fid(`csrc${i}`)} label="Source note" error={errors[`custom.${i}.source`]}>
+              <input id={fid(`csrc${i}`)} className={input} value={c.source}
+                aria-invalid={errors[`custom.${i}.source`] ? true : undefined}
+                onChange={(e) => set("custom", d.custom.map((x, j) => (j === i ? { ...x, source: e.target.value } : x)))} />
+            </Field>
+            <Field id={fid(`cprec${i}`)} label="Precision (m)" error={errors[`custom.${i}.precision`]}>
+              <div className="flex gap-2">
+                <input id={fid(`cprec${i}`)} className={`${input} w-full`} value={c.precision}
+                  aria-invalid={errors[`custom.${i}.precision`] ? true : undefined}
+                  onChange={(e) => set("custom", d.custom.map((x, j) => (j === i ? { ...x, precision: e.target.value } : x)))} />
+                <button type="button" className="rounded border border-border px-2 text-sm"
+                  onClick={() => set("custom", d.custom.filter((_, j) => j !== i))}
+                  aria-label={`Remove custom site ${i + 1}`}>
+                  Remove
+                </button>
+              </div>
+            </Field>
+          </div>
+        ))}
+        <button type="button" className="mt-3 rounded border border-border px-3 py-2 text-sm"
+          onClick={() => set("custom", [...d.custom, emptyCustom()])}>
+          Add a custom point
+        </button>
+        {errors.sites && (
+          <p id={fid("sites-err")} className="mt-3 text-sm font-medium text-fail">
+            <span aria-hidden="true">✗ </span>{errors.sites}
+          </p>
+        )}
+      </fieldset>
+
+      <fieldset className={fieldset}>
+        <legend className={legend}>Options</legend>
+        <label className="flex items-center gap-3 text-sm">
+          <input type="checkbox" checked={d.sensitivity} onChange={(e) => set("sensitivity", e.target.checked)} />
+          Also run a sensitivity check (half the azimuth step, and the other DEM release). Slower.
+        </label>
+      </fieldset>
+
+      <div className="flex flex-wrap items-center gap-4">
+        <button type="submit" disabled={busy}
+          className="rounded-lg bg-accent px-5 py-3 text-base font-semibold text-background disabled:opacity-60">
+          {busy ? "Submitting…" : "Run analysis"}
+        </button>
+        <p className="text-sm text-muted" aria-live="polite">
+          {samples.toLocaleString("en")} samples ({d.siteIds.length + d.custom.length} site(s) × 2 targets), limit{" "}
+          {MAX_SAMPLES.toLocaleString("en")}
+        </p>
+      </div>
+    </form>
+  );
+}

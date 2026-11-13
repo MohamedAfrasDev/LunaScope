@@ -7,6 +7,7 @@ immutable results back. All numbers come from the worker processes via the run s
 from __future__ import annotations
 
 import contextlib
+import hmac
 import json
 import os
 import re
@@ -47,7 +48,8 @@ def config_from_env() -> ServiceConfig:
     return ServiceConfig(
         data_dir=Path(os.environ.get("LUNASCOPE_DATA_DIR", REPO / "var")),
         stack_kind=os.environ.get("LUNASCOPE_STACK", "synthetic"),
-        mode=os.environ.get("LUNASCOPE_MODE", "live"))
+        mode=os.environ.get("LUNASCOPE_MODE", "live"),
+        api_token=os.environ.get("LUNASCOPE_API_TOKEN") or None)
 
 
 def _run_id(value: str) -> str:
@@ -87,6 +89,15 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
     @app.middleware("http")
     async def correlation(request: Request, call_next):
         request.state.cid = request.headers.get("x-correlation-id") or uuid.uuid4().hex
+        path = request.url.path
+        if cfg.api_token and path.startswith("/api/v1/") and path != "/api/v1/health":
+            sent = request.headers.get("authorization", "")
+            if not (sent.startswith("Bearer ")
+                    and hmac.compare_digest(sent[7:].encode(), cfg.api_token.encode())):
+                resp = JSONResponse(LunaScopeError("UNAUTHORIZED", "missing or wrong service token")
+                                    .to_dict(request.state.cid), status_code=401)
+                resp.headers["X-Correlation-ID"] = request.state.cid
+                return resp
         resp = await call_next(request)
         resp.headers["X-Correlation-ID"] = request.state.cid
         return resp

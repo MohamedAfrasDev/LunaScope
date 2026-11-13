@@ -1,0 +1,198 @@
+/**
+ * Hand-written subset of the science-service response shapes (docs/API.md).
+ * TODO: generate from the service's OpenAPI schema once responses are Pydantic models.
+ * The browser displays these values; it never computes visibility, outages or comparisons.
+ */
+
+export type ResultState = "synthetic_demonstration" | "real_data_unverified" | "validated";
+export type Outcome = "PASS" | "FAIL" | "INDETERMINATE" | "EXCLUDED";
+export type SiteStatus =
+  | "PASS"
+  | "FAIL_SUN"
+  | "FAIL_EARTH"
+  | "FAIL_BOTH"
+  | "INDETERMINATE"
+  | "UNKNOWN_COVERAGE";
+export type RunStatus = "queued" | "running" | "complete" | "complete_with_warnings" | "failed";
+export type Target = "sun_center" | "earth_center";
+export type HorizonKind = "terrain" | "flat";
+export type IntervalClass = "V" | "H" | "U" | "X" | "G";
+
+export interface ApiErrorBody {
+  error: {
+    code: string;
+    message: string;
+    field: string | null;
+    retryable: boolean;
+    correlation_id: string | null;
+  };
+}
+
+export interface Health {
+  status: string;
+  mode: "live" | "replay";
+  stack: "synthetic" | "live";
+  algorithm_id: string;
+  result_state: ResultState;
+  resources_ok: boolean;
+  queue: Record<string, number>;
+  running: string[];
+  limits: { max_running: number; max_queued: number; run_timeout_s: number };
+}
+
+export interface CatalogSite {
+  site_id: string;
+  label: string;
+  lat_deg: number;
+  lon_east_deg: number;
+  source: string;
+  precision_m: number;
+  kind: string;
+  dem_coverage_150km: { covered_fraction: number; fully_covered: boolean; sectors_with_gap: number };
+}
+
+export interface SitesResponse {
+  note: string;
+  sites: CatalogSite[];
+}
+
+export interface RunSummary {
+  run_id: string;
+  result_id: string | null;
+  status: RunStatus;
+  stage: string | null;
+  progress: number | null;
+  result_state: ResultState;
+  attempt: number;
+  created_utc: string;
+  finished_utc: string | null;
+  algorithm_id: string;
+  attached?: boolean;
+  error?: { code: string; message: string };
+}
+
+export interface MatrixCell {
+  outcome: Outcome;
+  availability_lower: number;
+  availability_upper: number;
+  threshold: number;
+}
+
+export interface MatrixRow {
+  site_id: string;
+  site_status: SiteStatus;
+  targets: Record<Target, Record<HorizonKind, MatrixCell>>;
+}
+
+export interface RunStatusResponse extends RunSummary {
+  warnings?: string[];
+  verified?: boolean;
+  matrix?: MatrixRow[];
+}
+
+export interface Metrics {
+  visible_s: number;
+  hidden_s: number;
+  unknown_s: number;
+  availability_lower: number;
+  availability_upper: number;
+  known_time_fraction: number | null;
+  longest_known_hidden_s: number;
+  longest_known_hidden_start: number | null;
+  longest_known_hidden_end: number | null;
+  worst_case_not_visible_s: number;
+  exclusion_reasons: string[];
+  threshold: number;
+  outcome: Outcome;
+  margin_lower: number;
+  margin_upper: number;
+}
+
+export interface IntervalRow {
+  start_s: number;
+  end_s: number;
+  start_utc: string;
+  end_utc: string;
+  class: IntervalClass;
+}
+
+export interface EventRow {
+  t_s: number;
+  t_utc: string;
+  type: "rise" | "set";
+  solver_bracket_s: number;
+  geometry_timing_bound_s: number | null;
+  quality: string;
+}
+
+export interface Countdown {
+  kind: string;
+  text: string;
+  at?: number;
+  remaining_s?: number | null;
+}
+
+export interface TargetHorizonResult {
+  metrics: Metrics;
+  clearance_at_nodes: { min_deg: number; median_deg: number; max_deg: number } | null;
+  countdown_at_start: Countdown;
+  intervals?: IntervalRow[];
+  events?: EventRow[];
+}
+
+export interface SiteResults {
+  site_id: string;
+  validity: string;
+  site_status: SiteStatus;
+  result_state: ResultState;
+  target_metrics: Partial<Record<Target, Partial<Record<HorizonKind, TargetHorizonResult>>>>;
+  warnings: string[];
+}
+
+export interface ResultsResponse {
+  run_id: string;
+  result_id: string;
+  status: RunStatus;
+  result_state: ResultState;
+  warnings: string[];
+  sites: SiteResults[];
+}
+
+export interface ProvenanceResponse {
+  run_id: string;
+  result_id: string;
+  algorithm_id: string;
+  result_state: ResultState;
+  verified: boolean;
+  validated_scopes: string[];
+  resources: { role: string; sha256: string }[];
+  sites: {
+    site_id: string;
+    observer: { ground_height_m: number; lat_deg: number; lon_deg_east: number };
+    geometry: Record<
+      string,
+      {
+        provider: string;
+        raw_sha256: string;
+        holdout: { max_deg: number } | null;
+        reference_agreement?: { max_total_arcsec: number; tolerance_arcsec: number; within_tolerance: boolean };
+      }
+    >;
+    caveats: string[];
+  }[];
+}
+
+/** What the analysis form sends to POST /analyses. */
+export interface AnalysisRequestBody {
+  schema_version: "1";
+  mission: { start_utc: string; duration_s: number; step_s: number };
+  requirements: { sun_min_availability: number; earth_min_availability: number };
+  terrain: {
+    dem_profile: string;
+    radius_km: number;
+    az_step_deg: number;
+    observer_height_m: number;
+  };
+  sites: ({ site_id: string } | { custom: Record<string, unknown> })[];
+  options: { sensitivity: boolean };
+}

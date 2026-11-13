@@ -1,69 +1,52 @@
-import Image from "next/image";
+import Link from "next/link";
+import { ReferenceMissionButton } from "@/components/ReferenceMissionButton";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr]">
+      <section>
+        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+          Is the Sun or Earth above the terrain, at this site, on these dates?
+        </h1>
+        <p className="mt-4 max-w-2xl text-lg leading-8 text-muted">
+          LunaScope compares candidate sites near the lunar south pole for sunlight and a direct line to Earth. A
+          flat horizon can overestimate both: ridges and crater walls hide a target whose geometric elevation is
+          above zero. LunaScope shows the local sky against the terrain skyline, the outages, and the evidence
+          behind each number.
+        </p>
+        <div className="mt-8">
+          <ReferenceMissionButton />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+        <p className="mt-6 text-sm">
+          <Link href="/analyze" className="text-accent underline underline-offset-4">
+            Or set up your own analysis
+          </Link>
+        </p>
+      </section>
+
+      <aside aria-labelledby="rules" className="rounded-lg border border-border bg-surface p-5">
+        <h2 id="rules" className="text-base font-semibold">
+          Three rules this tool does not break
+        </h2>
+        <ol className="mt-3 list-decimal space-y-3 pl-5 text-sm leading-6">
+          <li>
+            <strong>No placeholder is shown as science.</strong> Synthetic or unverified values always carry a label.
+          </li>
+          <li>
+            <strong>Unknown is not “not visible”.</strong> Missing data stays unknown and is never counted as an
+            outage.
+          </li>
+          <li>
+            <strong>No hidden score.</strong> Sunlight and Earth visibility are judged separately and the
+            trade-offs are shown.
+          </li>
+        </ol>
+        <h2 className="mt-6 text-base font-semibold">What it is not</h2>
+        <p className="mt-2 text-sm leading-6 text-muted">
+          Not a landing-safety, power, link-budget or mission-feasibility assessment. Sunlight percentage is
+          geometric illumination, and Earth visibility is a line of sight, not a communications guarantee.
+        </p>
+      </aside>
     </div>
   );
 }

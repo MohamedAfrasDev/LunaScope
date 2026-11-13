@@ -191,3 +191,17 @@ def test_replay_mode_serves_known_runs_only(tmp_path, svc):
         r = post(c, other)
         assert r.status_code == 409 and r.json()["error"]["code"] == "REPLAY_ONLY"
         assert c.get(f"{URL}/{rid}/results").status_code == 200
+
+
+def test_a_service_token_protects_everything_except_the_health_probe(tmp_path):
+    cfg = ServiceConfig(data_dir=tmp_path, stack_kind="synthetic", api_token="s3cret-token")
+    with TestClient(create_app(cfg, runner=IdleRunner())) as c:
+        assert c.get("/api/v1/health").status_code == 200
+        for bad in (None, "Bearer wrong", "s3cret-token", "Bearer s3cret-token-extra"):
+            r = c.get("/api/v1/sites", headers={"authorization": bad} if bad else {})
+            assert r.status_code == 401 and r.json()["error"]["code"] == "UNAUTHORIZED"
+            assert post(c).status_code == 401
+        ok = c.get("/api/v1/sites", headers={"authorization": "Bearer s3cret-token"})
+        assert ok.status_code == 200
+        r = c.post(URL, content=json.dumps(BODY), headers={"authorization": "Bearer s3cret-token"})
+        assert r.status_code == 202

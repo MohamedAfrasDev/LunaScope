@@ -52,6 +52,7 @@ class ServiceConfig:
     max_queued: int = 8
     timeout_s: float | None = None  # per-run; defaults by stack kind
     max_attempts: int = 2
+    api_token: str | None = None  # shared secret the web BFF sends; None disables the check
 
     @property
     def run_timeout_s(self) -> float:
