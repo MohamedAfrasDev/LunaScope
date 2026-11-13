@@ -108,8 +108,8 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] Store raw response verbatim + SHA-256 + retrieval time (filesystem `ResponseCache`; SQLite later)
 - [x] Geometry cache with full-identity key; integrity checked on every read, corrupted cache blocks instead of refetching
 - [x] Global limiter: one Horizons request in flight, exponential backoff + `Retry-After`, `LunaScope/<version>` User-Agent (tested with 8 concurrent threads)
-- [ ] Hermite interpolation on unit direction vectors with same-grid derivatives
-- [ ] Held-out finer series (`TLIST`) → measure δ_geom and timing bound
+- [x] Hermite interpolation on unit direction vectors with same-grid derivatives; rigorous bounds on |v'|, |v''|, |v| from the Bezier control points ([interpolate.py](../science/lunascope/providers/geometry/interpolate.py))
+- [~] Held-out finer series → measure δ_geom and timing bound: done against recorded real 1-minute series (10-minute nodes: max ~1e-8° Sun, ~2e-9° Earth; hourly nodes ~2.6e-6°); the direct sub-minute `TLIST` query fallback is not built
 - [ ] SPICE provider (`spkcpo` + own `az_el`) at selected epochs
 - [ ] Residual report Horizons vs SPICE (wrapped az, el), documented `LT+S` difference
 - [ ] Gate: provider, convention, residual and coverage tests pass
@@ -138,9 +138,9 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] Events for rise/set found within tolerance on analytic models; double crossing and tangent cases
 - [x] Metrics from intervals: V/H/U, availability bounds, known-time fraction, longest hidden, worst-case-not-visible
 - [x] Per-target outcome (`PASS`/`FAIL`/`INDETERMINATE`/`EXCLUDED`) and site summary ([requirements.py](../science/lunascope/requirements.py))
-- [ ] Glue: build a `ClearanceModel` from geometry series + horizon profile
-- [ ] Whole-interval Lipschitz bound from Hermite coefficients and every horizon bin crossed
-- [ ] Report `geometry_timing_bound_s`; flag `near_tangent` events without claiming a bound
+- [x] Glue: `TerrainClearanceModel` from the interpolated geometry + horizon profile, or the flat horizon for the geometric-only comparison ([clearance.py](../science/lunascope/clearance.py))
+- [x] Whole-interval Lipschitz bound from Hermite coefficients and every horizon bin crossed; `monotone` only granted inside one linear skyline piece
+- [~] `geometry_timing_bound_s` helper done (returns no claim near a tangent); not yet attached to events, `near_tangent` flag not set
 - [ ] Contact events (touch without crossing) via derivative-sign analysis
 - [ ] Explanation facts and fixed templates (blocked, visible-over-depressed-skyline, unresolved, …)
 - [ ] Comparison service: held/changed fields, deltas, alignment modes

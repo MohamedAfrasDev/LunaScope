@@ -89,8 +89,37 @@ def test_property_intervals_tile_and_sum(A, P, shift):
     # event times agree with analytic zeros
     # Zeros sitting on the window edge are boundary cases (censored), not interior events.
     exact = m.zero_crossings(60.0, 50000.0 - 60.0)
-    inner = [e for e in p.events if 30.0 < e.t < 50000.0 - 30.0]
+    inner = [e for e in p.events if 60.0 <= e.t <= 50000.0 - 60.0]
     if r.uncertified_s == 0:
         assert len(inner) == len(exact)
         for ev, (t, kind) in zip(inner, exact):
             assert ev.type == kind and ev.t == pytest.approx(t, abs=1.5)
+
+
+class LinearModel:
+    """d(t) = k (t - c): monotone, one crossing at c."""
+
+    def __init__(self, k, c):
+        self.k, self.c = k, c
+
+    def d(self, t):
+        return self.k * (t - self.c)
+
+    def lipschitz(self, a, b):
+        return abs(self.k)
+
+    def monotone(self, a, b):
+        return True
+
+
+@pytest.mark.parametrize("c", [600.0, 1200.0, 0.0 + 1e-9, 599.999999, 300.0])
+@pytest.mark.parametrize("k", [-1e-4, 1e-4])
+def test_crossing_exactly_on_a_base_interval_edge_is_found_once(k, c):
+    p = build_partition(LinearModel(k, c), 0.0, 1800.0, 600.0, Settings(eps=0.01))
+    zero = [e for e in p.events]
+    if c < 1e-6:  # a zero sitting on the window start is a censored boundary, not an event
+        assert len(zero) <= 1
+        return
+    assert len(zero) == 1
+    assert zero[0].type == ("rise" if k > 0 else "set")
+    assert zero[0].t == pytest.approx(c, abs=1.0)

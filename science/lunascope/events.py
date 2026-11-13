@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from itertools import pairwise
+from math import isnan
 from typing import Protocol
 
 from scipy.optimize import brentq
@@ -97,7 +98,9 @@ def _monotone_leaf(model, a, b, fa, fb, s: Settings, budget) -> tuple[list, list
     levels = [-s.eps, 0.0, s.eps] if rising else [s.eps, 0.0, -s.eps]
     cuts: list[tuple[float, float]] = []  # (time, level)
     for c in levels:
-        if (fa - c) * (fb - c) < 0:
+        # half-open sides (x >= c) so a crossing that lands exactly on a base-interval edge is
+        # counted once, by the interval that starts there
+        if (fa >= c) != (fb >= c):
             t = brentq(lambda x, c=c: model.d(x) - c, a, b, xtol=s.tau / 2, rtol=1e-14)
             budget.used += 1
             cuts.append((t, c))
@@ -129,6 +132,14 @@ def _resolve(model, a, b, fa, fb, s: Settings, budget):
     mid = (a + b) / 2
     fm = model.d(mid)
     budget.spend()
+    if isnan(fa) or isnan(fb) or isnan(fm):
+        # Unknown horizon or geometry: never "hidden". Subdivide to find where known time
+        # resumes; whatever stays unknown at the minimum width is a coverage gap.
+        if w <= s.w_min or budget.exhausted:
+            return [(a, b, C.GAP)], []
+        ls, le = _resolve(model, a, mid, fa, fm, s, budget)
+        rs, re_ = _resolve(model, mid, b, fm, fb, s, budget)
+        return ls + rs, le + re_
     margin = model.lipschitz(a, b) * w / 2 + s.delta
     if all(abs(fm - c) > margin for c in (-s.eps, 0.0, s.eps)):
         return [(a, b, class_of(fm, s.eps))], []

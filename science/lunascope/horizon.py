@@ -93,6 +93,39 @@ class HorizonProfile:
         h = (1 - f) * self.horizon_el_deg[i0] + f * self.horizon_el_deg[i1]
         return np.where(ok, h, np.nan)
 
+    def _segments(self, az_lo: float, az_hi: float) -> list[int] | None:
+        """Indices j of the bin segments [j, j+1] overlapped by [az_lo, az_hi] (degrees)."""
+        n, step = len(self.azimuth_deg), self.settings.az_step_deg
+        if az_hi - az_lo >= 360.0:
+            return list(range(n))
+        j0, j1 = math.floor(az_lo / step), math.floor(az_hi / step)
+        return [j % n for j in range(j0, j1 + 1)]
+
+    def max_slope(self, az_lo: float, az_hi: float) -> float:
+        """Max |d horizon / d azimuth| (deg/deg) of the piecewise-linear skyline over the range.
+
+        inf if any overlapped segment touches an uncertified bin (the skyline is unknown there).
+        """
+        worst, step = 0.0, self.settings.az_step_deg
+        n = len(self.azimuth_deg)
+        for j in self._segments(az_lo, az_hi):
+            k = (j + 1) % n
+            if self.sector_state[j] != CERTIFIED or self.sector_state[k] != CERTIFIED:
+                return math.inf
+            worst = max(worst, abs(self.horizon_el_deg[k] - self.horizon_el_deg[j]) / step)
+        return worst
+
+    def single_piece_slope(self, az_lo: float, az_hi: float) -> float | None:
+        """Signed slope (deg/deg) if the range lies inside ONE linear piece, else None."""
+        step, n = self.settings.az_step_deg, len(self.azimuth_deg)
+        j0, j1 = math.floor(az_lo / step), math.floor(az_hi / step)
+        if j0 != j1 or az_hi - az_lo >= 360.0:
+            return None
+        j, k = j0 % n, (j0 + 1) % n
+        if self.sector_state[j] != CERTIFIED or self.sector_state[k] != CERTIFIED:
+            return None
+        return float((self.horizon_el_deg[k] - self.horizon_el_deg[j]) / step)
+
     def sector_summary(self) -> dict:
         return {STATE_NAMES[k]: int((self.sector_state == k).sum()) for k in STATE_NAMES}
 
