@@ -2,7 +2,7 @@
   "resource_id": "dem-lola-80s-20mpp-adj",
   "role": "dem_primary",
   "kind": "dem",
-  "readiness": "discovered",
+  "readiness": "integrity_verified",
   "decision": "PROPOSED primary DEM (SDR-001 D-01); not approved",
   "publisher": "NASA GSFC Planetary Geodesy Data Archive (PGDA); LOLA team product by M. K. Barker",
   "product_id": "LDEM_80S_20MPP_ADJ",
@@ -14,15 +14,15 @@
   "accessed_utc": "2026-11-13",
   "filename": "LDEM_80S_20MPP_ADJ.TIF",
   "size_bytes": 2696082051,
-  "size_source": "HTTP Content-Length (HEAD request); file not yet downloaded",
-  "sha256": null,
+  "size_source": "downloaded 2026-11-13; on-disk size equals the server Content-Length (2696082051)",
+  "sha256": "09b7ca80f9e6a146f970225d18af72fc02787669b3ef51b888e347d2b6845649",
   "format": "cloud-optimized GeoTIFF; supports HTTP range requests (Accept-Ranges: bytes)",
   "dem": {
     "crs": "IAU 'Moon (2015) - Sphere / Ocentric / South Polar': Polar_Stereographic, latitude_of_origin -90, central_meridian 0, false easting/northing 0, units metres",
     "reference_surface": "sphere, radius 1737400 m (IAU 30100), planetocentric — read from the GeoTIFF CRS",
     "vertical_units": "metres (history shows grdmath x 1000; actual_range -7296.79..7027.23 matches the PDS product's -7297..7027)",
     "resolution_m": 20,
-    "nodata": "declared NaN (_FillValue = nan); none present in the inspected 256x256 pole window",
+    "nodata": "declared NaN; full-file scan found 0 NaN cells (every pixel has a value), so unsampled terrain is NOT flagged by nodata",
     "pixel_registration": "Area (AREA_OR_POINT=Area, node_offset=1): pixel centres lie half a pixel inside the corner transform",
     "coverage": "80S to 90S, within about 304 km of the pole (stereographic)",
     "quality_layers": [
@@ -56,13 +56,17 @@
       304000.0,
       304000.0
     ],
-    "cross_check_vs_pds": "64x64 window at the pole: mean difference 0.29 m, RMS 1.50 m, correlation 0.9997 against PDS DN*0.5; same grid and orientation (single small window, not a full comparison)"
+    "cross_check_vs_pds": "64x64 window at the pole: mean difference 0.29 m, RMS 1.50 m, correlation 0.9997 against PDS DN*0.5; same grid and orientation (single small window, not a full comparison)",
+    "height_range_m": [
+      -7296.787109375,
+      7027.2294921875
+    ]
   },
   "open_items": [
-    "download and compute SHA-256",
     "confirm explicit use terms",
     "decide how EFFRES / ERR feed the uncertainty budget (D-01b)",
-    "full-extent comparison against the PDS product"
+    "full-extent comparison against the PDS product",
+    "approve scientific suitability (metadata_verified -> scientifically_approved)"
   ],
   "preprocessing": [],
   "decision_record": "docs/sdr/SDR-001.md",
@@ -86,5 +90,10 @@
       32,
       64
     ]
+  },
+  "integrity": {
+    "verified_utc": "2026-11-13",
+    "method": "SHA-256 computed by the downloader and recomputed independently with sha256sum (identical)",
+    "note": "A checksum proves the bytes are the ones we fetched, not that the DEM is scientifically suitable. The publisher does not provide a checksum, so this is a self-recorded pin."
   }
 }
