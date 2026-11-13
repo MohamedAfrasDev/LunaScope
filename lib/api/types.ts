@@ -195,6 +195,27 @@ export interface ResultsResponse {
   sites: SiteResults[];
 }
 
+export type CardStatus = "met" | "not_met" | "not_evaluated";
+
+export interface ValidationCard {
+  id: string;
+  title: string;
+  status: CardStatus;
+  site_id: string | null;
+  target: string | null;
+  facts: string[];
+  scope: string;
+}
+
+export interface ValidationResponse {
+  run_id: string;
+  result_state: string;
+  cards: ValidationCard[];
+  scopes_closed: string[];
+  summary: Record<CardStatus, number>;
+  note: string;
+}
+
 export interface ProvenanceResponse {
   run_id: string;
   result_id: string;

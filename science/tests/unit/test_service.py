@@ -289,3 +289,21 @@ def test_fixture_geometry_labels_itself_as_demonstration():
     from datetime import UTC, datetime
     s = g.series(None, "sun_center", [datetime(2027, 1, 1, tzinfo=UTC), datetime(2027, 1, 1, 1, tzinfo=UTC)])
     assert "DEMONSTRATION_DATA" in s.flags and s.header["label"].startswith("DEMONSTRATION")
+
+
+def test_validation_cards_endpoint_and_the_export_carries_what_the_plan_promises(svc):
+    c, first, _ = svc
+    rid = first.json()["run_id"]
+    v = c.get(f"{URL}/{rid}/validation").json()
+    assert v["scopes_closed"] == [] and v["summary"]["not_evaluated"] >= 1
+    assert any(x["id"] == "independent_terrain_check" for x in v["cards"])
+    bundle = c.get(f"{URL}/{rid}/export").json()
+    site = bundle["sites"][0]
+    for k in ("request", "effective_settings", "resources"):
+        assert k in bundle
+    for k in ("horizon", "geometry", "targets"):  # sensitivity only when the request asks for it
+        assert k in site
+    g = site["geometry"]["sun_center"]
+    assert g["raw_sha256"] and "series" in g
+    assert "intervals" in site["targets"]["sun_center"]["terrain"] and "events" in site["targets"]["sun_center"]["terrain"]
+    assert "metrics" in site["targets"]["sun_center"]["terrain"]

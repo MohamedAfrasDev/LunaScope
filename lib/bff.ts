@@ -58,6 +58,12 @@ const ROUTES: RouteDef[] = [
   },
   {
     method: "GET",
+    re: new RegExp(`^analyses/(${RUN})/validation$`),
+    upstream: (m) => `analyses/${m[1]}/validation`,
+    timeoutMs: 20_000,
+  },
+  {
+    method: "GET",
     re: new RegExp(`^analyses/(${RUN})/horizon/(${SITE})$`),
     upstream: (m) => `analyses/${m[1]}/horizon/${m[2]}`,
     timeoutMs: 20_000,

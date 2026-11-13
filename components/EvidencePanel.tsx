@@ -2,16 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { describeError, getJson } from "@/lib/api/client";
-import type { ProvenanceResponse } from "@/lib/api/types";
+import type { ProvenanceResponse, ValidationResponse } from "@/lib/api/types";
 import { shortId, siteLabel, targetLabel } from "@/lib/format";
 
 /** Provenance beside the numbers: what was used, what was checked, and what was not. */
 export function EvidencePanel({ runId }: { runId: string }) {
   const [p, setP] = useState<ProvenanceResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [v, setV] = useState<ValidationResponse | null>(null);
 
   useEffect(() => {
     const ctl = new AbortController();
+    getJson<ValidationResponse>(`analyses/${runId}/validation`, ctl.signal)
+      .then(setV)
+      .catch(() => undefined); // the cards are additional evidence; the panel works without them
     getJson<ProvenanceResponse>(`analyses/${runId}/provenance`, ctl.signal)
       .then(setP)
       .catch((e) => !(e instanceof DOMException) && setErr(describeError(e)));
@@ -78,6 +82,30 @@ export function EvidencePanel({ runId }: { runId: string }) {
               horizon.
             </p>
           </div>
+
+          {v && (
+            <div>
+              <h3 className="font-semibold">Checks run</h3>
+              <p className="text-xs text-muted">
+                {v.summary.met} met, {v.summary.not_met} not met, {v.summary.not_evaluated} not evaluated. {v.note}
+              </p>
+              <ul className="mt-1 space-y-1">
+                {v.cards.map((c, i) => (
+                  <li key={`${c.id}-${c.site_id}-${c.target}-${i}`}>
+                    <span className={c.status === "met" ? "font-medium" : c.status === "not_met" ? "font-medium text-fail" : "text-muted"}>
+                      {c.status === "met" ? "Met" : c.status === "not_met" ? "NOT MET" : "Not evaluated"}
+                    </span>{" "}
+                    {c.title}
+                    {c.site_id ? ` (${siteLabel(c.site_id)}${c.target ? `, ${targetLabel(c.target)}` : ""})` : ""}
+                    <span className="text-muted">
+                      {": "}
+                      {c.facts.join("; ")}. Scope: {c.scope}.
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div>
             <h3 className="font-semibold">Limits that apply to every number here</h3>

@@ -99,7 +99,7 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] Azimuth/elevation from a direction vector, wrapped differences
 - [x] Test case 1: zenith · case 2: horizon plane · case 3: N/E/S/W at several sites incl. pole
 - [x] Round-trip property test, longitude wrap and west-positive conversion, bad-input rejection
-- [ ] Cross-check the pole convention against SPICE once SPICE is available
+- [x] Cross-check the pole convention against SPICE: SPICE's own azimuth routine cannot define north at the exact pole, so the check is our east-from-longitude convention vs the recorded Horizons response at -90 deg (0.00002 arcsec) plus SPICE vectors rotated through our own local frame (`test_spice.py`)
 
 ### 1.5 Geometry providers
 - [x] Horizons client: request builder from the canonical observer (quantity 4, airless, UTC); reproduces the recorded real requests ([horizons.py](../science/lunascope/providers/geometry/horizons.py))
@@ -112,7 +112,7 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [~] Held-out finer series → measure δ_geom and timing bound: done against recorded real 1-minute series (10-minute nodes: max ~1e-8° Sun, ~2e-9° Earth; hourly nodes ~2.6e-6°); the direct sub-minute `TLIST` query fallback is not built
 - [x] SPICE provider (`spkcpo` + own `az_el`), kernels pinned by manifest and verified before load ([spice.py](../science/lunascope/providers/geometry/spice.py))
 - [x] Residual report Horizons vs SPICE (wrapped az, el) in [validation.py](../science/lunascope/validation.py); measured 0.00002" Sun, 0.0016" Earth on six cases; `LT+S` difference documented in SDR-001
-- [ ] Gate: provider, convention, residual and coverage tests pass
+- [x] Gate: provider, convention, residual and coverage tests pass (full suite green, 13 Nov; includes wrong-longitude-direction and wrong-latitude-sign detection)
 
 ### 1.6 Terrain and horizon
 - [x] `TerrainProvider` contract and synthetic terrains (flat sphere, ridge, crater rim) ([terrain.py](../science/lunascope/terrain.py))
@@ -144,7 +144,7 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] Contact events (`contacts.py`): graze / near_miss / unresolved_dip from runs of the unresolved band with equal neighbours and no event; extremum search is numerical and labeled so; returned per model as `contacts`
 - [x] Explanation facts and fixed templates (`explain.py`, returned per target by the results endpoint): hidden whole window, unresolved range, terrain changes outcome, excluded
 - [x] Comparison service ([compare.py](../science/lunascope/compare.py), `POST /comparisons`): sites within a run, and two runs with explicit `elapsed` / `calendar` alignment, compatibility check with reasons, held and changed fields, deltas, changed intervals, typed facts (terrain changes outcome, outcomes same/differ, equal availability with different outage, unresolved time matters); no winner, rank or score anywhere
-- [~] Validation: geometry-agreement card data (SPICE vs Horizons) and holdout are produced per run; terrain-horizon and convergence cards are not yet formal services
+- [x] Validation cards (`cards.py`, `GET /analyses/{id}/validation`, shown in the Evidence panel): geometry agreement, interpolation holdout, skyline certification, azimuth-step convergence, DEM-release sensitivity, and an always `not_evaluated` independent-terrain-check card. Cards are evidence for narrow scopes; none closes a validation scope
 
 ### 1.8 Run lifecycle and thin application
 - [x] Atomic admit-or-attach on `run_id` in one transaction; `202` before any external work; only the insert winner schedules (12-thread test admits exactly one)
@@ -169,7 +169,7 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] Pinned DEM horizon with manifest (SHA-256, CRS, sphere, units, registration, terms); readiness `integrity_verified`, not scientifically approved
 - [x] Shared event list drives durations, outages and countdown (`countdown.py` consumes the same intervals and events)
 - [x] End-to-end run through the thin UI: reference mission started from Home on the live stack, progress shown, matrix and evidence match RUN-001 (checked in the browser, 13 Nov)
-- [~] Evidence bundle (canonical JSON) includes request, settings, resource pins, raw-response hashes, horizon profile, angle series, intervals, events, metrics, sensitivity; no export endpoint or UI yet
+- [x] Evidence bundle (canonical JSON) with request, settings, resource pins, raw-response hashes, horizon profile, angle series, intervals, events, metrics (sensitivity when requested); `GET /analyses/{id}/export` and a download button in the Evidence panel; a verified export is refused until a scope closes (tested)
 
 ---
 

@@ -16,6 +16,10 @@ describe("BFF allow-list", () => {
     expect(matchRoute("GET", ["health"], q())).toMatchObject({ ok: true });
     expect(matchRoute("GET", ["analyses", RUN, "horizon", "rule-89.5S-E0"], q())).toMatchObject({ ok: true });
     expect(matchRoute("GET", ["analyses", RUN, "export"], q("verified=false"))).toMatchObject({ ok: true });
+    expect(matchRoute("GET", ["analyses", RUN, "validation"], q())).toMatchObject({
+      ok: true,
+      match: { upstreamPath: `/api/v1/analyses/${RUN}/validation` },
+    });
   });
 
   it.each([

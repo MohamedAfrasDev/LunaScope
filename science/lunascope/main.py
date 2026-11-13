@@ -29,6 +29,7 @@ from .api_models import (
     parse_request,
 )
 from .canonical import canonical_bytes
+from .cards import run_cards
 from .codes import IntervalClass, ResultState
 from .compare import INCOMPATIBLE_RUNS, compare_runs, compare_sites
 from .countdown import countdown as compute_countdown
@@ -325,6 +326,10 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
             if s["request"]["site"]["site_id"] == site_id:
                 return {"site_id": site_id, "result_state": s["result_state"], **s["horizon"]}
         raise LunaScopeError(NOT_FOUND, f"no site {site_id!r} in this run")
+
+    @app.get("/api/v1/analyses/{run_id}/validation")
+    def validation(run_id: str) -> dict:
+        return run_cards(_ready(run_id))
 
     @app.get("/api/v1/analyses/{run_id}/export")
     def export(run_id: str, verified: bool = False) -> Response:
