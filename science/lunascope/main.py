@@ -7,6 +7,7 @@ immutable results back. All numbers come from the worker processes via the run s
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import hmac
 import json
 import math
@@ -27,8 +28,10 @@ from .api_models import (
     load_catalog,
     parse_comparison,
     parse_request,
+    parse_variant,
+    shifted_request,
 )
-from .canonical import canonical_bytes
+from .canonical import canonical_bytes, hash_of
 from .cards import run_cards
 from .codes import IntervalClass, ResultState
 from .compare import INCOMPATIBLE_RUNS, compare_runs, compare_sites
@@ -40,6 +43,7 @@ from .explain import explain_target
 from .jobs import JobRunner
 from .logs import configure_logging, log_event
 from .observer import build_observer
+from .reference import load_definition
 from .registry import check_all
 from .registry import summary as registry_summary
 from .responses import (
@@ -51,14 +55,20 @@ from .responses import (
     RunSummaryResponse,
     SitesResponse,
     ValidationResponse,
+    VariantAdmissionResponse,
+    VariantsResponse,
 )
-from .stacks import ServiceConfig, analysis_identity
+from .stacks import ServiceConfig, analysis_identity, identity_from_canonical
 from .store import NOT_FOUND, QUEUE_FULL, RunStore
 
 EXPORT_BLOCKED_UNVERIFIED = "EXPORT_BLOCKED_UNVERIFIED"
 REPLAY_ONLY = "REPLAY_ONLY"
 NOT_READY = "NOT_READY"
 RUN_ID = re.compile(r"^[0-9a-f]{64}$")
+IMMUTABLE_READ = re.compile(
+    r"^/api/v1/analyses/([0-9a-f]{64})/(?:results|provenance|countdown|horizon/[A-Za-z0-9._-]{1,64})$")
+IMMUTABLE_CACHE = "private, max-age=31536000, immutable"
+REVALIDATE_CACHE = "private, no-cache"
 HTTP = {INCOMPATIBLE_RUNS: 422, INVALID_INPUT: 422, NOT_FOUND: 404, QUEUE_FULL: 503, NOT_READY: 409,
         EXPORT_BLOCKED_UNVERIFIED: 409, REPLAY_ONLY: 409, "GEOMETRY_PROVIDER_UNAVAILABLE": 502,
         "RESOURCE_INTEGRITY_FAILED": 500}
@@ -107,6 +117,28 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
 
     app = FastAPI(title="LunaScope science service", version=ALGORITHM_VERSION, lifespan=lifespan)
     app.state.cfg, app.state.store, app.state.runner = cfg, store, runner
+
+    @app.middleware("http")
+    async def finished_result_cache(request: Request, call_next):
+        """Reads of a finished result are immutable: the artifact is write-once and a stale
+        attempt can never publish. They are tagged with the result_id and may be cached for good;
+        a matching If-None-Match is answered 304 before any work. Validation cards and the export
+        carry their own content tags instead (they can change when a scope closes)."""
+        m = IMMUTABLE_READ.match(request.url.path) if request.method == "GET" else None
+        if m is None:
+            return await call_next(request)
+        row = store.get(m.group(1))
+        result_id = row["result_id"] if row and row["analysis_artifact"] else None
+        if result_id is None:
+            return await call_next(request)
+        tag = f'"{result_id}"'
+        headers = {"ETag": tag, "Cache-Control": IMMUTABLE_CACHE}
+        if request.headers.get("if-none-match") == tag:
+            return Response(status_code=304, headers=headers)
+        resp = await call_next(request)
+        if resp.status_code == 200:
+            resp.headers.update(headers)
+        return resp
 
     @app.middleware("http")
     async def correlation(request: Request, call_next):
@@ -160,6 +192,19 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
         return {"resources": out,
                 "note": "readiness integrity_verified means the bytes match a pin, not that the "
                         "resource is scientifically approved"}
+
+    @app.get("/api/v1/references/{ref_id}")
+    def reference(ref_id: str) -> dict:
+        """A golden reference definition (GR-001 ...): the exact request Home submits, with its
+        status, so the one-button mission and the reference run are the same inputs."""
+        if not re.fullmatch(r"GR-\d{3}", ref_id):
+            raise LunaScopeError(NOT_FOUND, "reference ids look like GR-001")
+        try:
+            d = load_definition(ref_id)
+        except FileNotFoundError as e:
+            raise LunaScopeError(NOT_FOUND, f"no reference {ref_id}") from e
+        return {"reference_id": d["reference_id"], "status": d["status"], "frozen": d.get("frozen"),
+                "sites_status": d.get("sites_status"), "request": d["request"]}
 
     @app.get("/api/v1/sites", response_model=SitesResponse)
     def sites() -> dict:
@@ -219,6 +264,51 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
         body = {**_summary(adm.run), "attached": not adm.created,
                 "status_url": f"/api/v1/analyses/{ident.run_id}"}
         return JSONResponse(body, status_code=202 if adm.created else 200)
+
+    @app.post("/api/v1/analyses/{run_id}/variants", response_model=VariantAdmissionResponse, status_code=202,
+              responses={200: {"model": VariantAdmissionResponse}, 404: {"model": ErrorEnvelope},
+                         422: {"model": ErrorEnvelope}, 503: {"model": ErrorEnvelope}})
+    async def create_variant(run_id: str, request: Request) -> Response:
+        """Time Machine (FR-10, spec 8.4): copy the parent's canonical request, change only the
+        start, admit it as an ordinary run and link it. Same inputs as a fresh request = same run."""
+        parent = store.require(_run_id(run_id))
+        v = parse_variant(await request.body())
+        parent_canon = json.loads(parent["request_json"])
+        child_canon = shifted_request(parent_canon, v.changes.start_offset_s)
+        ident = identity_from_canonical(child_canon, cfg)
+        changed = ["mission.start_utc"]
+        if cfg.mode == "replay":
+            row = store.get(ident.run_id)
+            if row is None:
+                raise LunaScopeError(REPLAY_ONLY, "this packaged service replays packaged variants only")
+            adm_run, created = row, False
+        else:
+            adm = store.admit(
+                run_id=ident.run_id, request_hash=ident.request_hash, resource_digest=ident.resource_digest,
+                algorithm_id=ident.algorithm_id, request_json=ident.request_json(),
+                effective_json=json.dumps({"effective": ident.effective_settings,
+                                           "resources": ident.resources}, sort_keys=True),
+                stack_kind=cfg.stack_kind, result_state=ident.result_state)
+            adm_run, created = adm.run, adm.created
+        store.link(child_run_id=ident.run_id, parent_run_id=run_id, variant_type=v.variant_type,
+                   changed_fields=changed)
+        log_event("variant_admitted", run_id=ident.run_id, parent_run_id=run_id,
+                  outcome="created" if created else "attached", cid=request.state.cid)
+        if created:
+            runner.notify()
+        body = {**_summary(adm_run), "attached": not created,
+                "status_url": f"/api/v1/analyses/{ident.run_id}", "parent_run_id": run_id,
+                "variant_type": v.variant_type, "changed_fields": changed,
+                "start_utc": child_canon["mission"]["start_utc"],
+                "parent_start_utc": parent_canon["mission"]["start_utc"]}
+        return JSONResponse(body, status_code=202 if created else 200)
+
+    @app.get("/api/v1/analyses/{run_id}/variants", response_model=VariantsResponse,
+             responses={404: {"model": ErrorEnvelope}})
+    def list_variants(run_id: str) -> dict:
+        row = store.require(_run_id(run_id))
+        return {"run_id": run_id, "start_utc": json.loads(row["request_json"])["mission"]["start_utc"],
+                "parents": store.parents(run_id), "children": store.children(run_id)}
 
     @app.get("/api/v1/analyses/{run_id}")
     def get_analysis(run_id: str) -> dict:
@@ -342,21 +432,42 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
 
     @app.get("/api/v1/analyses/{run_id}/validation", response_model=ValidationResponse,
              responses={404: {"model": ErrorEnvelope}, 409: {"model": ErrorEnvelope}})
-    def validation(run_id: str) -> dict:
-        return run_cards(_ready(run_id))
+    def validation(run_id: str, request: Request, response: Response) -> dict | Response:
+        """Validation metadata is tagged separately from the result: its tag is the hash of the
+        cards, and it is always revalidated, because a scope can close after the result is sealed."""
+        cards = run_cards(_ready(run_id))
+        tag = f'"v-{hash_of(cards)[:32]}"'
+        headers = {"ETag": tag, "Cache-Control": REVALIDATE_CACHE}
+        if request.headers.get("if-none-match") == tag:
+            return Response(status_code=304, headers=headers)
+        response.headers.update(headers)
+        return cards
 
     @app.get("/api/v1/analyses/{run_id}/export")
-    def export(run_id: str, verified: bool = False) -> Response:
+    def export(run_id: str, request: Request, verified: bool = False) -> Response:
+        """Evidence bundle (FR-13): the sealed analysis plus a frozen snapshot of the validation
+        cards as they stand now. Deterministic: the same result and the same cards give the same bytes."""
         a = _ready(run_id)
         if verified:  # only a truthfully validated state may be designated verified
             raise LunaScopeError(EXPORT_BLOCKED_UNVERIFIED,
                                  "no validation scope has closed for this run; export it as an "
                                  "investigative bundle instead")
-        raw = canonical_bytes(a)
-        import hashlib
+        cards = run_cards(a)
+        raw = canonical_bytes({**a, "export": {
+            "schema": "lunascope.export/1", "designation": "investigative",
+            "designation_reason": "no validation scope has closed; a verified export is refused until one does",
+            "analysis_artifact_sha256": store.require(run_id)["analysis_artifact"],
+            "validation_snapshot": {**cards, "cards_sha256": hash_of(cards),
+                                    "note": "Frozen when this bundle was exported. Live cards: "
+                                            f"/api/v1/analyses/{run_id}/validation"}}})
+        sha = hashlib.sha256(raw).hexdigest()
+        headers = {"ETag": f'"{sha}"', "Cache-Control": REVALIDATE_CACHE}
+        if request.headers.get("if-none-match") == headers["ETag"]:
+            return Response(status_code=304, headers=headers)
         return Response(raw, media_type="application/json", headers={
-            "X-Content-SHA256": hashlib.sha256(raw).hexdigest(),
-            "X-Result-State": a["result_state"], "X-Bundle-Kind": "investigative"})
+            **headers, "X-Content-SHA256": sha, "X-Result-State": a["result_state"],
+            "X-Bundle-Kind": "investigative",
+            "Content-Disposition": f'attachment; filename="lunascope-{run_id[:12]}-investigative.json"'})
 
     return app
 

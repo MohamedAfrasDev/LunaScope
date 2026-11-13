@@ -75,3 +75,10 @@ export const WARNING_TEXT: Record<string, string> = {
   SENSITIVITY_HIGH: "The result changes beyond tolerance under a finer or alternative setting.",
   INTERPOLATION_ERROR_ASSUMED: "Interpolation error was assumed, not measured.",
 };
+
+/** Validation card and group status: never colour alone, and "not evaluated" is never a pass. */
+export const CARD_STATUS: Record<"met" | "not_met" | "not_evaluated", Presentation> = {
+  met: { label: "Met", icon: "✓", tone: "ok", help: "The check ran and is within its stated tolerance." },
+  not_met: { label: "Not met", icon: "✗", tone: "fail", help: "The check ran and is outside its tolerance." },
+  not_evaluated: { label: "Not evaluated", icon: "–", tone: "muted", help: "The check has not been run; it supports nothing." },
+};

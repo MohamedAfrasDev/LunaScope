@@ -68,6 +68,22 @@ describe("BFF route handler", () => {
     expect(res.headers.get("x-correlation-id")).toBeTruthy();
   });
 
+  it("passes the service's cache headers and a 304 revalidation through, and forwards a sane If-None-Match", async () => {
+    const tag = '"' + "c".repeat(64) + '"';
+    vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit) => {
+      calls.push({ url, init });
+      return new Response(null, { status: 304, headers: { etag: tag, "cache-control": "private, max-age=31536000, immutable" } });
+    }));
+    const res = await GET(req(`analyses/${RUN}/results`, { headers: { "if-none-match": tag } }), ctx("analyses", RUN, "results"));
+    expect(res.status).toBe(304);
+    expect(res.headers.get("etag")).toBe(tag);
+    expect(res.headers.get("cache-control")).toContain("immutable");
+    expect((calls[0].init.headers as Record<string, string>)["if-none-match"]).toBe(tag);
+    calls = [];
+    await GET(req(`analyses/${RUN}/results`, { headers: { "if-none-match": "W/\"x\", *" } }), ctx("analyses", RUN, "results"));
+    expect((calls[0].init.headers as Record<string, string>)["if-none-match"]).toBeUndefined();
+  });
+
   it("never calls the service for routes that are not allow-listed", async () => {
     const cases = [
       [["admin"], "GET"],

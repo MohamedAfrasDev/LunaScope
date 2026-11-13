@@ -19,6 +19,7 @@ import os
 import shutil
 import sqlite3
 import tempfile
+import threading
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -28,6 +29,7 @@ from .errors import RESOURCE_INTEGRITY_FAILED, LunaScopeError
 QUEUE_FULL = "QUEUE_FULL"
 NOT_FOUND = "NOT_FOUND"
 MAX_ATTEMPTS = 2
+ANALYSIS_CACHE_SIZE = 8  # parsed finished analyses kept in memory (a 7-day, 3-site run is a few MB)
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS runs (
@@ -88,6 +90,8 @@ class RunStore:
         self.staging = self.root / "staging"
         for d in (self.root, self.artifacts, self.staging):
             d.mkdir(parents=True, exist_ok=True)
+        self._analysis_cache: dict[str, dict] = {}
+        self._cache_lock = threading.Lock()
         self.db_path = self.root / "runs.sqlite"
         with self._conn() as c:
             c.executescript(SCHEMA)
@@ -153,6 +157,36 @@ class RunStore:
         with self._conn() as c:
             return [r["run_id"] for r in c.execute(
                 "SELECT run_id FROM runs WHERE status='queued' ORDER BY created_utc, run_id")]
+
+    # ------------------------------------------------------------------ variants
+    def link(self, *, child_run_id: str, parent_run_id: str, variant_type: str,
+             changed_fields: list[str]) -> None:
+        """Record that `child` is a variant of `parent` (spec 8.4). Idempotent: the same link
+        submitted twice is one row, and a link never changes once written."""
+        with self._conn() as c:
+            c.execute("INSERT OR IGNORE INTO run_links(child_run_id, parent_run_id, variant_type,"
+                      " changed_fields) VALUES(?,?,?,?)",
+                      (child_run_id, parent_run_id, variant_type, json.dumps(sorted(changed_fields))))
+
+    def _links(self, where: str, run_id: str) -> list[dict]:
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT l.child_run_id, l.parent_run_id, l.variant_type, l.changed_fields,"
+                " r.status, r.request_json, r.created_utc FROM run_links l JOIN runs r ON r.run_id ="
+                f" l.{'child_run_id' if where == 'parent_run_id' else 'parent_run_id'}"
+                f" WHERE l.{where}=? ORDER BY r.created_utc, r.run_id", (run_id,)).fetchall()
+        return [{"child_run_id": r["child_run_id"], "parent_run_id": r["parent_run_id"],
+                 "variant_type": r["variant_type"], "changed_fields": json.loads(r["changed_fields"]),
+                 "status": r["status"], "created_utc": r["created_utc"],
+                 "start_utc": json.loads(r["request_json"])["mission"]["start_utc"]} for r in rows]
+
+    def children(self, parent_run_id: str) -> list[dict]:
+        """Variants of a run, with the child's status and start time."""
+        return self._links("parent_run_id", parent_run_id)
+
+    def parents(self, child_run_id: str) -> list[dict]:
+        """Runs this one is a variant of (status and start time are the parent's)."""
+        return self._links("child_run_id", child_run_id)
 
     # ------------------------------------------------------------------ attempts
     def claim(self, run_id: str) -> tuple[int, Path] | None:
@@ -276,7 +310,25 @@ class RunStore:
         return data
 
     def get_analysis(self, run_id: str) -> dict:
+        """The finished analysis. Artifacts are write-once and content-addressed, so a parsed copy
+        is kept per artifact SHA-256 after one verified read (phase plan 2.3). Callers must treat
+        the returned dict as read-only: it is shared."""
         row = self.require(run_id)
-        if row["analysis_artifact"] is None:
+        sha = row["analysis_artifact"]
+        if sha is None:
             raise LunaScopeError("NOT_READY", f"run {run_id[:16]}... is {row['status']}")
-        return json.loads(self.get_artifact(row["analysis_artifact"]))
+        with self._cache_lock:
+            hit = self._analysis_cache.pop(sha, None)
+            if hit is not None:
+                self._analysis_cache[sha] = hit  # most recently used last
+                return hit
+        parsed = json.loads(self.get_artifact(sha))
+        with self._cache_lock:
+            self._analysis_cache[sha] = parsed
+            while len(self._analysis_cache) > ANALYSIS_CACHE_SIZE:
+                self._analysis_cache.pop(next(iter(self._analysis_cache)))
+        return parsed
+
+    def cached_artifacts(self) -> list[str]:
+        with self._cache_lock:
+            return list(self._analysis_cache)

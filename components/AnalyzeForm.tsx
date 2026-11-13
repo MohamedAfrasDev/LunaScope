@@ -3,17 +3,23 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState, type ReactNode } from "react";
 import { ApiError, describeError, getJson, postJson } from "@/lib/api/client";
-import type { RunSummary, SitesResponse } from "@/lib/api/types";
+import type { CustomSiteCheck, RunSummary, SitesResponse } from "@/lib/api/types";
 import {
   AZ_STEP_CHOICES,
   MAX_SAMPLES,
   STEP_CHOICES,
+  clearDraft,
+  customBody,
+  customErrors,
   emptyCustom,
   fieldKeyFromService,
+  loadDraft,
   referenceDraft,
+  saveDraft,
   sampleCount,
   toRequest,
   validateDraft,
+  type CustomDraft,
   type Draft,
   type Errors,
 } from "@/lib/draft";
@@ -70,7 +76,10 @@ export function AnalyzeForm() {
     getJson<SitesResponse>("sites")
       .then((c) => {
         setCatalog(c);
-        setD(referenceDraft(c.sites.map((s) => s.site_id)));
+        const known = new Set(c.sites.map((s) => s.site_id));
+        const saved = loadDraft();
+        // a saved draft survives navigation in this tab; preset ids no longer in the catalog are dropped
+        setD(saved ? { ...saved, siteIds: saved.siteIds.filter((x) => known.has(x)) } : referenceDraft([...known]));
       })
       .catch((e) => setLoadErr(describeError(e)));
   }, []);
@@ -84,8 +93,16 @@ export function AnalyzeForm() {
   if (!d || !catalog) return <p className="text-muted">Loading the site catalog…</p>;
 
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => {
-    setD({ ...d, [k]: v });
+    const next = { ...d, [k]: v };
+    setD(next);
+    saveDraft(next);
     setErrors({});
+  };
+  const reset = () => {
+    clearDraft();
+    setD(referenceDraft(catalog.sites.map((s) => s.site_id)));
+    setErrors({});
+    setFormErr(null);
   };
   const fid = (n: string) => `${uid}-${n}`;
   const f = (key: string, n: string) => ({
@@ -105,6 +122,7 @@ export function AnalyzeForm() {
     setBusy(true);
     try {
       const run = await postJson<RunSummary>("analyses", toRequest(d));
+      clearDraft(); // the run now holds an immutable snapshot of these inputs
       router.push(`/runs/${run.run_id}`);
     } catch (e) {
       const key = e instanceof ApiError ? fieldKeyFromService(e.field) : null;
@@ -265,6 +283,7 @@ export function AnalyzeForm() {
                 </button>
               </div>
             </Field>
+            <CustomCoverage c={c} index={i} errors={customErrors(d, i)} />
           </div>
         ))}
         <button type="button" className="mt-3 rounded border border-border px-3 py-2 text-sm"
@@ -291,11 +310,66 @@ export function AnalyzeForm() {
           className="rounded-lg bg-accent px-5 py-3 text-base font-semibold text-background disabled:opacity-60">
           {busy ? "Submitting…" : "Run analysis"}
         </button>
+        <button type="button" onClick={reset} className="rounded border border-border px-3 py-2 text-sm">
+          Reset to the reference mission
+        </button>
         <p className="text-sm text-muted" aria-live="polite">
           {samples.toLocaleString("en")} samples ({d.siteIds.length + d.custom.length} site(s) × 2 targets), limit{" "}
           {MAX_SAMPLES.toLocaleString("en")}
         </p>
       </div>
     </form>
+  );
+}
+
+/**
+ * FR-02: before running, check a custom point against the terrain data. The service returns the
+ * normalised analysis point (planetocentric, east-positive) with the source point kept separate,
+ * and the DEM coverage of the horizon footprint. A result is shown only for the inputs it was asked for.
+ */
+function CustomCoverage({ c, index, errors }: { c: CustomDraft; index: number; errors: Errors }) {
+  const key = JSON.stringify(customBody(c));
+  const [res, setRes] = useState<{ key: string; check: CustomSiteCheck } | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const invalid = Object.keys(errors).length > 0;
+
+  async function check() {
+    setBusy(true);
+    setErr(null);
+    try {
+      const out = await postJson<CustomSiteCheck>("sites/custom", customBody(c));
+      setRes({ key, check: out });
+    } catch (e) {
+      setErr(describeError(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const r = res && res.key === key ? res.check : null;
+  const cov = r?.dem_coverage_150km;
+  return (
+    <div className="sm:col-span-2 lg:col-span-5" aria-live="polite">
+      <button type="button" onClick={check} disabled={busy || invalid}
+        className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">
+        {busy ? "Checking…" : `Check terrain coverage for point ${index + 1}`}
+      </button>
+      {invalid && <span className="ml-3 text-xs text-muted">Fix this point&rsquo;s fields first.</span>}
+      {err && <p role="alert" className="mt-2 text-sm text-fail">{err}</p>}
+      {r && cov && (
+        <p className="mt-2 text-sm">
+          Analysis point {r.lat_deg.toFixed(5)}°, {r.lon_east_deg.toFixed(5)}° E ({r.convention}, east positive); your
+          source point {r.source_point_kept_separate.lon_deg}° {r.source_point_kept_separate.lon_direction === "east_positive" ? "east" : "west"} positive
+          is kept separately.{" "}
+          <span className={cov.fully_covered ? "font-medium" : "font-medium text-warn"}>
+            <span aria-hidden="true">{cov.fully_covered ? "✓ " : "! "}</span>
+            {cov.fully_covered
+              ? `The ${cov.radius_km} km horizon footprint is fully inside the terrain data.`
+              : `${(cov.covered_fraction * 100).toFixed(1)}% of the ${cov.radius_km} km footprint is inside the terrain data; ${cov.sectors_with_gap} azimuth sector(s) will be unknown, not flat.`}
+          </span>
+        </p>
+      )}
+    </div>
   );
 }

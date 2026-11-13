@@ -14,7 +14,7 @@ import time
 
 LOGGER = logging.getLogger("lunascope")
 _ALLOWED = ("run_id", "attempt", "stage", "code", "duration_s", "status", "result_state", "warnings",
-            "timing_s", "outcome", "exit_code", "queue", "cid")
+            "timing_s", "outcome", "exit_code", "queue", "cid", "parent_run_id")
 
 
 class JsonFormatter(logging.Formatter):

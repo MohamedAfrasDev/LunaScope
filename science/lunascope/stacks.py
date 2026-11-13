@@ -21,7 +21,7 @@ from typing import ClassVar
 import numpy as np
 
 from . import ALGORITHM_VERSION
-from .api_models import AnalysisRequest, canonical_request, resolve_sites, to_run_config
+from .api_models import AnalysisRequest, canonical_request, resolve_sites
 from .canonical import hash_of, make_run_id
 from .codes import ResultState
 from .dem import MANIFESTS, RAW, DemTerrain, GeoTiffSource, PdsImgSource
@@ -56,7 +56,9 @@ class ServiceConfig:
 
     @property
     def run_timeout_s(self) -> float:
-        return self.timeout_s if self.timeout_s is not None else (60.0 if self.stack_kind == "synthetic" else 900.0)
+        # synthetic: GR-001 at full resolution with sensitivity is ~90 s cold on a laptop (terrain is
+        # computed, only the geometry is instant); live adds Horizons latency and DEM reads.
+        return self.timeout_s if self.timeout_s is not None else (240.0 if self.stack_kind == "synthetic" else 900.0)
 
 
 # ----------------------------------------------------------------------------- synthetic
@@ -108,11 +110,18 @@ def kernel_digest(cfg: ServiceConfig) -> str:
     return KernelSet(cfg.kernel_dir).manifest_digest
 
 
+def horizon_dir(cfg: ServiceConfig) -> Path:
+    """Precomputed skylines (horizon_store), shared by every run of this service. The key covers
+    observer, terrain identity, settings and algorithm, so a Time Machine shift of the same sites
+    reuses its baseline's skylines instead of recomputing them."""
+    return Path(cfg.data_dir) / "horizons"
+
+
 def build_stack(cfg: ServiceConfig, req_dem_profile: str) -> tuple[Stack, object | None]:
     """Returns (stack, alternate terrain factory or None). Builds providers; opens no DEM yet."""
     if cfg.stack_kind == "synthetic":
         return Stack(geometry=AnalyticGeometry(), terrain_factory=synthetic_terrain_factory,
-                     synthetic=True, extra_resources=[]), synthetic_terrain_factory
+                     synthetic=True, extra_resources=[], horizon_dir=horizon_dir(cfg)), synthetic_terrain_factory
     if cfg.stack_kind != "live":
         raise ValueError(f"unknown stack kind {cfg.stack_kind!r}")
     cache = ResponseCache(Path(cfg.data_dir) / "horizons_cache")
@@ -121,7 +130,8 @@ def build_stack(cfg: ServiceConfig, req_dem_profile: str) -> tuple[Stack, object
         geometry=HorizonsProvider(HorizonsClient(cache)),
         terrain_factory=dem_factory(req_dem_profile, cfg.raw_dir),
         reference=SpiceProvider(kernels),
-        extra_resources=[{"role": "spice_kernels", "sha256": kernels.manifest_digest}])
+        extra_resources=[{"role": "spice_kernels", "sha256": kernels.manifest_digest}],
+        horizon_dir=horizon_dir(cfg))
     return stack, dem_factory(ALT_PROFILE[req_dem_profile], cfg.raw_dir)
 
 
@@ -143,21 +153,28 @@ class Identity:
 
 def analysis_identity(req: AnalysisRequest, cfg: ServiceConfig) -> Identity:
     sites = resolve_sites(req)
-    run_cfg = to_run_config(req)
-    canon = canonical_request(req, sites)
+    return identity_from_canonical(canonical_request(req, sites), cfg)
+
+
+def identity_from_canonical(canon: dict, cfg: ServiceConfig) -> Identity:
+    """Identity of an already-canonical request (a stored parent with one field changed, say).
+    A variant and a fresh request with the same inputs get the same run_id, so they attach."""
+    run_cfg, _ = run_config_from_canonical(canon)
+    dem_profile = canon["terrain"]["dem_profile"]
+    sensitivity = canon["options"]["sensitivity"]
     synthetic = cfg.stack_kind == "synthetic"
     if synthetic:
         resources = [{"role": "dem", "sha256": SYNTHETIC_DEM_SHA}]
         geometry_identity = AnalyticGeometry.identity
     else:
-        rid = DEM_FILES[req.terrain.dem_profile][0]
+        rid = DEM_FILES[dem_profile][0]
         resources = [{"role": "dem", "sha256": manifest_sha(rid)},
                      {"role": "spice_kernels", "sha256": kernel_digest(cfg)}]
         geometry_identity = HorizonsProvider.identity
     effective = {**run_cfg.effective_settings(), "geometry_provider": geometry_identity,
                  "interpolation": "cubic_hermite_enu_vectors", "horizon_algorithm": HORIZON_ALGORITHM,
                  "event_algorithm": ALGORITHM_VERSION, "stack_kind": cfg.stack_kind,
-                 "dem_profile": req.terrain.dem_profile, "sensitivity": req.options.sensitivity}
+                 "dem_profile": dem_profile, "sensitivity": sensitivity}
     algorithm_id = f"lunascope-science/{ALGORITHM_VERSION}"
     run_id = make_run_id(canon, effective, resources, algorithm_id)
     return Identity(
@@ -187,5 +204,6 @@ __all__ = [
     "analysis_identity",
     "build_stack",
     "dataclasses",
+    "identity_from_canonical",
     "run_config_from_canonical",
 ]

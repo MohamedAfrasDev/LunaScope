@@ -50,3 +50,23 @@ def test_missing_reference_or_variant_is_not_evaluated_never_met(run001):
     cards = [c for c in run_cards(thin)["cards"] if c["site_id"] == s["request"]["site"]["site_id"]]
     assert [c["status"] for c in cards if c["id"] == "geometry_agreement" and c["target"] == "sun_center"] == ["not_evaluated"]
     assert by(cards, "horizon_convergence")[0]["status"] == "not_evaluated"
+
+
+def test_three_groups_roll_up_without_ever_promoting_an_unrun_check():
+    from lunascope.cards import group_cards
+    card = lambda cid, st: {"id": cid, "status": st}
+    g = {x["id"]: x for x in group_cards([
+        card("geometry_agreement", "met"), card("interpolation_holdout", "met"),
+        card("horizon_certification", "met"), card("independent_terrain_check", "not_evaluated"),
+        card("horizon_convergence", "not_met")])}
+    assert list(g) == ["geometry", "terrain_horizon", "numerical_convergence"]
+    assert g["geometry"]["status"] == "met"
+    assert g["terrain_horizon"]["status"] == "not_evaluated"  # one check never ran
+    assert g["numerical_convergence"]["status"] == "not_met"
+    assert g["terrain_horizon"]["counts"] == {"met": 1, "not_met": 0, "not_evaluated": 1}
+    assert group_cards([])[0]["status"] == "not_evaluated"  # nothing ran: not met by default
+
+
+def test_run_001_groups_are_never_all_met(run001):
+    groups = run_cards(run001)["groups"]
+    assert {x["id"]: x["status"] for x in groups}["terrain_horizon"] != "met"  # no independent skyline yet

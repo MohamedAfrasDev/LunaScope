@@ -64,9 +64,42 @@ def site_cards(s: dict) -> list[dict]:
     return out
 
 
+GROUPS = (  # the three validation cards of spec 5.5 / FR-09, each a roll-up of narrow checks
+    ("geometry", "Sun and Earth geometry", ("geometry_agreement", "interpolation_holdout"),
+     ("Directions of the Sun and Earth centres from the provider, against an independent SPICE "
+     "implementation and a finer held-out series. Says nothing about the terrain.")),
+    ("terrain_horizon", "Terrain horizon", ("horizon_certification", "dem_release_sensitivity",
+                                            "independent_terrain_check"),
+     ("The skyline from the pinned DEM: coverage, sensitivity to the DEM release, and an independent "
+     "skyline. DEM accuracy itself is not checked.")),
+    ("numerical_convergence", "Numerical convergence", ("horizon_convergence",),
+     ("Whether results hold at a finer azimuth step. The full step/azimuth/radius report runs with the "
+     "reference run.")),
+)
+
+
+def _rollup(statuses: list[str]) -> str:
+    """not_met if any check failed; met only if every check ran and passed; otherwise not_evaluated.
+    A group with an unrun check is never shown as met."""
+    if "not_met" in statuses:
+        return "not_met"
+    return "met" if statuses and all(s == "met" for s in statuses) else "not_evaluated"
+
+
+def group_cards(cards: list[dict]) -> list[dict]:
+    out = []
+    for gid, title, ids, scope in GROUPS:
+        members = [c for c in cards if c["id"] in ids]
+        out.append({"id": gid, "title": title, "status": _rollup([c["status"] for c in members]),
+                    "scope": scope, "card_ids": list(ids),
+                    "counts": {k: sum(c["status"] == k for c in members) for k in ("met", "not_met", "not_evaluated")}})
+    return out
+
+
 def run_cards(analysis: dict) -> dict:
     cards = [c for s in analysis["sites"] for c in site_cards(s)]
     return {"run_id": analysis["run_id"], "result_state": analysis["result_state"], "cards": cards,
+            "groups": group_cards(cards),
             "scopes_closed": list(analysis.get("validated_scopes", [])),
             "summary": {k: sum(c["status"] == k for c in cards) for k in ("met", "not_met", "not_evaluated")},
             "note": "A met card supports one narrow claim. It does not make the result verified."}

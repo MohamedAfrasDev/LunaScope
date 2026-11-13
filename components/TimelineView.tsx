@@ -8,7 +8,7 @@ import { degrees, duration, pctRange, siteLabel, targetLabel, utc } from "@/lib/
 import { OUTCOME, SITE_STATUS, WARNING_TEXT } from "@/lib/status";
 import { ResultStateFrame } from "./ResultStateFrame";
 import { StatusChip } from "./StatusChip";
-import { IntervalTable, Legend, TimelineChart, type Band } from "./TimelineChart";
+import { AvailabilityBar, IntervalTable, Legend, TimelineChart, type Band } from "./TimelineChart";
 
 const TARGETS: Target[] = ["sun_center", "earth_center"];
 const HORIZONS: HorizonKind[] = ["terrain", "flat"];
@@ -20,9 +20,14 @@ function buildBands(site: SiteResults): Band[] {
       const r = site.target_metrics[t]?.[h];
       if (!r?.intervals) continue;
       const m = r.metrics;
+      const longest = m.longest_known_hidden_start != null && m.longest_known_hidden_end != null && m.longest_known_hidden_s > 0
+        ? { start_s: m.longest_known_hidden_start, end_s: m.longest_known_hidden_end,
+            text: `Longest known outage: ${duration(m.longest_known_hidden_s)}` }
+        : undefined;
       bands.push({
         target: t,
         horizon: h,
+        mark: h === "terrain" ? longest : undefined,
         intervals: r.intervals,
         events: r.events ?? [],
         summary:
@@ -117,11 +122,17 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
                     <dd className="tabular-nums">{pctRange(f.metrics.availability_lower, f.metrics.availability_upper, 2)}</dd>
                     <dt className="text-muted">Longest known hidden</dt>
                     <dd>{duration(m.longest_known_hidden_s)}</dd>
+                    <dt className="text-muted">Total known hidden</dt>
+                    <dd>{duration(m.hidden_s)}{m.unknown_s > 0 ? ` (plus ${duration(m.unknown_s)} unresolved or unknown)` : ""}</dd>
                     <dt className="text-muted">Best clearance over the skyline</dt>
                     <dd>{r.clearance_at_nodes ? degrees(r.clearance_at_nodes.max_deg) : "unknown"}</dd>
                     <dt className="text-muted">At the start</dt>
                     <dd>{r.countdown_at_start.text}{r.countdown_at_start.remaining_s != null ? `, in ${duration(r.countdown_at_start.remaining_s)}` : ""}</dd>
                   </dl>
+                  <div className="mt-2">
+                    <AvailabilityBar lower={m.availability_lower} upper={m.availability_upper} threshold={m.threshold}
+                      label={`${targetLabel(t)}, terrain-aware`} />
+                  </div>
                   {m.exclusion_reasons.length > 0 && (
                     <p className="mt-2 text-xs text-muted">Excluded because: {m.exclusion_reasons.join(", ")}.</p>
                   )}
@@ -134,7 +145,8 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
             <TimelineChart bands={bands} title={`Visibility timeline for ${siteLabel(siteId)}`} />
             <div className="mt-2"><Legend /></div>
             <p className="mt-2 text-xs text-muted">
-              Black ticks are predicted rise or set times under this terrain model. Times are UTC. The
+              Black ticks are predicted rise or set times under this terrain model. The bracket above a
+              terrain-aware band marks its longest known outage. Times are UTC. The
               unresolved band around each crossing is the numerical decision band, not an outage.
             </p>
           </div>

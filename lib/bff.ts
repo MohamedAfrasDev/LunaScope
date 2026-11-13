@@ -35,10 +35,18 @@ const ROUTES: RouteDef[] = [
   { method: "GET", re: /^health$/, upstream: () => "health" },
   { method: "GET", re: /^resources$/, upstream: () => "resources" },
   { method: "GET", re: /^sites$/, upstream: () => "sites" },
+  { method: "GET", re: /^references\/(GR-\d{3})$/, upstream: (m) => `references/${m[1]}` },
   { method: "POST", re: /^sites\/custom$/, upstream: () => "sites/custom", maxBodyBytes: 4096 },
   { method: "POST", re: /^analyses$/, upstream: () => "analyses", maxBodyBytes: 64 * 1024 },
   { method: "POST", re: /^comparisons$/, upstream: () => "comparisons", maxBodyBytes: 4096, timeoutMs: 20_000 },
   { method: "GET", re: new RegExp(`^analyses/(${RUN})$`), upstream: (m) => `analyses/${m[1]}` },
+  {
+    method: "POST",
+    re: new RegExp(`^analyses/(${RUN})/variants$`),
+    upstream: (m) => `analyses/${m[1]}/variants`,
+    maxBodyBytes: 4096,
+  },
+  { method: "GET", re: new RegExp(`^analyses/(${RUN})/variants$`), upstream: (m) => `analyses/${m[1]}/variants` },
   {
     method: "GET",
     re: new RegExp(`^analyses/(${RUN})/results$`),
@@ -121,7 +129,10 @@ export function matchRoute(method: string, slug: string[], search: URLSearchPara
 
 /** Response headers that may cross back to the browser. */
 export const PASS_HEADERS = [
+  "cache-control",
+  "content-disposition",
   "content-type",
+  "etag",
   "retry-after",
   "x-correlation-id",
   "x-content-sha256",

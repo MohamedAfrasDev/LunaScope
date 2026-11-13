@@ -185,7 +185,7 @@ export function CompareView({ runId }: { runId: string }) {
                             </td>
                             <td className="py-2 pr-3 tabular-nums">{duration(r.terrain.longest_known_hidden_s)}</td>
                             <td className="py-2 pr-3 tabular-nums">{r.terrain.events}</td>
-                            <td className="py-2 pr-3 opacity-80">
+                            <td className="py-2 pr-3">
                               <StatusChip p={OUTCOME[r.flat.outcome]} />
                               <div className="mt-1 tabular-nums">{pctRange(r.flat.availability_lower, r.flat.availability_upper, 2)}</div>
                             </td>

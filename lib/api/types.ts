@@ -37,6 +37,17 @@ export type CatalogSite = components["schemas"]["CatalogSiteResponse"];
 
 export type SitesResponse = components["schemas"]["SitesResponse"];
 
+/** POST /sites/custom: the normalised analysis point, the source point kept separate, and DEM coverage. */
+export interface CustomSiteCheck {
+  lat_deg: number;
+  lon_east_deg: number;
+  convention: string;
+  source: string;
+  precision_m: number;
+  source_point_kept_separate: { lon_deg: number; lon_direction: "east_positive" | "west_positive" };
+  dem_coverage_150km: components["schemas"]["DemCoverage"];
+}
+
 export type RunSummary = components["schemas"]["RunSummaryResponse"];
 
 export interface MatrixCell {
@@ -166,6 +177,21 @@ export type ValidationCard = components["schemas"]["ValidationCardResponse"];
 export type CardStatus = ValidationCard["status"];
 export type ValidationResponse = components["schemas"]["ValidationResponse"];
 
+export type ValidationGroup = components["schemas"]["ValidationGroup"];
+
+export interface ProvenanceGeometry {
+  provider: string;
+  raw_sha256: string;
+  retrieved_utc?: string;
+  signature_version?: string;
+  correction_mode?: string;
+  time_scale?: string;
+  samples?: number;
+  delta_geom_used_deg?: number;
+  holdout: { max_deg: number; n: number; truth_step_s: number } | null;
+  reference_agreement?: { max_total_arcsec: number; tolerance_arcsec: number; within_tolerance: boolean; n?: number; reference?: string };
+}
+
 export interface ProvenanceResponse {
   run_id: string;
   result_id: string;
@@ -173,21 +199,80 @@ export interface ProvenanceResponse {
   result_state: ResultState;
   verified: boolean;
   validated_scopes: string[];
+  request?: {
+    mission: { start_utc: string; duration_s: number; step_s: number };
+    requirements: { sun_min_availability: number; earth_min_availability: number };
+    terrain: { dem_profile: string; radius_km: number; az_step_deg: number; observer_height_m: number; clearance_margin_deg: number };
+  };
+  effective_settings?: Record<string, unknown>;
   resources: { role: string; sha256: string }[];
   sites: {
     site_id: string;
-    observer: { ground_height_m: number; lat_deg: number; lon_deg_east: number };
-    geometry: Record<
-      string,
-      {
-        provider: string;
-        raw_sha256: string;
-        holdout: { max_deg: number } | null;
-        reference_agreement?: { max_total_arcsec: number; tolerance_arcsec: number; within_tolerance: boolean };
-      }
-    >;
+    observer: { ground_height_m: number; lat_deg: number; lon_deg_east: number; body_frame?: string; reference_radius_km?: number; observer_height_above_ground_m?: number };
+    horizon?: { cache_key: string; payload_sha256?: string | null; sectors: Record<string, number>; settings: Record<string, number>;
+      skyline_min_deg: number | null; skyline_max_deg: number | null };
+    geometry: Record<string, ProvenanceGeometry>;
+    warnings?: string[];
     caveats: string[];
   }[];
+}
+
+/** Time Machine (FR-10): a linked date-shift variant and the runs linked to a run. */
+export type VariantAdmission = components["schemas"]["VariantAdmissionResponse"];
+export type VariantLink = components["schemas"]["VariantLink"];
+export type VariantsResponse = components["schemas"]["VariantsResponse"];
+export type Alignment = "elapsed" | "calendar";
+
+export interface RunCompareRow extends CompareRow {
+  window_s?: number; // calendar alignment: metrics restricted to the shared window
+}
+
+export interface ChangedInterval {
+  start_s: number; // on run a's elapsed axis
+  end_s: number;
+  a: IntervalClass | "?";
+  b: IntervalClass | "?";
+}
+
+/** POST /comparisons with two runs: baseline (a) and variant (b) under one stated alignment mode. */
+export interface RunComparisonResponse {
+  mode: "runs";
+  compatible: boolean;
+  alignment: Alignment;
+  runs: { a: { run_id: string; start_utc: string }; b: { run_id: string; start_utc: string } };
+  shift_s: number;
+  overlap: { start_utc: string; duration_s: number } | null;
+  held_constant: { field: string; value: string | number }[];
+  changed: { field: string; from: string | number; to: string | number }[];
+  sites: {
+    site_id: string;
+    site_status: { a: SiteStatus; b: SiteStatus };
+    targets: Record<
+      Target,
+      {
+        a: RunCompareRow;
+        b: RunCompareRow;
+        delta: { availability_lower: number; availability_upper: number; longest_known_hidden_s: number };
+        outcome_change: string | null;
+        event_count: [number, number];
+        changed_intervals: ChangedInterval[];
+        terrain_vs_flat: { a: Outcome; b: Outcome };
+      }
+    >;
+  }[];
+  result_state: ResultState | "mixed";
+  warnings: string[];
+  verified: boolean;
+  note: string;
+}
+
+/** GET /references/{id}: a golden reference definition and the exact request it submits. */
+export interface ReferenceDefinition {
+  reference_id: string;
+  status: "draft" | "frozen" | string;
+  frozen: { run_id: string } | null;
+  sites_status: string | null;
+  request: AnalysisRequestBody;
 }
 
 /** What the analysis form sends to POST /analyses. */

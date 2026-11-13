@@ -113,6 +113,13 @@ def _clean(o):
     return o
 
 
+def horizon_payload_sha256(azimuth_deg, horizon_el_deg, argmax_distance_km, sector_state) -> str:
+    """Digest of the skyline exactly as the bundle stores it (JSON numbers, NaN as null), so a
+    reader can tell whether any bin of a stored horizon changed after the run (test case 13)."""
+    return hash_of(_clean({"azimuth_deg": azimuth_deg, "horizon_el_deg": horizon_el_deg,
+                           "argmax_distance_km": argmax_distance_km, "sector_state": list(sector_state)}))
+
+
 def _iso(start: datetime, seconds: float) -> str:
     return (start + timedelta(seconds=float(seconds))).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
 
@@ -279,6 +286,9 @@ def run_site(site: SiteSpec, cfg: RunConfig, stack: Stack, *, with_reference: bo
         "resources": resources, "observer": obs.to_dict(),
         "horizon": {
             "settings": hs.to_dict(), "cache_key": prof.cache_key(), "sectors": sectors,
+            "payload_sha256": horizon_payload_sha256(prof.azimuth_deg, prof.horizon_el_deg,
+                                                     prof.argmax_distance_km,
+                                                     [STATE_NAMES[int(s)] for s in prof.sector_state]),
             "azimuth_deg": prof.azimuth_deg, "horizon_el_deg": prof.horizon_el_deg,
             "argmax_distance_km": prof.argmax_distance_km,
             "sector_state": [STATE_NAMES[int(s)] for s in prof.sector_state],

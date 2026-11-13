@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "gen:api": "openapi-typescript docs/openapi.json -o lib/api/generated.ts",
     "check:api": "node scripts/check-api-types.mjs",
-    "verify": "npm run check:api && npm run typecheck && npm run lint && npm test"
+    "verify": "npm run check:api && npm run typecheck && npm run lint && npm test",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "next": "16.4.6",
@@ -19,6 +20,8 @@
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.64.0",
     "@tailwindcss/turbopack": "4.3.3",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",

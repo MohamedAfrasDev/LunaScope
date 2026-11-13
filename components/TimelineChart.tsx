@@ -11,6 +11,8 @@ export interface Band {
   summary: string; // text alternative, built from server-decided values
   label?: string; // row label when rows are not target/horizon (e.g. one row per site)
   sub?: string;
+  /** Marks one span (the longest known outage) with a bracket above the band. */
+  mark?: { start_s: number; end_s: number; text: string };
 }
 
 const W = 1000;
@@ -99,6 +101,13 @@ export function TimelineChart({ bands, title }: { bands: Band[]; title: string }
             ))}
             <rect x={LABEL} y={y} width={PLOT} height={BAND} fill="none" strokeWidth="0.8"
               style={{ stroke: "var(--border)" }} />
+            {b.mark && b.mark.end_s > b.mark.start_s && (
+              <g>
+                <path d={`M${x(b.mark.start_s)} ${y - 1}V${y - 6}H${x(b.mark.end_s)}V${y - 1}`} fill="none" strokeWidth="1.6"
+                  style={{ stroke: "var(--fail)" }} />
+                <title>{b.mark.text}</title>
+              </g>
+            )}
             {b.events.map((e) => (
               <g key={e.t_s}>
                 <line x1={x(e.t_s)} x2={x(e.t_s)} y1={y - 3} y2={y + BAND + 3} strokeWidth="2"
@@ -152,5 +161,33 @@ export function IntervalTable({ band }: { band: Band }) {
         </table>
       </div>
     </details>
+  );
+}
+
+/**
+ * Availability against the requirement: the bound from lower to upper (unresolved time stays
+ * visible as the lighter part), with the threshold drawn as a line. Values are the service's.
+ */
+export function AvailabilityBar({ lower, upper, threshold, label }: { lower: number; upper: number; threshold: number; label: string }) {
+  const p = useId().replaceAll(":", "");
+  const W2 = 300;
+  const x = (f: number) => 4 + f * (W2 - 8);
+  const pctS = (f: number) => `${(f * 100).toFixed(1)}%`;
+  return (
+    <svg viewBox={`0 0 ${W2} 34`} role="img" aria-labelledby={`${p}-t`} className="h-auto w-full max-w-sm">
+      <title id={`${p}-t`}>
+        {`${label}: availability ${pctS(lower)}${upper > lower ? ` to ${pctS(upper)}` : ""}, requirement at least ${pctS(threshold)}`}
+      </title>
+      <rect x={x(0)} y={6} width={x(1) - x(0)} height={12} strokeWidth="0.8" style={{ fill: "var(--surface-2)", stroke: "var(--border)" }} />
+      <rect x={x(0)} y={6} width={Math.max(x(lower) - x(0), 0)} height={12} style={{ fill: "var(--ok)" }} />
+      {upper > lower && (
+        <rect x={x(lower)} y={6} width={Math.max(x(upper) - x(lower), 0.5)} height={12} style={{ fill: "var(--warn)" }} opacity={0.6} />
+      )}
+      <line x1={x(threshold)} x2={x(threshold)} y1={2} y2={22} strokeWidth="2" style={{ stroke: "var(--foreground)" }} />
+      <text x={x(threshold)} y={32} fontSize="9" textAnchor={threshold > 0.85 ? "end" : threshold < 0.15 ? "start" : "middle"}
+        style={{ fill: "var(--muted)" }}>
+        needs {pctS(threshold)}
+      </text>
+    </svg>
   );
 }

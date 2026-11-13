@@ -66,7 +66,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Export */
+        /**
+         * Export
+         * @description Evidence bundle (FR-13): the sealed analysis plus a frozen snapshot of the validation
+         *     cards as they stand now. Deterministic: the same result and the same cards give the same bytes.
+         */
         get: operations["export_api_v1_analyses__run_id__export_get"];
         put?: never;
         post?: never;
@@ -134,10 +138,36 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Validation */
+        /**
+         * Validation
+         * @description Validation metadata is tagged separately from the result: its tag is the hash of the
+         *     cards, and it is always revalidated, because a scope can close after the result is sealed.
+         */
         get: operations["validation_api_v1_analyses__run_id__validation_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyses/{run_id}/variants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Variants */
+        get: operations["list_variants_api_v1_analyses__run_id__variants_get"];
+        put?: never;
+        /**
+         * Create Variant
+         * @description Time Machine (FR-10, spec 8.4): copy the parent's canonical request, change only the
+         *     start, admit it as an ordinary run and link it. Same inputs as a fresh request = same run.
+         */
+        post: operations["create_variant_api_v1_analyses__run_id__variants_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -170,6 +200,27 @@ export interface paths {
         };
         /** Health */
         get: operations["health_api_v1_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/references/{ref_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Reference
+         * @description A golden reference definition (GR-001 ...): the exact request Home submits, with its
+         *     status, so the one-button mission and the reference run are the same inputs.
+         */
+        get: operations["reference_api_v1_references__ref_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -470,6 +521,8 @@ export interface components {
             cache_key: string;
             /** Horizon El Deg */
             horizon_el_deg: (number | null)[];
+            /** Payload Sha256 */
+            payload_sha256?: string | null;
             /**
              * Result State
              * @enum {string}
@@ -713,10 +766,32 @@ export interface components {
             /** Error Type */
             type: string;
         };
+        /** ValidationGroup */
+        ValidationGroup: {
+            /** Card Ids */
+            card_ids: string[];
+            counts: components["schemas"]["ValidationSummary"];
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "geometry" | "terrain_horizon" | "numerical_convergence";
+            /** Scope */
+            scope: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "met" | "not_met" | "not_evaluated";
+            /** Title */
+            title: string;
+        };
         /** ValidationResponse */
         ValidationResponse: {
             /** Cards */
             cards: components["schemas"]["ValidationCardResponse"][];
+            /** Groups */
+            groups: components["schemas"]["ValidationGroup"][];
             /** Note */
             note: string;
             /**
@@ -738,6 +813,87 @@ export interface components {
             not_evaluated: number;
             /** Not Met */
             not_met: number;
+        };
+        /** VariantAdmissionResponse */
+        VariantAdmissionResponse: {
+            /** Algorithm Id */
+            algorithm_id: string;
+            /** Attached */
+            attached?: boolean | null;
+            /** Attempt */
+            attempt: number;
+            /** Changed Fields */
+            changed_fields: string[];
+            /** Created Utc */
+            created_utc: string;
+            error?: components["schemas"]["RunError"] | null;
+            /** Finished Utc */
+            finished_utc: string | null;
+            /** Parent Run Id */
+            parent_run_id: string;
+            /** Parent Start Utc */
+            parent_start_utc: string;
+            /** Progress */
+            progress: number | null;
+            /** Result Id */
+            result_id: string | null;
+            /**
+             * Result State
+             * @enum {string}
+             */
+            result_state: "synthetic_demonstration" | "real_data_unverified" | "validated";
+            /** Run Id */
+            run_id: string;
+            /** Stage */
+            stage: string | null;
+            /** Start Utc */
+            start_utc: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "complete" | "complete_with_warnings" | "failed";
+            /** Status Url */
+            status_url?: string | null;
+            /**
+             * Variant Type
+             * @constant
+             */
+            variant_type: "date_shift";
+        };
+        /** VariantLink */
+        VariantLink: {
+            /** Changed Fields */
+            changed_fields: string[];
+            /** Child Run Id */
+            child_run_id: string;
+            /** Created Utc */
+            created_utc: string;
+            /** Parent Run Id */
+            parent_run_id: string;
+            /** Start Utc */
+            start_utc: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "complete" | "complete_with_warnings" | "failed";
+            /**
+             * Variant Type
+             * @constant
+             */
+            variant_type: "date_shift";
+        };
+        /** VariantsResponse */
+        VariantsResponse: {
+            /** Children */
+            children: components["schemas"]["VariantLink"][];
+            /** Parents */
+            parents: components["schemas"]["VariantLink"][];
+            /** Run Id */
+            run_id: string;
+            /** Start Utc */
+            start_utc: string;
         };
     };
     responses: never;
@@ -1064,6 +1220,104 @@ export interface operations {
             };
         };
     };
+    list_variants_api_v1_analyses__run_id__variants_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VariantsResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_variant_api_v1_analyses__run_id__variants_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VariantAdmissionResponse"];
+                };
+            };
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VariantAdmissionResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     comparisons_api_v1_comparisons_post: {
         parameters: {
             query?: never;
@@ -1102,6 +1356,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    reference_api_v1_references__ref_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ref_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

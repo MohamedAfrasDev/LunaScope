@@ -7,7 +7,7 @@ here accepts a path or URL: terrain is a named profile, custom sites are numbers
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Literal
 
@@ -128,6 +128,29 @@ class AnalysisRequest(_Strict):
         return self
 
 
+MAX_SHIFT_S = 30 * 86400
+
+
+class DateShift(_Strict):
+    start_offset_s: int = Field(ge=-MAX_SHIFT_S, le=MAX_SHIFT_S)
+
+    @field_validator("start_offset_s")
+    @classmethod
+    def _whole_minutes(cls, v: int) -> int:
+        if v == 0:
+            raise ValueError("a date shift of zero is the baseline itself")
+        if v % 60:
+            raise ValueError("the shift must be a whole number of minutes")
+        return v
+
+
+class VariantRequest(_Strict):
+    """Spec 8.4. Only `date_shift` is built; alternatives and sensitivity variants come later."""
+
+    variant_type: Literal["date_shift"]
+    changes: DateShift
+
+
 class ComparisonRequest(_Strict):
     runs: list[str] = Field(min_length=1, max_length=2)
     sites: list[str] | None = Field(default=None, max_length=6)
@@ -176,6 +199,29 @@ def parse_comparison(body: bytes) -> ComparisonRequest:
     except ValidationError as e:
         err = e.errors()[0]
         raise LunaScopeError(INVALID_INPUT, err["msg"], field=".".join(str(p) for p in err["loc"]) or None) from e
+
+
+def parse_variant(body: bytes) -> VariantRequest:
+    if len(body) > 4096:
+        raise LunaScopeError(INVALID_INPUT, "request body exceeds 4096 bytes")
+    try:
+        return VariantRequest.model_validate_json(body)
+    except ValidationError as e:
+        err = e.errors()[0]
+        raise LunaScopeError(INVALID_INPUT, err["msg"], field=".".join(str(p) for p in err["loc"]) or None) from e
+
+
+def shifted_request(parent_canon: dict, offset_s: int) -> dict:
+    """The parent's canonical request with only mission.start_utc moved. Everything else is copied
+    verbatim, so the variant differs from its baseline in exactly one field."""
+    start = datetime.fromisoformat(parent_canon["mission"]["start_utc"]).astimezone(UTC)
+    new = start + timedelta(seconds=offset_s)
+    if not MIN_START <= new < MAX_START:
+        raise LunaScopeError(INVALID_INPUT, "the shifted start falls outside 2020-01-01 to 2100-01-01",
+                             field="changes.start_offset_s")
+    out = json.loads(json.dumps(parent_canon))
+    out["mission"]["start_utc"] = new.strftime("%Y-%m-%dT%H:%M:%SZ")
+    return out
 
 
 def resolve_sites(req: AnalysisRequest) -> list[SiteSpec]:
