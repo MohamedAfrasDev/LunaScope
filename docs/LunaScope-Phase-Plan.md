@@ -124,11 +124,11 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] Test case 4 (flat sphere dip) · 5 (ridge) · 6 (depressed skyline) · 7 (far obstacle / nodata) · 8 (narrow ridge, synthetic)
 - [x] Step-count check: ~7,500 radial steps per ray at default settings
 - [ ] DEM preprocessing script (checksummed, round-trip and metadata checks)
-- [ ] `DemTerrain` (Rasterio/pyproj): CRS transform, pixel registration, nodata, bilinear
-- [ ] Footprint-wide coverage report for the chosen radius
-- [ ] Real-terrain horizon checks and radius/azimuth refinement on the real DEM
+- [x] `DemTerrain`: polar stereographic matches PROJ to micrometres, pixel-centre bilinear, NaN outside tile/window/next to NaN, GDAL sampling cross-check, both LOLA products ([dem.py](../science/lunascope/dem.py))
+- [x] Footprint-wide coverage report (`footprint_coverage`): fraction of the horizon disk inside the tile, sectors with a gap
+- [~] Real-terrain horizon checks and refinement: done for ONE site on both DEMs (radius converged; azimuth step 0.5 -> 0.1 deg still moves the skyline 0.017 deg, above the 0.01 deg band; ADJ vs PDS up to 0.45 deg). More sites and a finer-azimuth strategy needed
 - [ ] Precomputed horizon storage for named showcase presets (< 300 ms read)
-- [ ] Benchmark time and memory at finest allowed settings (20 s target is still unmeasured)
+- [~] Benchmark: one site, 150 km, 0.5 deg: window load 3.3 s + horizon 1.8 s (0.1 deg: 8.6 s), 937 MB window; budget met. Other machines and cold caches not measured
 - [ ] Multi-resolution near/far merge (after the single-DEM pipeline is correct)
 
 ### 1.7 Visibility, events, metrics
