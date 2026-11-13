@@ -112,7 +112,7 @@ def _parse_time(s: str) -> datetime:
                     micro, tzinfo=UTC)
 
 
-_FLOAT = r"([-+]?\d+(?:\.\d*)?(?:[eE][-+]?\d+)?)"
+_FLOAT = r"([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)"  # also ".002" and "1.06E-13"
 
 
 def _header_facts(text: str) -> dict:
@@ -156,7 +156,10 @@ def _check_observer_echo(facts: dict, obs: CanonicalObserver) -> None:
         fail(f"echoed site {geod} differs from requested "
              f"({obs.lon_deg_east}, {obs.lat_deg}, {want_alt})")
     echoed_r = math.hypot(cyl[1], cyl[2])
-    if abs(echoed_r - obs.radius_km) > 2e-3:  # Dz is printed to 3 decimals
+    # Dz is printed with limited digits (3 decimals, or 5 significant digits at the pole), so the
+    # tolerance is 5 m: enough to catch a wrong reference surface, while the geodetic altitude echo
+    # above (1e-6 km) catches an input height mismatch exactly.
+    if abs(echoed_r - obs.radius_km) > 5e-3:
         fail(f"echoed observer radius {echoed_r:.4f} km differs from {obs.radius_km:.4f} km: "
              "height reference mismatch")
     if any(abs(r - obs.reference_radius_km) > 1e-6 for r in rad):

@@ -1,0 +1,28 @@
+{
+  "name": "sun_exact_pole",
+  "endpoint": "https://ssd.jpl.nasa.gov/api/horizons.api",
+  "params": {
+    "format": "json",
+    "OBJ_DATA": "'NO'",
+    "MAKE_EPHEM": "'YES'",
+    "EPHEM_TYPE": "'OBSERVER'",
+    "CENTER": "'coord@301'",
+    "COORD_TYPE": "'GEODETIC'",
+    "START_TIME": "'2027-01-10 00:00'",
+    "STOP_TIME": "'2027-01-10 06:00'",
+    "STEP_SIZE": "'60 m'",
+    "QUANTITIES": "'4'",
+    "ANG_FORMAT": "'DEG'",
+    "APPARENT": "'AIRLESS'",
+    "CSV_FORMAT": "'YES'",
+    "EXTRA_PREC": "'YES'",
+    "TIME_DIGITS": "'SECONDS'",
+    "COMMAND": "'10'",
+    "SITE_COORD": "'0,-90,0.002'"
+  },
+  "http_status": 200,
+  "retrieved_utc": "2026-11-13T13:00:44Z",
+  "sha256": "ecda98646d77e896b9330380bfd407feb235fcbbcf268dcc74027b2acc10b0dc",
+  "result_state": "real_data_unverified",
+  "note": "Recorded real Horizons response used as a convention/residual fixture. Not a validated result."
+}

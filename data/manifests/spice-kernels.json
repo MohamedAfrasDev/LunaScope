@@ -1,0 +1,49 @@
+{
+  "resource_id": "spice-kernels-de440",
+  "role": "spice_kernel_set",
+  "readiness": "integrity_verified",
+  "decision": "PROPOSED kernel set for the independent SPICE check (SDR-001 D-04); not scientifically approved",
+  "publisher": "NASA NAIF / JPL",
+  "accessed_utc": "2026-11-13",
+  "use_terms": "NAIF generic kernels are public; cite NAIF. Confirm exact wording before publication.",
+  "note": "Horizons headers for the recorded responses state DE441 as the source ephemeris. This set uses DE440 (de440s); DE441 files are several GB. The DE440/DE441 difference for 2027 is measured as part of the residual budget, not assumed away.",
+  "load_order_matters": true,
+  "kernels": [
+    {
+      "filename": "naif0012.tls",
+      "type": "lsk",
+      "url": "https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/naif0012.tls",
+      "size_bytes": 5257,
+      "sha256": "678e32bdb5a744117a467cd9601cd6b373f0e9bc9bbde1371d5eee39600a039b",
+      "publisher_last_modified": "2016-07-15",
+      "note": "Leap seconds; last leap second 2017-01-01, assumed constant for later UTC (same assumption Horizons states)"
+    },
+    {
+      "filename": "moon_de440_250416.tf",
+      "type": "fk",
+      "url": "https://naif.jpl.nasa.gov/pub/naif/generic_kernels/fk/satellites/moon_de440_250416.tf",
+      "size_bytes": 19478,
+      "sha256": "a47c71e9c9f33796bdafb2c9d69a7ee447b6016ecad80f71cd6f3e479f9cf768",
+      "publisher_last_modified": "2025-04-16",
+      "note": "Defines MOON_PA and MOON_ME (id 31001 = MOON_ME_DE440_ME421 relative to MOON_PA_DE440); compatible with moon_pa_de440_200625.bpc"
+    },
+    {
+      "filename": "moon_pa_de440_200625.bpc",
+      "type": "pck",
+      "url": "https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/moon_pa_de440_200625.bpc",
+      "size_bytes": 12863488,
+      "sha256": "60cd55aa401ea2ea97360636f567554bfe4e37bb829f901b4460a455dfaf783f",
+      "publisher_last_modified": "2021-06-26",
+      "note": "DE440 lunar principal-axis orientation; coverage 1549-12-30 to 2650-01-24 (frame 31008)"
+    },
+    {
+      "filename": "de440s.bsp",
+      "type": "spk",
+      "url": "https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de440s.bsp",
+      "size_bytes": 32726016,
+      "sha256": "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2",
+      "publisher_last_modified": "2020-12-21",
+      "note": "DE440 short-span planetary ephemeris; Sun (10), Earth (399), Moon (301); coverage 1849-12-25 to 2150-01-21"
+    }
+  ]
+}

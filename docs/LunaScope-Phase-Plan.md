@@ -42,15 +42,15 @@ Goal: no real-data work starts until these are decided and written down. **Owner
 - [x] Draft [SDR-001](sdr/SDR-001.md) with 12 decision items and defaults clearly marked
 - [x] Adopt one uncertainty/requirement policy (PASS / FAIL / INDETERMINATE / EXCLUDED) — written in spec §7.1, implemented in code
 - [x] Define identities: stable `run_id` at admission, sealed `result_id` at completion (spec §8.1)
-- [~] **D-01** DEM product: **recommended** primary `LDEM_80S_20MPP_ADJ` (PGDA 2023) + cross-check PDS `LDEM_80S_20M` V2.0; header metadata verified by range read. Still open: SHA-256 (needs the 2.7 GB download), explicit licence text, sign-off
+- [~] **D-01** DEM product: **recommended** primary `LDEM_80S_20MPP_ADJ` (PGDA 2023) + cross-check PDS `LDEM_80S_20M` V2.0. Both downloaded, SHA-256 pinned, metadata verified, full-extent comparison done (RMS 1.76 m), use terms checked. Still open: D-01b quality-mask decision, same-site horizon comparison on both DEMs, sign-off
 - [ ] **D-02** Lunar frame and its realization across Horizons, SPICE and the DEM (OQ-02, S-6)
 - [~] **D-03** Latitude type, longitude direction, radius, datum: confirmed *for the chosen DEMs* (planetocentric, east-positive, 1,737.4 km sphere, heights relative to it); Horizons/SPICE side still open
-- [ ] **D-04** Horizons quantities, correction mode, time scale; SPICE kernel set (OQ-03)
+- [~] **D-04** Decided (proposed) and measured: Horizons quantity 4 airless vs SPICE `LT+S`, UTC, DE440 kernels pinned; awaiting sign-off, and a longer multi-date comparison
 - [ ] **D-05** Justify decision band ε (default 0.01° is a placeholder)
 - [ ] **D-06** Confirm root tolerance τ, minimum interval width, evaluation cap
 - [ ] **D-08** Fix the reference window `start_utc` and record why (S-11)
 - [ ] **D-09** Choose demo sites and precision (OQ-05)
-- [ ] **D-10** Set geometry timing tolerance δ_geom and SPICE residual budget (OQ-08)
+- [~] **D-10** Geometry tolerance proposed at 0.01 arcsec (measured max 0.0016"); interpolation residual measured; needs more dates
 - [ ] **D-11** Confirm Horizons User-Agent wording (no secrets or personal contact)
 - [ ] **D-12** File the organizer's written permission for the 12 Nov foundation work (OQ-10, Risk #1)
 - [ ] Science owner and product owner sign SDR-001
@@ -71,8 +71,8 @@ Ends only when **one real site** passes through the approved geometry provider, 
 
 ### 1.1 Inventory of resources
 - [ ] Record LROC QuickMap, NASA Moon Trek, JPL Horizons as official resources with citations
-- [~] Catalog candidate DEM files: two manifests written (`data/manifests/dem-lola-80s-20mpp-adj.json`, `dem-pds-ldem-80s-20m.json`) with product ID, version, URL, size, CRS, sphere, units, nodata, registration, coverage; **SHA-256 and explicit terms still missing**
-- [ ] Catalog SPICE kernels (LSK, PCK, SPK, lunar frame kernels) with checksums and time coverage
+- [x] Catalog candidate DEM files: two manifests with product ID, version, URL, size, SHA-256, CRS, sphere, units, nodata, registration, coverage and use terms (readiness `integrity_verified`)
+- [x] Catalog SPICE kernels (LSK, PCK, SPK, lunar frame kernels) with checksums and time coverage (`data/manifests/spice-kernels.json`)
 - [~] Write one manifest per resource in `data/manifests/`: DEMs done (state `discovered`); SPICE kernels, Horizons and site catalog pending
 - [ ] Gate: no numerical resource is used without a manifest entry
 
@@ -110,8 +110,8 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] Global limiter: one Horizons request in flight, exponential backoff + `Retry-After`, `LunaScope/<version>` User-Agent (tested with 8 concurrent threads)
 - [x] Hermite interpolation on unit direction vectors with same-grid derivatives; rigorous bounds on |v'|, |v''|, |v| from the Bezier control points ([interpolate.py](../science/lunascope/providers/geometry/interpolate.py))
 - [~] Held-out finer series → measure δ_geom and timing bound: done against recorded real 1-minute series (10-minute nodes: max ~1e-8° Sun, ~2e-9° Earth; hourly nodes ~2.6e-6°); the direct sub-minute `TLIST` query fallback is not built
-- [ ] SPICE provider (`spkcpo` + own `az_el`) at selected epochs
-- [ ] Residual report Horizons vs SPICE (wrapped az, el), documented `LT+S` difference
+- [x] SPICE provider (`spkcpo` + own `az_el`), kernels pinned by manifest and verified before load ([spice.py](../science/lunascope/providers/geometry/spice.py))
+- [x] Residual report Horizons vs SPICE (wrapped az, el) in [validation.py](../science/lunascope/validation.py); measured 0.00002" Sun, 0.0016" Earth on six cases; `LT+S` difference documented in SDR-001
 - [ ] Gate: provider, convention, residual and coverage tests pass
 
 ### 1.6 Terrain and horizon
