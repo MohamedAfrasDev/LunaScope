@@ -6,7 +6,9 @@ import { PASS_HEADERS, matchRoute } from "@/lib/bff";
  *
  * - The upstream URL and token come from server-side environment variables only.
  * - Only allow-listed routes are forwarded; the upstream path is rebuilt, never copied.
- * - Cookies and other browser headers are not forwarded.
+ * - Cookies and other browser headers are not forwarded, except If-None-Match for a cache revalidation.
+ * - Cache headers come only from the service (immutable finished results, revalidated validation
+ *   cards); anything the service does not mark stays no-store.
  * - Upstream errors pass through unchanged (their codes are part of the contract); a failure to
  *   reach the service becomes a 502 in the same envelope.
  */
@@ -43,6 +45,8 @@ async function forward(request: NextRequest, ctx: RouteContext<"/api/v1/[...slug
 
   const headers: Record<string, string> = { accept: "application/json", "x-correlation-id": cid };
   if (body !== undefined) headers["content-type"] = "application/json";
+  const inm = request.headers.get("if-none-match");
+  if (match.method === "GET" && inm && /^"[0-9a-zA-Z-]{1,80}"$/.test(inm)) headers["if-none-match"] = inm;
   if (process.env.SCIENCE_API_TOKEN) headers.authorization = `Bearer ${process.env.SCIENCE_API_TOKEN}`;
 
   try {
@@ -60,7 +64,9 @@ async function forward(request: NextRequest, ctx: RouteContext<"/api/v1/[...slug
       if (v) out.set(name, v);
     }
     out.set("x-correlation-id", cid);
-    return new Response(await upstream.arrayBuffer(), { status: upstream.status, headers: out });
+    // 304 carries no body; a Response with a null-body status must not be given one.
+    const payload = upstream.status === 304 ? null : await upstream.arrayBuffer();
+    return new Response(payload, { status: upstream.status, headers: out });
   } catch {
     return envelope(502, "SERVICE_UNAVAILABLE", "The science service could not be reached.", cid, true);
   }

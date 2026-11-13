@@ -16,11 +16,11 @@ Dates are intended work windows, not evidence that a gate will pass.
 | --- | --- | --- | --- | --- |
 | **0. Decision & contract gate** | 13 Nov | Settle science/contract decisions before real data | SDR-001 approved | `[~]` draft written, not approved |
 | **1. Validity foundation** | 13 Nov | One real site end to end through the science pipeline | **Gate 1** | `[~]` synthetic slice done (~45 %) |
-| **2. Core experience** | 14 Nov | Three-site reference run, all workspaces, evidence | **Gate 2** | `[~]` started 13 Nov: Time Machine, GR-001 tooling, case 13/14 |
+| **2. Core experience** | 14 Nov | Three-site reference run, all workspaces, evidence | **Gate 2** | `[~]` all buildable items done 13 Nov; Gate 2 waits on GR-001 sites (D-09) and its live run |
 | **3. Extras, presentation, reliability** | 15 Nov | Animation, alternatives, fallback, submission | **Gate 3** | `[ ]` |
 
 ```
-Phase 0 ████████░░ 80 %   Phase 1 ████░░░░░░ 40 %   Phase 2 ███░░░░░░░ 25 %   Phase 3 ░░░░░░░░░░ 0 %
+Phase 0 ████████░░ 80 %   Phase 1 ████░░░░░░ 40 %   Phase 2 ███████░░░ 75 %   Phase 3 ░░░░░░░░░░ 0 %
 ```
 
 **Done so far (summary)**
@@ -127,7 +127,7 @@ Ends only when **one real site** passes through the approved geometry provider, 
 - [x] `DemTerrain`: polar stereographic matches PROJ to micrometres, pixel-centre bilinear, NaN outside tile/window/next to NaN, GDAL sampling cross-check, both LOLA products ([dem.py](../science/lunascope/dem.py))
 - [x] Footprint-wide coverage report (`footprint_coverage`): fraction of the horizon disk inside the tile, sectors with a gap
 - [x] Real-terrain horizon checks and refinement: ADJ vs PDS skyline at ten sites (`dem_release_comparison.py`): median RMS 0.076 deg, worst max 2.6 deg, so the release choice dominates epsilon and must be reported; azimuth step 0.1 deg is adequate (SDR-001 D-05, Phase 0 study); radius converged at the first site
-- [x] Precomputed horizon storage (`horizon_store.py`): hash-verified `.npz` keyed by the cache key, atomic writes, corrupt file = miss; read measured under 300 ms in a test; pipeline reports `horizon_cached`. Named showcase presets themselves are not chosen (they need the real demo sites, D-09)
+- [x] Precomputed horizon storage (`horizon_store.py`), now used by the service for every run (`<data_dir>/horizons`): a Time Machine shift reuses its baseline's skylines (tested): hash-verified `.npz` keyed by the cache key, atomic writes, corrupt file = miss; read measured under 300 ms in a test; pipeline reports `horizon_cached`. Named showcase presets themselves are not chosen (they need the real demo sites, D-09)
 - [~] Benchmark: one site, 150 km, 0.5 deg: window load 3.3 s + horizon 1.8 s (0.1 deg: 8.6 s), 937 MB window; budget met. Other machines and cold caches not measured
 - [ ] Multi-resolution near/far merge (after the single-DEM pipeline is correct)
 
@@ -187,28 +187,28 @@ Priority order: validity → relevance → core experience.
 - [x] Apply the implementation freeze rule: a frozen definition pins its run_id; `check_freeze` raises "create GR-002" when any scientific input changes (tested by changing the radius)
 
 ### 2.2 Workspaces
-- [ ] **Mission** — draft form with field-level errors, sample-count preview (FR-01)
-- [ ] **Sites** — presets, custom coordinates with convention/source/precision, DEM coverage flag (FR-02)
-- [ ] **Run summary** — status matrix, excluded group, progress (FR-03)
+- [x] **Mission**: field-level errors mirroring the service bounds, live sample-count preview against the 60,000 limit, a per-tab draft (sessionStorage, guarded) that survives navigation, and "Reset to the reference mission" (FR-01). Mission and Sites share one form
+- [x] **Sites**: presets with source, precision and coverage flag; custom points with convention, direction, source and precision, and a per-point "Check terrain coverage" (`POST /sites/custom`) showing the normalised analysis point, the source point kept separate, and the covered fraction / unknown sectors; a result is hidden once its inputs change (FR-02)
+- [x] **Run summary**: status matrix, progress, and an excluded group: `UNKNOWN_COVERAGE` sites are listed apart as not decided, never as failures (FR-03)
 - [x] **Local Sky**: polar (north up) and unrolled views, terrain skyline hatched, flat 0 deg horizon, Sun and Earth tracks styled by the service's classification, scrubber, event jumps, countdown, text alternative and table ([SkyView.tsx](../components/SkyView.tsx), [SkyPlots.tsx](../components/SkyPlots.tsx)); static SVG, no canvas layer
-- [ ] **Timeline** — aligned Sun/Earth bands, threshold line, interval table, longest outage (FR-07)
+- [x] **Timeline**: aligned Sun/Earth bands, an availability bar per target with the requirement as a threshold line (bound shown lower to upper), longest known outage bracketed on the band, total known hidden time, interval tables and CSV (FR-07)
 - [x] **Compare** (`/runs/{id}/compare`): site selector (at least two, recomputed server-side), held-constant list, changed sites, typed facts by fixed templates, per-target table with the flat horizon labelled as comparison, paired timelines (one row per site, one shared axis) with tables ([CompareView.tsx](../components/CompareView.tsx)); comparing two runs has no page yet
 - [x] **Time Machine** (`/runs/{id}/time-machine`): `POST /analyses/{id}/variants` (`date_shift`, start only, ±30 d, whole minutes) admits an ordinary run and links it (`run_links`); a fresh request with the same inputs is the same run; `GET /analyses/{id}/variants` lists parents and children. Page: day offset with field errors, shifted-runs list, labelled elapsed/calendar control, held/changed fields, per-site per-target deltas and outcome changes, two panels each on its own UTC with countdown at start and timelines, changed spans on both clocks; late replies for another alignment are dropped. Replay mode serves packaged variants only. Checked in a headless browser on the synthetic stack (13 Nov). Tested-dates strip with pass/fail counts and alternatives search are Phase 3 (FR-11)
-- [ ] **Evidence** — provenance, three validation cards, export (FR-09, FR-13)
-- [ ] Home — one button starts the reference mission
+- [x] **Evidence** (`/runs/{id}/evidence`): three validation cards (Sun and Earth geometry, terrain horizon, numerical convergence), rolled up by the service (`groups`: not met if any check failed, met only if every check ran and passed, otherwise not evaluated), each with its checks; identity and pins; method and inputs; per-site observer, provider, corrections, time scale, response hashes, SPICE residual, holdout, skyline key and digest; limits; investigative export. The run page shows the three card states and links here (FR-09, FR-13)
+- [x] Home: one button submits GR-001 exactly as `GET /references/GR-001` serves it, so the demo and the reference run share one run id (tested); says GR-001 is a draft with demonstration sites
 
 ### 2.3 Cross-cutting
 - [~] Countdown rules: the Local Sky countdown is asked from the service at the cursor time (`GET /countdown`), covering at-event, mission-end, no-event, unknown and decision-band cases; the terrain-variant range (sensitivity) is not shown yet
 - [x] Alignment modes: the service names them `elapsed` and `calendar` with an explanatory note and refuses non-overlapping calendar windows; the Time Machine has the labelled control and shows the shared window
-- [ ] Evidence bundle export (JSON) with frozen validation snapshot; investigative vs verified designation
-- [~] Keyboard-complete core flow; chart text alternatives and table views; pass/fail not by colour alone: icon+word on every state, SVG has title/desc and a table per band, focus rings, skip link, reduced-motion rule; manual keyboard pass and axe checks not done (AC-15)
-- [ ] Playwright core-flow test + axe checks
-- [ ] Cache reads of finished runs by `result_id`; validation metadata tagged separately
+- [x] Evidence bundle export (JSON) with frozen validation snapshot (`export.validation_snapshot` with the cards, groups and their hash), the analysis artifact hash, `designation: investigative`, deterministic bytes; verified designation refused (409) until a scope closes
+- [x] Keyboard-complete core flow, checked by Playwright pressing Tab/Enter/arrow keys only (Home → reference mission → matrix → Time Machine → alignment → Evidence → download); chart text alternatives and table views; icon+word on every state; focus rings, skip link, reduced-motion rule. axe found the faded flat-horizon column below AA contrast; fixed (dashed rule instead of opacity). A manual screen-reader pass is still not done (AC-15)
+- [x] Playwright core-flow test + axe checks (`npm run test:e2e`, `tests/e2e/core-flow.spec.ts`, synthetic stack): two tests, eight pages pass axe WCAG 2.1 A/AA. Playwright pinned to 1.64.0 to use the locally cached Chromium; not part of `npm run verify` (needs both servers)
+- [x] Cache reads of finished runs by `result_id`: results, provenance, countdown and horizon carry `ETag: "<result_id>"` with `immutable` and answer `If-None-Match` with 304 before any work (inside the token check); parsed analyses kept per artifact SHA-256 (LRU of 8). Validation cards and the export carry their own content tags with `no-cache`. The BFF passes these headers and 304 through; everything else stays no-store
 
 ### Gate 2 checklist
 - [ ] `GR-001` passes geometry, horizon, aggregation, event-search and convergence checks
 - [~] Three validation cards populated (cards exist; GR-001 not run); corrupted-horizon test fails readiness (case 13) **done**: `reference.readiness` recomputes the new skyline digest and re-derives events, intervals and metrics from the stored series and skyline; the real RUN-001 bundles re-derive exactly but lack the digest (written before it existed), so they read not ready
-- [ ] Core flow works by keyboard
+- [x] Core flow works by keyboard (Playwright, keyboard only)
 - [x] Time Machine five-day shift verified (case 14): `test_variants.py` (own UTC, events, countdown per run; calendar refusal) and `time-machine.test.tsx` (panels on their own clocks); Playwright spec still pending
 
 ---

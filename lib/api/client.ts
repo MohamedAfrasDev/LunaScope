@@ -25,7 +25,9 @@ function isEnvelope(x: unknown): x is ApiErrorBody {
 export async function api<T>(path: string, init?: RequestInit & { signal?: AbortSignal }): Promise<T> {
   let res: Response;
   try {
-    res = await fetch(`${BASE}/${path}`, { cache: "no-store", ...init });
+    // Default HTTP caching: only finished, immutable results carry cache headers (set by the
+    // service); everything else, including run status, is no-store at the BFF.
+    res = await fetch(`${BASE}/${path}`, init);
   } catch (e) {
     if (e instanceof DOMException && e.name === "AbortError") throw e;
     throw new ApiError(0, "NETWORK_ERROR", "Could not reach the web server.", null, true);

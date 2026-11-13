@@ -56,7 +56,9 @@ class ServiceConfig:
 
     @property
     def run_timeout_s(self) -> float:
-        return self.timeout_s if self.timeout_s is not None else (60.0 if self.stack_kind == "synthetic" else 900.0)
+        # synthetic: GR-001 at full resolution with sensitivity is ~90 s cold on a laptop (terrain is
+        # computed, only the geometry is instant); live adds Horizons latency and DEM reads.
+        return self.timeout_s if self.timeout_s is not None else (240.0 if self.stack_kind == "synthetic" else 900.0)
 
 
 # ----------------------------------------------------------------------------- synthetic
@@ -108,11 +110,18 @@ def kernel_digest(cfg: ServiceConfig) -> str:
     return KernelSet(cfg.kernel_dir).manifest_digest
 
 
+def horizon_dir(cfg: ServiceConfig) -> Path:
+    """Precomputed skylines (horizon_store), shared by every run of this service. The key covers
+    observer, terrain identity, settings and algorithm, so a Time Machine shift of the same sites
+    reuses its baseline's skylines instead of recomputing them."""
+    return Path(cfg.data_dir) / "horizons"
+
+
 def build_stack(cfg: ServiceConfig, req_dem_profile: str) -> tuple[Stack, object | None]:
     """Returns (stack, alternate terrain factory or None). Builds providers; opens no DEM yet."""
     if cfg.stack_kind == "synthetic":
         return Stack(geometry=AnalyticGeometry(), terrain_factory=synthetic_terrain_factory,
-                     synthetic=True, extra_resources=[]), synthetic_terrain_factory
+                     synthetic=True, extra_resources=[], horizon_dir=horizon_dir(cfg)), synthetic_terrain_factory
     if cfg.stack_kind != "live":
         raise ValueError(f"unknown stack kind {cfg.stack_kind!r}")
     cache = ResponseCache(Path(cfg.data_dir) / "horizons_cache")
@@ -121,7 +130,8 @@ def build_stack(cfg: ServiceConfig, req_dem_profile: str) -> tuple[Stack, object
         geometry=HorizonsProvider(HorizonsClient(cache)),
         terrain_factory=dem_factory(req_dem_profile, cfg.raw_dir),
         reference=SpiceProvider(kernels),
-        extra_resources=[{"role": "spice_kernels", "sha256": kernels.manifest_digest}])
+        extra_resources=[{"role": "spice_kernels", "sha256": kernels.manifest_digest}],
+        horizon_dir=horizon_dir(cfg))
     return stack, dem_factory(ALT_PROFILE[req_dem_profile], cfg.raw_dir)
 
 

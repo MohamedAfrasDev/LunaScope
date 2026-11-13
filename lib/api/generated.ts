@@ -66,7 +66,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Export */
+        /**
+         * Export
+         * @description Evidence bundle (FR-13): the sealed analysis plus a frozen snapshot of the validation
+         *     cards as they stand now. Deterministic: the same result and the same cards give the same bytes.
+         */
         get: operations["export_api_v1_analyses__run_id__export_get"];
         put?: never;
         post?: never;
@@ -134,7 +138,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Validation */
+        /**
+         * Validation
+         * @description Validation metadata is tagged separately from the result: its tag is the hash of the
+         *     cards, and it is always revalidated, because a scope can close after the result is sealed.
+         */
         get: operations["validation_api_v1_analyses__run_id__validation_get"];
         put?: never;
         post?: never;
@@ -192,6 +200,27 @@ export interface paths {
         };
         /** Health */
         get: operations["health_api_v1_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/references/{ref_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Reference
+         * @description A golden reference definition (GR-001 ...): the exact request Home submits, with its
+         *     status, so the one-button mission and the reference run are the same inputs.
+         */
+        get: operations["reference_api_v1_references__ref_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -737,10 +766,32 @@ export interface components {
             /** Error Type */
             type: string;
         };
+        /** ValidationGroup */
+        ValidationGroup: {
+            /** Card Ids */
+            card_ids: string[];
+            counts: components["schemas"]["ValidationSummary"];
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "geometry" | "terrain_horizon" | "numerical_convergence";
+            /** Scope */
+            scope: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "met" | "not_met" | "not_evaluated";
+            /** Title */
+            title: string;
+        };
         /** ValidationResponse */
         ValidationResponse: {
             /** Cards */
             cards: components["schemas"]["ValidationCardResponse"][];
+            /** Groups */
+            groups: components["schemas"]["ValidationGroup"][];
             /** Note */
             note: string;
             /**
@@ -1305,6 +1356,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    reference_api_v1_references__ref_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ref_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

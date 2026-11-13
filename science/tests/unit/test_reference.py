@@ -152,3 +152,20 @@ def test_a_frozen_reference_fails_loudly_when_a_scientific_input_changes(tmp_pat
     d["request"]["terrain"]["radius_km"] = 200.0  # a horizon parameter changes
     with pytest.raises(FreezeViolation, match="create GR-002"):
         check_freeze(d, cfg)
+
+
+def test_the_reference_endpoint_serves_the_exact_request_home_submits(tmp_path):
+    from fastapi.testclient import TestClient
+
+    from lunascope.main import create_app
+    with TestClient(create_app(ServiceConfig(data_dir=tmp_path, stack_kind="synthetic"))) as c:
+        r = c.get("/api/v1/references/GR-001")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["status"] == "draft" and "PLACEHOLDER" in body["sites_status"]
+        assert body["request"] == load_definition("GR-001")["request"]
+        adm = c.post("/api/v1/analyses", content=json.dumps(body["request"]))
+        assert adm.status_code == 202
+        assert adm.json()["run_id"] == check_freeze(load_definition("GR-001"), c.app.state.cfg)["run_id"]
+        for bad in ("GR-1", "../x", "GR-999"):
+            assert c.get(f"/api/v1/references/{bad}").status_code == 404

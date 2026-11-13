@@ -19,6 +19,7 @@ import os
 import shutil
 import sqlite3
 import tempfile
+import threading
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -28,6 +29,7 @@ from .errors import RESOURCE_INTEGRITY_FAILED, LunaScopeError
 QUEUE_FULL = "QUEUE_FULL"
 NOT_FOUND = "NOT_FOUND"
 MAX_ATTEMPTS = 2
+ANALYSIS_CACHE_SIZE = 8  # parsed finished analyses kept in memory (a 7-day, 3-site run is a few MB)
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS runs (
@@ -88,6 +90,8 @@ class RunStore:
         self.staging = self.root / "staging"
         for d in (self.root, self.artifacts, self.staging):
             d.mkdir(parents=True, exist_ok=True)
+        self._analysis_cache: dict[str, dict] = {}
+        self._cache_lock = threading.Lock()
         self.db_path = self.root / "runs.sqlite"
         with self._conn() as c:
             c.executescript(SCHEMA)
@@ -306,7 +310,25 @@ class RunStore:
         return data
 
     def get_analysis(self, run_id: str) -> dict:
+        """The finished analysis. Artifacts are write-once and content-addressed, so a parsed copy
+        is kept per artifact SHA-256 after one verified read (phase plan 2.3). Callers must treat
+        the returned dict as read-only: it is shared."""
         row = self.require(run_id)
-        if row["analysis_artifact"] is None:
+        sha = row["analysis_artifact"]
+        if sha is None:
             raise LunaScopeError("NOT_READY", f"run {run_id[:16]}... is {row['status']}")
-        return json.loads(self.get_artifact(row["analysis_artifact"]))
+        with self._cache_lock:
+            hit = self._analysis_cache.pop(sha, None)
+            if hit is not None:
+                self._analysis_cache[sha] = hit  # most recently used last
+                return hit
+        parsed = json.loads(self.get_artifact(sha))
+        with self._cache_lock:
+            self._analysis_cache[sha] = parsed
+            while len(self._analysis_cache) > ANALYSIS_CACHE_SIZE:
+                self._analysis_cache.pop(next(iter(self._analysis_cache)))
+        return parsed
+
+    def cached_artifacts(self) -> list[str]:
+        with self._cache_lock:
+            return list(self._analysis_cache)

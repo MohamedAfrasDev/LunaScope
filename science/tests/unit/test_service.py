@@ -143,7 +143,7 @@ def test_sites_resources_and_custom_site_endpoints(svc):
 def test_health_reports_limits_and_queue(svc):
     c, _, _ = svc
     h = c.get("/api/v1/health").json()
-    assert h["limits"] == {"max_running": 2, "max_queued": 8, "run_timeout_s": 60.0}
+    assert h["limits"] == {"max_running": 2, "max_queued": 8, "run_timeout_s": 240.0}
     assert h["result_state"] == "synthetic_demonstration" and h["resources_approved"] is False
 
 

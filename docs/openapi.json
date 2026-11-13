@@ -1574,6 +1574,57 @@
     "title": "ValidationError",
     "type": "object"
    },
+   "ValidationGroup": {
+    "additionalProperties": false,
+    "properties": {
+     "card_ids": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Card Ids",
+      "type": "array"
+     },
+     "counts": {
+      "$ref": "#/components/schemas/ValidationSummary"
+     },
+     "id": {
+      "enum": [
+       "geometry",
+       "terrain_horizon",
+       "numerical_convergence"
+      ],
+      "title": "Id",
+      "type": "string"
+     },
+     "scope": {
+      "title": "Scope",
+      "type": "string"
+     },
+     "status": {
+      "enum": [
+       "met",
+       "not_met",
+       "not_evaluated"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "title": {
+      "title": "Title",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "title",
+     "status",
+     "scope",
+     "card_ids",
+     "counts"
+    ],
+    "title": "ValidationGroup",
+    "type": "object"
+   },
    "ValidationResponse": {
     "additionalProperties": false,
     "properties": {
@@ -1582,6 +1633,13 @@
        "$ref": "#/components/schemas/ValidationCardResponse"
       },
       "title": "Cards",
+      "type": "array"
+     },
+     "groups": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationGroup"
+      },
+      "title": "Groups",
       "type": "array"
      },
      "note": {
@@ -1616,6 +1674,7 @@
      "run_id",
      "result_state",
      "cards",
+     "groups",
      "scopes_closed",
      "summary",
      "note"
@@ -2073,6 +2132,7 @@
   },
   "/api/v1/analyses/{run_id}/export": {
    "get": {
+    "description": "Evidence bundle (FR-13): the sealed analysis plus a frozen snapshot of the validation\ncards as they stand now. Deterministic: the same result and the same cards give the same bytes.",
     "operationId": "export_api_v1_analyses__run_id__export_get",
     "parameters": [
      {
@@ -2310,6 +2370,7 @@
   },
   "/api/v1/analyses/{run_id}/validation": {
    "get": {
+    "description": "Validation metadata is tagged separately from the result: its tag is the hash of the\ncards, and it is always revalidated, because a scope can close after the result is sealed.",
     "operationId": "validation_api_v1_analyses__run_id__validation_get",
     "parameters": [
      {
@@ -2520,6 +2581,48 @@
      }
     },
     "summary": "Health"
+   }
+  },
+  "/api/v1/references/{ref_id}": {
+   "get": {
+    "description": "A golden reference definition (GR-001 ...): the exact request Home submits, with its\nstatus, so the one-button mission and the reference run are the same inputs.",
+    "operationId": "reference_api_v1_references__ref_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "ref_id",
+      "required": true,
+      "schema": {
+       "title": "Ref Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Reference Api V1 References  Ref Id  Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Reference"
    }
   },
   "/api/v1/resources": {

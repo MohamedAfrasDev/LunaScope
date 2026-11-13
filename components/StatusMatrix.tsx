@@ -14,7 +14,8 @@ const COLS: { target: Target; horizon: HorizonKind; head: string; sub: string }[
 function Cell({ c, decides }: { c: MatrixCell; decides: boolean }) {
   const p = OUTCOME[c.outcome];
   return (
-    <div className={decides ? "" : "opacity-80"}>
+    // the comparison column is named in its header; it is not faded (fading failed WCAG contrast)
+    <div className={decides ? "" : "border-l-2 border-dashed border-border pl-2"}>
       <StatusChip p={p} title={p.help} />
       <div className="mt-1 text-sm tabular-nums">{pctRange(c.availability_lower, c.availability_upper)}</div>
       <div className="text-xs text-muted">needs at least {Math.round(c.threshold * 100)}%</div>
@@ -26,10 +27,13 @@ function Cell({ c, decides }: { c: MatrixCell; decides: boolean }) {
  * Status matrix: sites in rows, requirements in columns. Each requirement is judged on its own
  * and there is no overall winner or score. Excluded and indeterminate are not failures.
  */
-export function StatusMatrix({ runId, rows }: { runId: string; rows: MatrixRow[] }) {
+export function StatusMatrix({ runId, rows: all }: { runId: string; rows: MatrixRow[] }) {
+  // Sites the service could not decide are grouped apart: excluded is not a failure (FR-03).
+  const rows = all.filter((r) => r.site_status !== "UNKNOWN_COVERAGE");
+  const excluded = all.filter((r) => r.site_status === "UNKNOWN_COVERAGE");
   return (
     <div className="overflow-x-auto">
-      {rows.length >= 2 && (
+      {all.length >= 2 && (
         <p className="mb-3 text-sm">
           <Link href={`/runs/${runId}/compare`} className="font-medium text-accent underline underline-offset-4">
             Compare these sites side by side
@@ -86,6 +90,28 @@ export function StatusMatrix({ runId, rows }: { runId: string; rows: MatrixRow[]
           })}
         </tbody>
       </table>
+      {rows.length === 0 && <p className="mt-2 text-sm text-muted">No site in this run could be decided.</p>}
+      {excluded.length > 0 && (
+        <section aria-label="Excluded sites" className="mt-4 rounded border border-border bg-surface-2 p-3 text-sm">
+          <h3 className="font-semibold">
+            <StatusChip p={SITE_STATUS.UNKNOWN_COVERAGE} /> Excluded: not enough data to decide ({excluded.length})
+          </h3>
+          <p className="mt-1 text-muted">
+            Missing terrain coverage or uncertified time leaves these sites undecided. They are not counted as
+            failures, and their numbers are not shown in the matrix above.
+          </p>
+          <ul className="mt-2 space-y-1">
+            {excluded.map((r) => (
+              <li key={r.site_id}>
+                {siteLabel(r.site_id)}:{" "}
+                <Link href={`/runs/${runId}/timeline/${encodeURIComponent(r.site_id)}`} className="text-accent underline underline-offset-4">
+                  see why on the timeline
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

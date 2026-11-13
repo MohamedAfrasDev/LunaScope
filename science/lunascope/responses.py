@@ -114,10 +114,20 @@ class ValidationSummary(_Out):
     not_evaluated: int
 
 
+class ValidationGroup(_Out):
+    id: Literal["geometry", "terrain_horizon", "numerical_convergence"]
+    title: str
+    status: Literal["met", "not_met", "not_evaluated"]
+    scope: str
+    card_ids: list[str]
+    counts: ValidationSummary
+
+
 class ValidationResponse(_Out):
     run_id: str
     result_state: ResultStateName
     cards: list[ValidationCardResponse]
+    groups: list[ValidationGroup]
     scopes_closed: list[str]
     summary: ValidationSummary
     note: str

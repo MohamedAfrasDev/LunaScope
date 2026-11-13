@@ -1,133 +1,271 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useId, useState } from "react";
 import { describeError, getJson } from "@/lib/api/client";
-import type { ProvenanceResponse, ValidationResponse } from "@/lib/api/types";
-import { shortId, siteLabel, targetLabel } from "@/lib/format";
+import type { ProvenanceResponse, ValidationCard, ValidationGroup, ValidationResponse } from "@/lib/api/types";
+import { fieldLabel, fieldValue } from "@/lib/facts";
+import { shortId, siteLabel, targetLabel, utc } from "@/lib/format";
+import { CARD_STATUS, WARNING_TEXT } from "@/lib/status";
+import { ResultStateFrame } from "./ResultStateFrame";
+import { StatusChip } from "./StatusChip";
 
-/** Provenance beside the numbers: what was used, what was checked, and what was not. */
-export function EvidencePanel({ runId }: { runId: string }) {
+const Hash = ({ v, n = 16 }: { v: string; n?: number }) => (
+  <span className="break-all font-mono text-xs" title={v}>
+    {v.slice(0, n)}…
+  </span>
+);
+
+function useEvidence(runId: string) {
   const [p, setP] = useState<ProvenanceResponse | null>(null);
-  const [err, setErr] = useState<string | null>(null);
   const [v, setV] = useState<ValidationResponse | null>(null);
-
+  const [err, setErr] = useState<string | null>(null);
   useEffect(() => {
     const ctl = new AbortController();
     getJson<ValidationResponse>(`analyses/${runId}/validation`, ctl.signal)
-      .then(setV)
-      .catch(() => undefined); // the cards are additional evidence; the panel works without them
+      .then((x) => x.run_id === runId && setV(x))
+      .catch(() => undefined); // the cards are additional evidence; provenance still shows without them
     getJson<ProvenanceResponse>(`analyses/${runId}/provenance`, ctl.signal)
-      .then(setP)
+      .then((x) => x.run_id === runId && setP(x))
       .catch((e) => !(e instanceof DOMException) && setErr(describeError(e)));
     return () => ctl.abort();
   }, [runId]);
+  return { p, v, err };
+}
+
+function GroupCard({ g, cards }: { g: ValidationGroup; cards: ValidationCard[] }) {
+  const members = cards.filter((c) => g.card_ids.includes(c.id));
+  const s = CARD_STATUS[g.status];
+  return (
+    <article aria-labelledby={`card-${g.id}`} className="flex flex-col rounded-lg border border-border bg-surface p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 id={`card-${g.id}`} className="font-semibold">{g.title}</h3>
+        <StatusChip p={s} title={s.help} />
+      </div>
+      <p className="mt-2 text-sm text-muted">{g.scope}</p>
+      <p className="mt-2 text-sm tabular-nums">
+        {g.counts.met} met, {g.counts.not_met} not met, {g.counts.not_evaluated} not evaluated
+      </p>
+      <details className="mt-2 text-sm">
+        <summary className="cursor-pointer font-medium">The {members.length} checks behind this card</summary>
+        <ul className="mt-2 space-y-2">
+          {members.map((c, i) => (
+            <li key={`${c.id}-${c.site_id}-${c.target}-${i}`}>
+              <StatusChip p={CARD_STATUS[c.status]} /> {c.title}
+              {c.site_id ? ` (${siteLabel(c.site_id)}${c.target ? `, ${targetLabel(c.target)}` : ""})` : ""}
+              <span className="block text-muted">
+                {c.facts.join("; ")}. Scope: {c.scope}.
+              </span>
+            </li>
+          ))}
+        </ul>
+      </details>
+    </article>
+  );
+}
+
+/** Evidence workspace (FR-09, FR-13): can I trust and reproduce this? */
+export function EvidencePanel({ runId }: { runId: string }) {
+  const uid = useId();
+  const { p, v, err } = useEvidence(runId);
+
+  const back = (
+    <Link href={`/runs/${runId}`} className="text-sm text-accent underline underline-offset-4">
+      ← Back to the status matrix
+    </Link>
+  );
+  if (err)
+    return (
+      <div className="grid gap-3">
+        {back}
+        <p role="alert" className="rounded border border-fail/40 bg-fail-soft px-3 py-2 text-fail">{err}</p>
+      </div>
+    );
+  if (!p) return <div className="grid gap-3">{back}<p className="text-muted">Loading the evidence…</p></div>;
+
+  const req = p.request;
+  const eff = p.effective_settings ?? {};
+  const method: [string, string][] = [];
+  if (req) {
+    for (const [k, val] of [
+      ["mission.start_utc", req.mission.start_utc], ["mission.duration_s", req.mission.duration_s],
+      ["mission.step_s", req.mission.step_s],
+      ["requirements.sun_min_availability", req.requirements.sun_min_availability],
+      ["requirements.earth_min_availability", req.requirements.earth_min_availability],
+      ["terrain.dem_profile", req.terrain.dem_profile], ["terrain.radius_km", req.terrain.radius_km],
+      ["terrain.az_step_deg", req.terrain.az_step_deg], ["terrain.observer_height_m", req.terrain.observer_height_m],
+      ["terrain.clearance_margin_deg", req.terrain.clearance_margin_deg],
+    ] as [string, string | number][])
+      method.push([fieldLabel(k), fieldValue(k, val)]);
+  }
+  const num = (k: string) => (typeof eff[k] === "number" ? (eff[k] as number) : null);
+  if (num("eps_deg") != null) method.push(["Decision band ε", `${num("eps_deg")}°`]);
+  if (num("tau_s") != null) method.push(["Root tolerance τ", `${num("tau_s")} s`]);
+  if (num("w_min_s") != null) method.push(["Minimum interval", `${num("w_min_s")} s`]);
+  for (const k of ["interpolation", "horizon_algorithm", "event_algorithm", "stack_kind"])
+    if (typeof eff[k] === "string") method.push([fieldLabel(k), String(eff[k])]);
 
   return (
-    <section aria-labelledby="evidence" className="rounded-lg border border-border bg-surface p-4">
-      <h2 id="evidence" className="text-lg font-semibold">
-        Evidence
-      </h2>
-      {err && <p role="alert" className="mt-2 text-sm text-fail">{err}</p>}
-      {!p && !err && <p className="mt-2 text-sm text-muted">Loading provenance…</p>}
-      {p && (
-        <div className="mt-3 grid gap-5 text-sm">
-          <dl className="grid gap-x-6 gap-y-1 sm:grid-cols-[max-content_1fr]">
-            <dt className="text-muted">Run</dt>
-            <dd className="font-mono text-xs" title={p.run_id}>{shortId(p.run_id)}…</dd>
-            <dt className="text-muted">Result</dt>
-            <dd className="font-mono text-xs" title={p.result_id}>{shortId(p.result_id)}…</dd>
-            <dt className="text-muted">Algorithm</dt>
-            <dd>{p.algorithm_id}</dd>
-            <dt className="text-muted">Validated scopes</dt>
-            <dd>{p.validated_scopes.length ? p.validated_scopes.join(", ") : "none: no validation gate has closed"}</dd>
-          </dl>
+    <div className="grid gap-6">
+      {back}
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Evidence</h1>
+        <p className="mt-1 max-w-3xl text-sm text-muted">
+          What was used, what was checked against what, and what was not checked. Every number in this run
+          traces to the inputs below.
+        </p>
+      </div>
 
-          <div>
-            <h3 className="font-semibold">Pinned resources</h3>
-            <ul className="mt-1 space-y-1">
+      <ResultStateFrame state={p.result_state}>
+        <div className="grid gap-8">
+          <section aria-labelledby={`${uid}-cards`}>
+            <h2 id={`${uid}-cards`} className="text-lg font-semibold">Validation cards</h2>
+            {v ? (
+              <>
+                <p className="mt-1 text-sm text-muted">
+                  {v.note} Validated scopes: {v.scopes_closed.length ? v.scopes_closed.join(", ") : "none"}.
+                </p>
+                <div className="mt-3 grid gap-4 lg:grid-cols-3">
+                  {v.groups.map((g) => <GroupCard key={g.id} g={g} cards={v.cards} />)}
+                </div>
+              </>
+            ) : (
+              <p className="mt-1 text-sm text-muted">The validation cards could not be loaded; provenance is still shown below.</p>
+            )}
+          </section>
+
+          <section aria-labelledby={`${uid}-ids`}>
+            <h2 id={`${uid}-ids`} className="text-lg font-semibold">Identity and pinned resources</h2>
+            <dl className="mt-2 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-[max-content_1fr]">
+              <dt className="text-muted">Run (hash of request, resources and algorithm)</dt>
+              <dd><Hash v={p.run_id} n={24} /></dd>
+              <dt className="text-muted">Result (sealed at completion)</dt>
+              <dd><Hash v={p.result_id} n={24} /></dd>
+              <dt className="text-muted">Algorithm</dt>
+              <dd>{p.algorithm_id}</dd>
               {p.resources.map((r) => (
-                <li key={r.role}>
-                  <span className="text-muted">{r.role}: </span>
-                  <span className="font-mono text-xs" title={r.sha256}>SHA-256 {r.sha256.slice(0, 16)}…</span>
-                </li>
+                <div key={r.role} className="contents">
+                  <dt className="text-muted">{fieldLabel(`resource.${r.role}`)}</dt>
+                  <dd><Hash v={r.sha256} n={24} /></dd>
+                </div>
               ))}
-            </ul>
-          </div>
+            </dl>
+          </section>
 
-          <div>
-            <h3 className="font-semibold">Geometry checks, per site</h3>
-            <ul className="mt-1 space-y-2">
+          {method.length > 0 && (
+            <section aria-labelledby={`${uid}-method`}>
+              <h2 id={`${uid}-method`} className="text-lg font-semibold">Method and inputs</h2>
+              <dl className="mt-2 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-[max-content_1fr]">
+                {method.map(([k, val]) => (
+                  <div key={k} className="contents">
+                    <dt className="text-muted">{k}</dt>
+                    <dd className="tabular-nums">{val}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          )}
+
+          <section aria-labelledby={`${uid}-sites`}>
+            <h2 id={`${uid}-sites`} className="text-lg font-semibold">Per site</h2>
+            <div className="mt-2 grid gap-4">
               {p.sites.map((s) => (
-                <li key={s.site_id}>
-                  <strong>{siteLabel(s.site_id)}</strong>
-                  <span className="text-muted"> · ground {s.observer.ground_height_m.toFixed(0)} m</span>
-                  <ul className="ml-4 list-disc">
+                <article key={s.site_id} aria-label={`Evidence for ${siteLabel(s.site_id)}`} className="rounded border border-border p-3 text-sm">
+                  <h3 className="font-semibold">{siteLabel(s.site_id)}</h3>
+                  <p className="text-muted">
+                    {s.observer.lat_deg}°, {s.observer.lon_deg_east}° E planetocentric
+                    {s.observer.body_frame ? `, frame ${s.observer.body_frame}` : ""}; ground {s.observer.ground_height_m.toFixed(1)} m
+                    {s.observer.reference_radius_km ? ` above the ${s.observer.reference_radius_km} km sphere` : ""}
+                    {s.observer.observer_height_above_ground_m != null ? `, mast ${s.observer.observer_height_above_ground_m} m` : ""}.
+                  </p>
+                  <ul className="mt-2 space-y-1">
                     {Object.entries(s.geometry).map(([t, g]) => (
                       <li key={t}>
-                        {targetLabel(t)}: {g.provider}
+                        <span className="font-medium">{targetLabel(t)}:</span> {g.provider}
+                        {g.signature_version ? ` (signature ${g.signature_version})` : ""}
+                        {g.correction_mode ? `, ${g.correction_mode}` : ""}
+                        {g.time_scale ? `, ${g.time_scale}` : ""}
+                        {g.retrieved_utc ? `, retrieved ${utc(g.retrieved_utc)}` : ""}; response <Hash v={g.raw_sha256} n={12} />
                         {g.reference_agreement
-                          ? `; independent SPICE check max ${g.reference_agreement.max_total_arcsec.toFixed(4)}″ ` +
-                            `(tolerance ${g.reference_agreement.tolerance_arcsec}″, ` +
-                            `${g.reference_agreement.within_tolerance ? "within" : "EXCEEDED"})`
+                          ? `; independent SPICE check max ${g.reference_agreement.max_total_arcsec.toFixed(4)}″ (tolerance ${g.reference_agreement.tolerance_arcsec}″, ${g.reference_agreement.within_tolerance ? "within" : "EXCEEDED"})`
                           : "; no independent check on this stack"}
                         {g.holdout ? `; interpolation holdout ${g.holdout.max_deg.toExponential(1)}°` : ""}
                       </li>
                     ))}
+                    {s.horizon && (
+                      <li>
+                        <span className="font-medium">Skyline:</span> {s.horizon.settings.radius_km} km radius,{" "}
+                        {s.horizon.settings.az_step_deg}° azimuth step; sectors{" "}
+                        {Object.entries(s.horizon.sectors).map(([k, n]) => `${n} ${k.replace("_", " ")}`).join(", ")}; key{" "}
+                        <Hash v={s.horizon.cache_key} n={12} />
+                        {s.horizon.payload_sha256 ? <>; digest <Hash v={s.horizon.payload_sha256} n={12} /></> : "; no skyline digest recorded"}
+                      </li>
+                    )}
                   </ul>
-                </li>
+                  {s.warnings && s.warnings.length > 0 && (
+                    <p className="mt-2 text-xs">
+                      {s.warnings.map((w) => (
+                        <span key={w} className="mr-2"><code className="rounded bg-surface-2 px-1">{w}</code> <span className="text-muted">{WARNING_TEXT[w] ?? ""}</span></span>
+                      ))}
+                    </p>
+                  )}
+                </article>
               ))}
-            </ul>
-            <p className="mt-2 text-xs text-muted">
-              Geometry agreement checks the Sun and Earth directions only. It does not validate the terrain
-              horizon.
-            </p>
-          </div>
-
-          {v && (
-            <div>
-              <h3 className="font-semibold">Checks run</h3>
-              <p className="text-xs text-muted">
-                {v.summary.met} met, {v.summary.not_met} not met, {v.summary.not_evaluated} not evaluated. {v.note}
-              </p>
-              <ul className="mt-1 space-y-1">
-                {v.cards.map((c, i) => (
-                  <li key={`${c.id}-${c.site_id}-${c.target}-${i}`}>
-                    <span className={c.status === "met" ? "font-medium" : c.status === "not_met" ? "font-medium text-fail" : "text-muted"}>
-                      {c.status === "met" ? "Met" : c.status === "not_met" ? "NOT MET" : "Not evaluated"}
-                    </span>{" "}
-                    {c.title}
-                    {c.site_id ? ` (${siteLabel(c.site_id)}${c.target ? `, ${targetLabel(c.target)}` : ""})` : ""}
-                    <span className="text-muted">
-                      {": "}
-                      {c.facts.join("; ")}. Scope: {c.scope}.
-                    </span>
-                  </li>
-                ))}
-              </ul>
             </div>
-          )}
+            <p className="mt-2 text-xs text-muted">
+              Geometry agreement checks the Sun and Earth directions only. It does not validate the terrain horizon.
+            </p>
+          </section>
 
-          <div>
-            <h3 className="font-semibold">Limits that apply to every number here</h3>
-            <ul className="mt-1 list-disc space-y-1 pl-5">
+          <section aria-labelledby={`${uid}-limits`}>
+            <h2 id={`${uid}-limits`} className="text-lg font-semibold">Limits that apply to every number here</h2>
+            <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">
               {Array.from(new Set(p.sites.flatMap((s) => s.caveats))).map((c) => <li key={c}>{c}</li>)}
             </ul>
-          </div>
+          </section>
 
-          <div className="flex flex-wrap items-center gap-4">
+          <section aria-labelledby={`${uid}-export`}>
+            <h2 id={`${uid}-export`} className="text-lg font-semibold">Export</h2>
+            <p className="mt-1 max-w-3xl text-sm text-muted">
+              The bundle holds the request, settings, resource pins, provider response hashes, angle series, skyline,
+              classified intervals, events, metrics and caveats, plus a frozen snapshot of the validation cards above.
+              It is designated <strong>investigative</strong>: a verified export is refused until a validation scope
+              closes.
+            </p>
             <a
               href={`/api/v1/analyses/${runId}/export`}
-              download={`lunascope-${shortId(runId)}.json`}
-              className="rounded border border-border px-3 py-2 font-medium"
+              download={`lunascope-${shortId(runId)}-investigative.json`}
+              className="mt-3 inline-block rounded border border-border px-3 py-2 text-sm font-medium"
             >
               Download investigative bundle (JSON)
             </a>
-            <span className="text-xs text-muted">
-              A verified export is not offered: no validation scope has closed for this run.
-            </span>
-          </div>
+          </section>
         </div>
+      </ResultStateFrame>
+    </div>
+  );
+}
+
+/** Compact pointer from the run page to the Evidence workspace. */
+export function EvidenceLink({ runId }: { runId: string }) {
+  const { v } = useEvidence(runId);
+  return (
+    <section aria-label="Evidence summary" className="rounded-lg border border-border bg-surface p-4 text-sm">
+      <h2 className="text-lg font-semibold">Evidence</h2>
+      {v && (
+        <ul className="mt-2 flex flex-wrap gap-x-6 gap-y-2">
+          {v.groups.map((g) => (
+            <li key={g.id} className="flex items-center gap-2">
+              {g.title} <StatusChip p={CARD_STATUS[g.status]} />
+            </li>
+          ))}
+        </ul>
       )}
+      <p className="mt-3">
+        <Link href={`/runs/${runId}/evidence`} className="font-medium text-accent underline underline-offset-4">
+          Open the evidence: provenance, validation cards and export
+        </Link>
+      </p>
     </section>
   );
 }

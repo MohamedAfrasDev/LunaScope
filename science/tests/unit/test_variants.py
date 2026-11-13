@@ -150,3 +150,11 @@ def test_replay_mode_serves_packaged_variants_only(tm):
         assert ok.status_code == 200 and ok.json()["run_id"] == child
         miss = shift(r, base, 2 * 86400)
         assert miss.status_code == 409 and miss.json()["error"]["code"] == "REPLAY_ONLY"
+
+
+def test_a_date_shift_reuses_its_baselines_skylines(tm):
+    c, base, _, child = tm
+    timing = {rid: [s["timing_s"]["horizon_cached"] for s in c.app.state.store.get_analysis(rid)["sites"]]
+              for rid in (base, child)}
+    assert timing[base] == [0.0, 0.0]  # computed once, stored under its cache key
+    assert timing[child] == [1.0, 1.0]  # the shift changes only the start: same observer, terrain, settings

@@ -6,7 +6,7 @@ import { ApiError, describeError, getJson } from "@/lib/api/client";
 import type { RunStatusResponse } from "@/lib/api/types";
 import { shortId } from "@/lib/format";
 import { WARNING_TEXT } from "@/lib/status";
-import { EvidencePanel } from "./EvidencePanel";
+import { EvidenceLink } from "./EvidencePanel";
 import { ResultStateFrame } from "./ResultStateFrame";
 import { StatusMatrix } from "./StatusMatrix";
 
@@ -138,7 +138,7 @@ export function RunView({ runId }: { runId: string }) {
               </div>
             )}
           </ResultStateFrame>
-          <EvidencePanel runId={runId} />
+          <EvidenceLink runId={runId} />
         </>
       )}
     </div>

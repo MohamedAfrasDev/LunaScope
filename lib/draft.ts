@@ -146,16 +146,7 @@ export function toRequest(d: Draft): AnalysisRequestBody {
     },
     sites: [
       ...d.siteIds.map((site_id) => ({ site_id })),
-      ...d.custom.map((c) => ({
-        custom: {
-          lat_deg: num(c.lat),
-          lon_deg: num(c.lon),
-          lon_direction: c.direction,
-          convention: "planetocentric",
-          source: c.source.trim(),
-          precision_m: num(c.precision),
-        },
-      })),
+      ...d.custom.map((c) => ({ custom: customBody(c) })),
     ],
     options: { sensitivity: d.sensitivity },
   };
@@ -177,4 +168,54 @@ export function fieldKeyFromService(path: string | null): string | null {
   if (map[path]) return map[path];
   if (path.startsWith("sites")) return "sites";
   return null;
+}
+
+/** The body POST /sites/custom and the analysis request both use for one custom point. */
+export function customBody(c: CustomDraft) {
+  return {
+    lat_deg: num(c.lat),
+    lon_deg: num(c.lon),
+    lon_direction: c.direction,
+    convention: "planetocentric" as const,
+    source: c.source.trim(),
+    precision_m: num(c.precision),
+  };
+}
+
+/** Field errors for custom point i alone (so its coverage can be checked before the whole form is valid). */
+export function customErrors(d: Draft, i: number): Errors {
+  const all = validateDraft(d);
+  return Object.fromEntries(Object.entries(all).filter(([k]) => k.startsWith(`custom.${i}.`)));
+}
+
+/** Per-browser draft persistence: a convenience only, so every access is guarded. */
+const DRAFT_KEY = "lunascope.analysis-draft.v1";
+
+export function saveDraft(d: Draft): void {
+  try {
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+  } catch {
+    /* storage unavailable: the form still works */
+  }
+}
+
+export function loadDraft(): Draft | null {
+  try {
+    const raw = sessionStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const x = JSON.parse(raw) as Partial<Draft>;
+    const keys: (keyof Draft)[] = ["startDate", "startTime", "durationDays", "stepMin", "sunMinPct", "earthMinPct",
+      "demProfile", "radiusKm", "azStepDeg", "mastM", "siteIds", "custom", "sensitivity"];
+    return keys.every((k) => k in x) && Array.isArray(x.siteIds) && Array.isArray(x.custom) ? (x as Draft) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearDraft(): void {
+  try {
+    sessionStorage.removeItem(DRAFT_KEY);
+  } catch {
+    /* nothing to clear */
+  }
 }
