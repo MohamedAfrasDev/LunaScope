@@ -10,6 +10,9 @@ import { OUTCOME, SITE_STATUS, WARNING_TEXT } from "@/lib/status";
 import { ResultStateFrame } from "./ResultStateFrame";
 import { StatusChip } from "./StatusChip";
 import { IntervalTable, Legend, TimelineChart, type Band } from "./TimelineChart";
+import { Alert } from "./ui/Alert";
+import { Card } from "./ui/Card";
+import { WarningItem } from "./ui/WarningItem";
 
 const TARGETS: Target[] = ["sun_center", "earth_center"];
 
@@ -77,7 +80,7 @@ export function CompareView({ runId }: { runId: string }) {
     return (
       <div className="grid gap-3">
         <Link href={`/runs/${runId}`} className="text-sm text-accent underline underline-offset-4">← Back to the status matrix</Link>
-        <p role="alert" className="rounded-md border border-fail/40 bg-fail-soft px-3 py-2 text-fail">{err}</p>
+        <Alert tone="fail">{err}</Alert>
       </div>
     );
   if (!results || !allSites || !selected) return <p className="text-muted">Loading the comparison…</p>;
@@ -112,7 +115,7 @@ export function CompareView({ runId }: { runId: string }) {
         )}
       </fieldset>
 
-      {cmpErr && <p role="alert" className="rounded-md border border-fail/40 bg-fail-soft px-3 py-2 text-fail">{cmpErr}</p>}
+      {cmpErr && <Alert tone="fail">{cmpErr}</Alert>}
 
       {cmp && selected.length >= 2 && (
         <ResultStateFrame state={cmp.result_state}>
@@ -120,7 +123,7 @@ export function CompareView({ runId }: { runId: string }) {
             <section aria-labelledby={`${uid}-held`}>
               <h2 id={`${uid}-held`} className="text-lg font-semibold">Held constant and changed</h2>
               <div className="mt-2 grid gap-4 lg:grid-cols-2">
-                <div className="rounded border border-border p-3">
+                <Card variant="inset">
                   <h3 className="text-sm font-semibold">Held constant (identical for every site)</h3>
                   <dl className="mt-2 grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-sm">
                     {cmp.held_constant.map((h) => (
@@ -130,8 +133,8 @@ export function CompareView({ runId }: { runId: string }) {
                       </div>
                     ))}
                   </dl>
-                </div>
-                <div className="rounded border border-border p-3">
+                </Card>
+                <Card variant="inset">
                   <h3 className="text-sm font-semibold">Changed: the site</h3>
                   <ul className="mt-2 space-y-2 text-sm">
                     {cmp.changed[0].values.map((v) => (
@@ -142,7 +145,7 @@ export function CompareView({ runId }: { runId: string }) {
                       </li>
                     ))}
                   </ul>
-                </div>
+                </Card>
               </div>
             </section>
 
@@ -209,7 +212,7 @@ export function CompareView({ runId }: { runId: string }) {
             {cmp.warnings.length > 0 && (
               <ul className="space-y-1 text-sm">
                 {cmp.warnings.map((w) => (
-                  <li key={w}><code className="rounded bg-surface-2 px-1 text-xs">{w}</code> <span className="text-muted">{WARNING_TEXT[w] ?? ""}</span></li>
+                  <WarningItem key={w} code={w} text={WARNING_TEXT[w]} />
                 ))}
               </ul>
             )}

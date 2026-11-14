@@ -21,6 +21,10 @@ import { ResultStateFrame } from "./ResultStateFrame";
 import { useRun } from "./RunView";
 import { StatusChip } from "./StatusChip";
 import { IntervalTable, Legend, TimelineChart, type Band } from "./TimelineChart";
+import { Alert } from "./ui/Alert";
+import { Button } from "./ui/Button";
+import { Card } from "./ui/Card";
+import { WarningItem } from "./ui/WarningItem";
 
 const TARGETS: Target[] = ["sun_center", "earth_center"];
 const DONE = new Set(["complete", "complete_with_warnings"]);
@@ -136,7 +140,7 @@ export function TimeMachineView({ runId }: { runId: string }) {
         </p>
       </div>
 
-      {baseErr && <p role="alert" className="rounded-md border border-warn/50 bg-warn-soft px-3 py-2 text-warn">{baseErr}</p>}
+      {baseErr && <Alert tone="warn">{baseErr}</Alert>}
       {!base && !baseErr && <p className="text-muted">Loading the baseline…</p>}
       {base && !baseReady && (
         <p className="surface-card p-4 text-sm" aria-live="polite">
@@ -147,7 +151,7 @@ export function TimeMachineView({ runId }: { runId: string }) {
       )}
 
       {baseReady && (
-        <form onSubmit={submit} noValidate className="grid gap-4 rounded-lg border border-border bg-surface p-4 sm:grid-cols-[auto_1fr] sm:items-end">
+        <form onSubmit={submit} noValidate className="surface-card grid gap-4 p-4 sm:grid-cols-[auto_1fr] sm:items-end">
           <div>
             <label htmlFor={`${uid}-days`} className="block text-sm font-semibold">
               Shift the start by (days)
@@ -176,13 +180,9 @@ export function TimeMachineView({ runId }: { runId: string }) {
             )}
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="submit"
-              disabled={submitting || !!daysErr}
-              className="rounded bg-accent px-4 py-2 font-medium text-background disabled:opacity-50"
-            >
+            <Button type="submit" variant="primary" disabled={submitting || !!daysErr}>
               {submitting ? "Starting…" : "Shift and recompute"}
-            </button>
+            </Button>
             {formErr && (
               <p role="alert" className="text-sm text-fail">
                 {formErr}
@@ -333,13 +333,13 @@ function ShiftComparison({ baseId, childId, alignment }: { baseId: string; child
     }));
   }, [results, siteId]);
 
-  if (childErr) return <p role="alert" className="rounded-md border border-warn/50 bg-warn-soft px-3 py-2 text-warn">{childErr} Retrying…</p>;
+  if (childErr) return <Alert tone="warn">{childErr} Retrying…</Alert>;
   if (!child) return <p className="text-muted">Loading the shifted run…</p>;
   if (child.status === "failed")
     return (
-      <p role="alert" className="rounded-lg border border-fail/50 bg-fail-soft p-4 text-fail">
+      <Alert tone="fail" size="block">
         The shifted run did not complete ({child.error?.code}: {child.error?.message}). Nothing is compared.
-      </p>
+      </Alert>
     );
   if (!ready)
     return (
@@ -355,9 +355,7 @@ function ShiftComparison({ baseId, childId, alignment }: { baseId: string; child
   return (
     <div className="grid gap-6" aria-live="polite">
       {cmpErr && (
-        <p role="alert" className="rounded-md border border-fail/40 bg-fail-soft px-3 py-2 text-fail">
-          {cmpErr}
-        </p>
+        <Alert tone="fail">{cmpErr}</Alert>
       )}
       {cmp && (
         <ResultStateFrame state={cmp.result_state === "mixed" ? "real_data_unverified" : cmp.result_state}>
@@ -376,7 +374,7 @@ function ShiftComparison({ baseId, childId, alignment }: { baseId: string; child
                 <p className="mt-1 text-sm font-medium text-warn">The two runs carry different result states.</p>
               )}
               <div className="mt-3 grid gap-4 lg:grid-cols-2">
-                <div className="rounded border border-border p-3 text-sm">
+                <Card variant="inset">
                   <h3 className="font-semibold">Changed</h3>
                   <ul className="mt-1 space-y-1">
                     {cmp.changed.map((c) => (
@@ -385,7 +383,7 @@ function ShiftComparison({ baseId, childId, alignment }: { baseId: string; child
                       </li>
                     ))}
                   </ul>
-                </div>
+                </Card>
                 <details className="rounded border border-border p-3 text-sm">
                   <summary className="cursor-pointer font-semibold">Held constant ({cmp.held_constant.length} inputs)</summary>
                   <dl className="mt-2 grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1">
@@ -521,7 +519,7 @@ function ShiftComparison({ baseId, childId, alignment }: { baseId: string; child
           {cmp && cmp.warnings.length > 0 && (
             <ul className="space-y-1 text-sm">
               {cmp.warnings.map((w) => (
-                <li key={w}><code className="rounded bg-surface-2 px-1 text-xs">{w}</code> <span className="text-muted">{WARNING_TEXT[w] ?? ""}</span></li>
+                <WarningItem key={w} code={w} text={WARNING_TEXT[w]} />
               ))}
             </ul>
           )}

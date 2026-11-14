@@ -123,9 +123,33 @@ Done when: scale and readout classes exist and are documented; no layout change 
 
 New files in `components/ui/` (presentation only): `Card`, `SectionHeader`, `Badge` (result-state), `Disclosure` (wrapper over `details`), `Stat` (label + readout), `SunEarthKey`.
 
-- [ ] Build each primitive with variants limited to what the pages need.
-- [ ] Replace one-off class strings in Time Machine, Alternatives and Compare with primitives (the leftover from the previous pass).
-- [ ] Unit-test primitives for roles and keyboard behaviour (`Disclosure`).
+- [x] Built each primitive in `components/ui/`, with variants limited to what the pages need:
+
+| Primitive | Purpose | Notes |
+|---|---|---|
+| `Card` | `panel` (top-level) and `inset` (nested) boxes | forwards props |
+| `Alert` | tone `fail` / `warn` / `info`, size `inline` / `block` | `role="alert"` by default; `role="status"` for non-urgent |
+| `Button` | `primary` / `secondary` | defaults to `type="button"` |
+| `Disclosure` | native `details`/`summary` for secondary detail | closed by default; `open` prop |
+| `SectionHeader` | eyebrow + title (h1/h2/h3) + description + action | uses the phase 2 type classes |
+| `Stat` | label + `readout` value + unit + hint | for `dl` lists |
+| `ResultBadge` | compact result-state label (icon + word + tone, explanation in `title`) | not yet used on pages; phase 4/7 |
+| `SunEarthKey` | legend: dot = Sun, diamond = Earth | shape plus word, never colour alone |
+| `WarningItem` | warning code + plain text row | |
+| `tone.ts` | single source of status tone classes | |
+
+- [x] Adopted in Time Machine, Alternatives and Compare: 6 `role="alert"` boxes become `Alert`, 2 submit buttons
+  become `Button variant="primary"` (new `.btn-sm` size), 3 nested boxes become `Card variant="inset"`, 2 warning
+  lists use `WarningItem`. No wording or roles changed.
+- [x] 13 unit tests for the primitives (`tests/web/ui-primitives.test.tsx`). `Disclosure` is asserted as a native
+  `summary` that toggles on activation; Enter/Space on `summary` is browser behaviour (jsdom lacks it), so keyboard
+  operation is covered by the e2e keyboard flow.
+- Left as is (plain text errors, no box styling): field-level error lines in Time Machine, Alternatives and Compare.
+  `RunView`, `AnalyzeForm`, `ReferenceMissionButton` and `DataStatusBanner` keep their one-off alert classes until
+  their own phases (4, 7, 10).
+
+Verification: vitest 162 (149 + 13 new), tsc, eslint, Playwright e2e 6, `next build` pass. Axe in dark and light on
+Time Machine and Compare: 0 violations. Time Machine screenshot reviewed, unchanged apart from the button size.
 
 Done when: primitives exist, tests pass, and the one-off alert/button class strings are gone from the three components named above.
 
