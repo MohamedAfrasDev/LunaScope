@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { ApiError, describeError, getJson, postJson } from "@/lib/api/client";
 import type { CustomSiteCheck, RunSummary, SitesResponse } from "@/lib/api/types";
 import {
@@ -63,6 +63,9 @@ function Field({
   );
 }
 
+/** Fields that live under "Advanced settings": a problem in one opens that section. */
+const isAdvancedKey = (k: string) => /^(requirements|terrain|options)\./.test(k);
+
 const input =
   "rounded-md border border-border-strong bg-surface px-3 py-2 text-sm aria-[invalid=true]:border-fail aria-[invalid=true]:bg-fail-soft";
 
@@ -77,6 +80,13 @@ export function AnalyzeForm() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  // Advanced settings stay closed until something inside them needs attention; the error summary takes focus.
+  const [advOpen, setAdvOpen] = useState(false);
+  const [focusTick, setFocusTick] = useState(0);
+  const summaryRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (focusTick > 0) summaryRef.current?.focus();
+  }, [focusTick]);
 
   useEffect(() => {
     getJson<SitesResponse>("sites")
@@ -145,7 +155,11 @@ export function AnalyzeForm() {
     const errs = validateDraft(d);
     setErrors(errs);
     setFormErr(null);
-    if (Object.keys(errs).length) return;
+    if (Object.keys(errs).length) {
+      if (Object.keys(errs).some(isAdvancedKey)) setAdvOpen(true);
+      setFocusTick((n) => n + 1);
+      return;
+    }
     setBusy(true);
     try {
       const run = await postJson<RunSummary>("analyses", toRequest(d));
@@ -153,8 +167,11 @@ export function AnalyzeForm() {
       router.push(`/runs/${run.run_id}`);
     } catch (e) {
       const key = e instanceof ApiError ? fieldKeyFromService(e.field) : null;
-      if (key) setErrors({ [key]: describeError(e) });
-      else setFormErr(describeError(e));
+      if (key) {
+        setErrors({ [key]: describeError(e) });
+        if (isAdvancedKey(key)) setAdvOpen(true);
+        setFocusTick((n) => n + 1);
+      } else setFormErr(describeError(e));
       setBusy(false);
     }
   }
@@ -165,7 +182,7 @@ export function AnalyzeForm() {
   return (
     <form onSubmit={submit} noValidate className="grid max-w-5xl gap-5">
       {Object.keys(errors).length > 0 && (
-        <div role="alert" className="rounded-md border border-fail/40 bg-fail-soft px-4 py-3 text-sm text-fail">
+        <div ref={summaryRef} tabIndex={-1} role="alert" className="rounded-md border border-fail/40 bg-fail-soft px-4 py-3 text-sm text-fail">
           <strong>Fix {Object.keys(errors).length} field(s) before submitting.</strong> Nothing has been sent.
         </div>
       )}
@@ -211,57 +228,6 @@ export function AnalyzeForm() {
               onChange={(e) => set("stepMin", e.target.value)}>
               {STEP_CHOICES.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
-          </Field>
-        </div>
-      </fieldset>
-
-      <fieldset className={fieldset}>
-        <legend className={legend}>Requirements (scenario values, not mission rules)</legend>
-        <div className="mt-2 grid gap-4 sm:grid-cols-2">
-          <Field id={fid("sun")} label="Minimum sunlight availability (%)" error={errors["requirements.sun"]}
-            hint="Sun centre above the terrain skyline">
-            <input {...f("requirements.sun", "sun")} className={input} value={d.sunMinPct}
-              onChange={(e) => set("sunMinPct", e.target.value)} inputMode="decimal" />
-          </Field>
-          <Field id={fid("earth")} label="Minimum Earth visibility (%)" error={errors["requirements.earth"]}
-            hint="Direct line of sight, not a link budget">
-            <input {...f("requirements.earth", "earth")} className={input} value={d.earthMinPct}
-              onChange={(e) => set("earthMinPct", e.target.value)} inputMode="decimal" />
-          </Field>
-        </div>
-        <p className="mt-3 text-xs text-muted">
-          Sunlight and Earth are judged separately. There is no combined score.
-        </p>
-      </fieldset>
-
-      <fieldset className={fieldset}>
-        <legend className={legend}>Terrain</legend>
-        <p className="text-xs text-muted">
-          Terrain is always on. The flat-horizon result is shown beside it for comparison.
-        </p>
-        <div className="mt-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Field id={fid("dem")} label="Elevation data">
-            <select id={fid("dem")} className={input} value={d.demProfile}
-              onChange={(e) => set("demProfile", e.target.value as Draft["demProfile"])}>
-              <option value="lola-80s-20m-adj">LOLA 20 m, adjusted (PGDA 2023)</option>
-              <option value="lola-80s-20m-pds">LOLA 20 m, PDS release (2017)</option>
-            </select>
-          </Field>
-          <Field id={fid("radius")} label="Horizon radius (km)" error={errors["terrain.radius"]}>
-            <input {...f("terrain.radius", "radius")} className={input} value={d.radiusKm}
-              onChange={(e) => set("radiusKm", e.target.value)} inputMode="decimal" />
-          </Field>
-          <Field id={fid("az")} label="Azimuth step (°)" error={errors["terrain.az_step"]}
-            hint="Finer is slower; 0.5° was too coarse in tests">
-            <select {...f("terrain.az_step", "az")} className={input} value={d.azStepDeg}
-              onChange={(e) => set("azStepDeg", e.target.value)}>
-              {AZ_STEP_CHOICES.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </Field>
-          <Field id={fid("mast")} label="Observer height (m)" error={errors["terrain.mast"]}
-            hint="Above the local ground">
-            <input {...f("terrain.mast", "mast")} className={input} value={d.mastM}
-              onChange={(e) => set("mastM", e.target.value)} inputMode="decimal" />
           </Field>
         </div>
       </fieldset>
@@ -339,29 +305,98 @@ export function AnalyzeForm() {
         )}
       </fieldset>
 
-      <fieldset className={fieldset}>
+      <details
+        open={advOpen}
+        onToggle={(e) => setAdvOpen(e.currentTarget.open)}
+        className="surface-card group"
+      >
+        <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-x-4 gap-y-1 px-5 py-4 [&::-webkit-details-marker]:hidden">
+          <span className="text-base font-semibold tracking-tight">Advanced settings</span>
+          <span className="type-caption flex items-center gap-2">
+            {`Sunlight at least ${d.sunMinPct}%, Earth visibility at least ${d.earthMinPct}%, terrain ${d.radiusKm} km, sensitivity ${d.sensitivity ? "on" : "off"}`}
+            <svg aria-hidden="true" viewBox="0 0 10 6" className="h-1.5 w-2.5 shrink-0 transition-transform group-open:rotate-180">
+              <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+          </span>
+        </summary>
+        <div className="grid gap-6 border-t border-border p-5">
+      <fieldset className="grid gap-3">
+        <legend className={legend}>Requirements (scenario values, not mission rules)</legend>
+        <div className="mt-2 grid gap-4 sm:grid-cols-2">
+          <Field id={fid("sun")} label="Minimum sunlight availability (%)" error={errors["requirements.sun"]}
+            hint="Sun centre above the terrain skyline">
+            <input {...f("requirements.sun", "sun")} className={input} value={d.sunMinPct}
+              onChange={(e) => set("sunMinPct", e.target.value)} inputMode="decimal" />
+          </Field>
+          <Field id={fid("earth")} label="Minimum Earth visibility (%)" error={errors["requirements.earth"]}
+            hint="Direct line of sight, not a link budget">
+            <input {...f("requirements.earth", "earth")} className={input} value={d.earthMinPct}
+              onChange={(e) => set("earthMinPct", e.target.value)} inputMode="decimal" />
+          </Field>
+        </div>
+        <p className="mt-3 text-xs text-muted">
+          Sunlight and Earth are judged separately. There is no combined score.
+        </p>
+      </fieldset>
+      <fieldset className="grid gap-3">
+        <legend className={legend}>Terrain</legend>
+        <p className="text-xs text-muted">
+          Terrain is always on. The flat-horizon result is shown beside it for comparison.
+        </p>
+        <div className="mt-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Field id={fid("dem")} label="Elevation data">
+            <select id={fid("dem")} className={input} value={d.demProfile}
+              onChange={(e) => set("demProfile", e.target.value as Draft["demProfile"])}>
+              <option value="lola-80s-20m-adj">LOLA 20 m, adjusted (PGDA 2023)</option>
+              <option value="lola-80s-20m-pds">LOLA 20 m, PDS release (2017)</option>
+            </select>
+          </Field>
+          <Field id={fid("radius")} label="Horizon radius (km)" error={errors["terrain.radius"]}>
+            <input {...f("terrain.radius", "radius")} className={input} value={d.radiusKm}
+              onChange={(e) => set("radiusKm", e.target.value)} inputMode="decimal" />
+          </Field>
+          <Field id={fid("az")} label="Azimuth step (°)" error={errors["terrain.az_step"]}
+            hint="Finer is slower; 0.5° was too coarse in tests">
+            <select {...f("terrain.az_step", "az")} className={input} value={d.azStepDeg}
+              onChange={(e) => set("azStepDeg", e.target.value)}>
+              {AZ_STEP_CHOICES.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </Field>
+          <Field id={fid("mast")} label="Observer height (m)" error={errors["terrain.mast"]}
+            hint="Above the local ground">
+            <input {...f("terrain.mast", "mast")} className={input} value={d.mastM}
+              onChange={(e) => set("mastM", e.target.value)} inputMode="decimal" />
+          </Field>
+        </div>
+      </fieldset>
+      <fieldset className="grid gap-3">
         <legend className={legend}>Options</legend>
         <label className="flex items-center gap-3 text-sm">
           <input type="checkbox" checked={d.sensitivity} onChange={(e) => set("sensitivity", e.target.checked)} />
           Also run a sensitivity check (half the azimuth step, and the other DEM release). Slower.
         </label>
       </fieldset>
+        </div>
+      </details>
 
-      <div className="sticky bottom-0 -mx-4 flex flex-wrap items-center gap-3 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+      {/* the primary action and its cost stay in view; the secondary actions sit just below, not sticky */}
+      <div className="sticky bottom-0 z-30 -mx-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-lg sm:border sm:bg-surface/95">
         <button type="submit" disabled={busy}
           className="btn-primary">
           {busy ? "Submitting…" : "Run analysis"}
         </button>
+        <p className="text-sm text-muted" aria-live="polite">
+          {samples.toLocaleString("en")} samples ({d.siteIds.length + d.custom.length} site(s) × 2 targets), limit{" "}
+          {MAX_SAMPLES.toLocaleString("en")}
+        </p>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
         <button type="button" onClick={reset} className="rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium">
           Reset to the reference mission
         </button>
         <button type="button" onClick={share} className="rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium">
           Copy a link to these inputs
         </button>
-        <p className="text-sm text-muted" aria-live="polite">
-          {samples.toLocaleString("en")} samples ({d.siteIds.length + d.custom.length} site(s) × 2 targets), limit{" "}
-          {MAX_SAMPLES.toLocaleString("en")}
-        </p>
       </div>
       {shareUrl && (
         <label className="grid gap-1 text-sm">
