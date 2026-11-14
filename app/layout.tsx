@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
-import { DataStatusBanner } from "@/components/DataStatusBanner";
+import { DataStatusAlert, DataStatusPill, DataStatusProvider } from "@/components/DataStatusBanner";
 import { NavLink } from "@/components/NavLink";
 import { ViewModeToggle } from "@/components/ViewMode";
 import "./globals.css";
@@ -32,7 +32,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
-        <DataStatusBanner />
+        <DataStatusProvider>
+        <DataStatusAlert />
         <header className="sticky top-0 z-40 border-b border-border bg-surface/90 backdrop-blur">
           <nav
             aria-label="Main"
@@ -47,12 +48,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </Link>
             <NavLink href="/analyze">New analysis</NavLink>
             <NavLink href="/why-the-south-pole-is-hard">Why the south pole is hard</NavLink>
-            <span className="ml-auto flex items-center gap-4">
+            <span className="ml-auto flex flex-wrap items-center gap-3">
+              <DataStatusPill />
               <ViewModeToggle />
-              <span className="hidden text-xs text-muted lg:inline">Screening and education tool</span>
             </span>
           </nav>
         </header>
+        </DataStatusProvider>
         <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:py-12">
           {children}
         </main>
