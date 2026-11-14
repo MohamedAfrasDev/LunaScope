@@ -156,6 +156,26 @@ def _compare_rederived(sid: str, bundle: dict, again: dict) -> list[dict]:
     return out
 
 
+def disk_edge_from_bundle(bundle: dict) -> dict:
+    """The disc-size bracket (S-2) for a stored site bundle, from its own angle series and skyline. This is
+    how real runs made before the check existed get it, with no network and no DEM. The centre readings
+    are the bundle's stored terrain-aware metrics."""
+    from .disk_edge import disk_edge_sensitivity
+    eff, req = bundle["effective_settings"], bundle["request"]
+    step, duration = int(req["mission"]["step_s"]), int(req["mission"]["duration_s"])
+    splines, settings = {}, {}
+    for tgt in TARGETS:
+        g = bundle["geometry"][tgt]
+        az, el = np.asarray(g["series"]["az_deg"], float), np.asarray(g["series"]["el_deg"], float)
+        splines[tgt] = DirectionSpline(np.arange(len(az)) * float(step), az, el)
+        settings[tgt] = Settings(eps=eff["eps_deg"], tau=eff["tau_s"], w_min=eff["w_min_s"],
+                                 max_evals=eff["max_evals"], delta=g["delta_geom_used_deg"])
+    return disk_edge_sensitivity(
+        splines, _profile(bundle["horizon"]), base_margin_deg=float(eff["clearance_margin_deg"]),
+        settings=settings, duration_s=duration, step_s=step, thresholds={t: req["requirements"][t] for t in TARGETS},
+        centre={t: bundle["targets"][t]["terrain"]["metrics"] for t in TARGETS})
+
+
 def _site_bundles(analysis: dict) -> list[dict]:
     return analysis.get("sites", [analysis])
 

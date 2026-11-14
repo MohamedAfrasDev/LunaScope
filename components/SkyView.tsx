@@ -12,7 +12,7 @@ import type {
   Target,
 } from "@/lib/api/types";
 import { degrees, duration, siteLabel, targetLabel } from "@/lib/format";
-import { classAt, elevationBand, eventTimes, interpAzEl, nextEvent, prevEvent, skylineAt } from "@/lib/sky";
+import { classAt, elevationBand, eventTimes, interpAzEl, nextEvent, prevEvent, skylineAt, variantRange, type VariantRange } from "@/lib/sky";
 import { INTERVAL, SITE_STATUS } from "@/lib/status";
 import { ResultStateFrame } from "./ResultStateFrame";
 import { PolarSky, SkyLegend, UnrolledSky, type Track } from "./SkyPlots";
@@ -26,14 +26,20 @@ const SPEEDS = [
 ];
 
 const reducedQuery = "(prefers-reduced-motion: reduce)";
+
+/** matchMedia is missing in some environments (older or embedded browsers); without it, assume motion is allowed. */
+function media(): MediaQueryList | null {
+  return typeof window !== "undefined" && typeof window.matchMedia === "function" ? window.matchMedia(reducedQuery) : null;
+}
+
 function useReducedMotion(): boolean {
   return useSyncExternalStore(
     (cb) => {
-      const m = window.matchMedia(reducedQuery);
-      m.addEventListener("change", cb);
-      return () => m.removeEventListener("change", cb);
+      const m = media();
+      m?.addEventListener("change", cb);
+      return () => m?.removeEventListener("change", cb);
     },
-    () => window.matchMedia(reducedQuery).matches,
+    () => media()?.matches ?? false,
     () => false,
   );
 }
@@ -43,7 +49,7 @@ interface Loaded {
   profile: HorizonProfileResponse;
 }
 
-function CountdownCard({ runId, siteId, target, t, playing }: { runId: string; siteId: string; target: Target; t: number; playing: boolean }) {
+function CountdownCard({ runId, siteId, target, t, playing, range }: { runId: string; siteId: string; target: Target; t: number; playing: boolean; range: VariantRange | null }) {
   const [cd, setCd] = useState<CountdownResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -88,7 +94,22 @@ function CountdownCard({ runId, siteId, target, t, playing }: { runId: string; s
           : <>: the predicted {cd.event_type} is {remaining > 0 ? `in ${duration(remaining)}` : `${duration(-remaining)} ago`}</>
         : null}
       {cd.solver_bracket_s != null && cd.kind !== "unknown" ? <span className="text-muted"> (model bracket {cd.solver_bracket_s} s)</span> : null}
+      {cd.at !== undefined && cd.kind !== "unknown" ? <TerrainRange range={range} /> : null}
     </p>
+  );
+}
+
+/** The countdown's spread across the terrain variants: a different skyline can move the event, so say by how much. */
+function TerrainRange({ range }: { range: VariantRange | null }) {
+  if (range === null)
+    return <span className="block text-xs text-muted">No sensitivity check was run, so no range across terrain variants is shown.</span>;
+  return (
+    <span className="block text-xs text-muted">
+      {range.maxShiftS < 1
+        ? `Across ${range.variants} terrain variant${range.variants === 1 ? "" : "s"} (finer azimuth step, other DEM release) this time does not move.`
+        : `Across ${range.variants} terrain variant${range.variants === 1 ? "" : "s"} (finer azimuth step, other DEM release) this time moves by up to ${duration(range.maxShiftS)}.`}
+      {range.countChanged ? " At least one variant finds a different number of events here, so treat this prediction as sensitive to the terrain." : ""}
+    </span>
   );
 }
 
@@ -271,7 +292,7 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
                       <dd>{cls ? INTERVAL[cls].label : "outside the window"}</dd>
                     </dl>
                     <div className="mt-2 border-t border-border pt-2">
-                      <CountdownCard runId={runId} siteId={siteId} target={c.target} t={t} playing={playing} />
+                      <CountdownCard runId={runId} siteId={siteId} target={c.target} t={t} playing={playing} range={variantRange(site?.sensitivity, c.target)} />
                     </div>
                   </section>
                 );

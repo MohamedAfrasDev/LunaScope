@@ -28,6 +28,7 @@ from .clearance import TerrainClearanceModel
 from .codes import ResultState
 from .contacts import find_contacts
 from .countdown import countdown
+from .disk_edge import disk_edge_sensitivity
 from .events import Settings, build_partition
 from .horizon import STATE_NAMES, HorizonProfile, HorizonSettings, compute_horizon
 from .metrics import summarize
@@ -254,6 +255,16 @@ def run_site(site: SiteSpec, cfg: RunConfig, stack: Stack, *, with_reference: bo
             if horizon_name == "terrain":
                 outcomes[tgt] = m.outcome
     timing["events_s"] = time.time() - t0
+
+    # -- disc size: the centre-only assumption, bracketed by the upper limb and the whole disc (S-2)
+    t0 = time.time()
+    disk_edge = disk_edge_sensitivity(
+        splines, prof, base_margin_deg=cfg.clearance_margin_deg, duration_s=T, step_s=cfg.step_s,
+        thresholds=cfg.thresholds(),
+        settings={t: Settings(eps=cfg.eps_deg, tau=cfg.tau_s, w_min=cfg.w_min_s, max_evals=cfg.max_evals,
+                              delta=deltas[t]) for t in TARGETS},
+        centre={t: results[t]["terrain"]["metrics"] for t in TARGETS})
+    timing["disk_edge_s"] = time.time() - t0
     status = site_summary(outcomes)
 
     # -- state, identity ----------------------------------------------------------------------
@@ -295,7 +306,7 @@ def run_site(site: SiteSpec, cfg: RunConfig, stack: Stack, *, with_reference: bo
             "skyline_min_deg": float(np.nanmin(prof.horizon_el_deg)),
             "skyline_max_deg": float(np.nanmax(prof.horizon_el_deg)),
             "terrain_identity": terrain.identity},
-        "geometry": geo, "targets": results,
+        "geometry": geo, "targets": results, "disk_edge": disk_edge,
         "warnings": warnings, "timing_s": {**timing, "total_s": time.time() - t_all},
         "caveats": [
             "Screening and education only; not a landing-safety, power, link or feasibility result.",

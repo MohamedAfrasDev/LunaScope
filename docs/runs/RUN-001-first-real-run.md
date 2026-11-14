@@ -83,3 +83,8 @@ cd science
 ```
 
 Bundles are in [`docs/runs/bundles/`](bundles/) (canonical JSON, exact bytes). Each carries its request, effective settings, resource pins, Horizons raw-response hashes, the horizon profile, the 10-minute angle series, classified intervals, refined events, metrics, countdown at start, and the sensitivity comparisons.
+
+## Follow-up studies on these bundles
+
+- [Does treating the Sun and Earth as points matter?](RUN-001-disk-edge.md) (S-2): computed offline from the bundles; no outcome changes, Earth's availability moves by roughly 10 points either way.
+- [Convergence on real data](RUN-001-convergence.md): the azimuth cases ran and none is flagged; the 1 minute step and the radius cases are blocked on the Horizons contact (D-11).

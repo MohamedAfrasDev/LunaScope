@@ -100,3 +100,27 @@ export function runsByClass(
   }
   return runs;
 }
+
+/**
+ * How far an event time moves between the base terrain model and its sensitivity variants (a finer
+ * azimuth step, the other DEM release). Every figure is the service's own; this only picks the largest
+ * and notes whether a variant finds a different number of events (an event appearing or disappearing).
+ */
+export interface VariantRange {
+  maxShiftS: number;
+  countChanged: boolean;
+  variants: number;
+}
+
+export function variantRange(
+  variants: { targets: Record<string, { max_event_shift_s: number; event_count_base: number; event_count_variant: number }> }[] | undefined,
+  target: string,
+): VariantRange | null {
+  const rows = (variants ?? []).map((v) => v.targets[target]).filter(Boolean);
+  if (rows.length === 0) return null;
+  return {
+    maxShiftS: Math.max(...rows.map((r) => r.max_event_shift_s)),
+    countChanged: rows.some((r) => r.event_count_base !== r.event_count_variant),
+    variants: rows.length,
+  };
+}
