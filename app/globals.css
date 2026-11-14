@@ -224,6 +224,72 @@ body {
   font-weight: 500;
 }
 
+/*
+ * Type scale (phase 2). Opt-in classes; later phases adopt them page by page.
+ * Sizes step roughly 1.2x; display and title shrink on small screens so nothing wraps awkwardly at 320px.
+ *   type-display  one per page, home hero only
+ *   type-title    page title (h1)
+ *   type-section  section heading (h2)
+ *   type-body     running text
+ *   type-caption  helper text, legends, footnotes
+ *   readout       any measured value: percentages, angles, times, coordinates
+ *   eyebrow       small uppercase label above a heading or a group
+ */
+.type-display {
+  font-size: 2rem;
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.type-title {
+  font-size: 1.5rem;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.type-section {
+  font-size: 1.125rem;
+  line-height: 1.35;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.type-body {
+  font-size: 1rem;
+  line-height: 1.65;
+}
+.type-caption {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+@media (min-width: 640px) {
+  .type-display {
+    font-size: 2.75rem;
+  }
+  .type-title {
+    font-size: 1.75rem;
+  }
+}
+
+/* Measured values read as instrument data: monospace, fixed-width digits, no ligatures or wrapping mid-value. */
+.readout {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "liga" 0;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.readout-lg {
+  font-size: 1.5rem;
+  line-height: 1.2;
+  font-weight: 500;
+}
+.readout-unit {
+  margin-left: 0.2em;
+  font-size: 0.75em;
+  color: var(--muted);
+}
+
 .eyebrow {
   font-size: 0.75rem;
   font-weight: 600;
