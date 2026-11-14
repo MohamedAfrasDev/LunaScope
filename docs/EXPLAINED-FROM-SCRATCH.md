@@ -1,195 +1,146 @@
 # LunaScope explained from scratch
 
-**Read this first if you do not know what was built.** It assumes no background in astronomy, mapping or the code. It tells the story, explains the science behind every number, shows how the pieces fit together, and ends with how to use it and what you may honestly claim. The companion [User Guide](USER-GUIDE.md) is the page-by-page manual; this document is the *why* and the *how it works*.
+**Read this first if you do not know what was built.** It assumes no background in astronomy, mapping or the code. It tells the story, explains the science behind every number, walks through every kind of situation the tool can meet with real results, shows how to present it, and lists the questions judges are likely to ask with honest answers. The companion [User Guide](USER-GUIDE.md) is the page-by-page manual; this document is the *why* and the *how it works*.
 
-Every figure quoted here comes from the project's own records (the frozen reference run in [`docs/runs/GR-001-run.md`](runs/GR-001-run.md) and the first real run in [`docs/runs/RUN-001-first-real-run.md`](runs/RUN-001-first-real-run.md)), not from general knowledge.
+Every figure quoted here comes from the project's own records, not from general knowledge: [GR-001-run.md](runs/GR-001-run.md), [GR-001-plus5d.md](runs/GR-001-plus5d.md), [GR-001-dates-search.md](runs/GR-001-dates-search.md), [GR-001-independent-skyline.md](runs/GR-001-independent-skyline.md), [GR-001-illumination-vs-map.md](runs/GR-001-illumination-vs-map.md) and [GR-002-GR-003-notable-places.md](runs/GR-002-GR-003-notable-places.md).
+
+**The live demo:** https://luna-scope.afras.dev (a replay of saved real-data runs; see [section 11](#11-how-it-is-built-and-where-it-runs)).
 
 ---
 
 ## Contents
 
-1. [What you built, in one page](#1-what-you-built-in-one-page)
-2. [The problem: why this is hard and why it matters](#2-the-problem-why-this-is-hard-and-why-it-matters)
-3. [The theory, step by step](#3-the-theory-step-by-step)
+1. [The product in one page](#1-the-product-in-one-page)
+2. [Why it matters](#2-why-it-matters)
+3. [The science, step by step](#3-the-science-step-by-step)
 4. [The data: where every number comes from](#4-the-data-where-every-number-comes-from)
-5. [The method: one site, start to finish, with real numbers](#5-the-method-one-site-start-to-finish-with-real-numbers)
-6. [Honesty built into the maths: bounds, certainty and "unknown"](#6-honesty-built-into-the-maths-bounds-certainty-and-unknown)
-7. [Trust: how a result can be checked and reproduced](#7-trust-how-a-result-can-be-checked-and-reproduced)
-8. [How the software is put together](#8-how-the-software-is-put-together)
-9. [What the real results say](#9-what-the-real-results-say)
-10. [How to use it, as a person and as a presenter](#10-how-to-use-it-as-a-person-and-as-a-presenter)
-11. [What you can and cannot claim](#11-what-you-can-and-cannot-claim)
-12. [How it was built, and where everything is](#12-how-it-was-built-and-where-everything-is)
+5. [One site from start to finish, with real numbers](#5-one-site-from-start-to-finish-with-real-numbers)
+6. [A tour of the product](#6-a-tour-of-the-product)
+7. [Every kind of situation, with real examples](#7-every-kind-of-situation-with-real-examples)
+8. [What the real results say](#8-what-the-real-results-say)
+9. [How we know it is right, and what is not proven](#9-how-we-know-it-is-right-and-what-is-not-proven)
+10. [Honesty built into the design](#10-honesty-built-into-the-design)
+11. [How it is built and where it runs](#11-how-it-is-built-and-where-it-runs)
+12. [How to present it](#12-how-to-present-it)
+13. [Questions judges will ask](#13-questions-judges-will-ask)
+14. [What you can and cannot claim](#14-what-you-can-and-cannot-claim)
+15. [Where everything is, and what is still open](#15-where-everything-is-and-what-is-still-open)
 
 ---
 
-## 1. What you built, in one page
+## 1. The product in one page
 
-You asked for an entry to the **NASA Space Apps Challenge 2026**: a *terrain-aware lunar power and direct-to-Earth opportunity navigator*. The challenge asks for an intuitive tool that lets planners, educators and the public compare places and dates near the Moon's south pole, by showing where the **Sun** and **Earth** are relative to the local horizon, so you can judge:
+**The challenge** (NASA Space Apps 2026, *Lunar Landing Site Navigator*): build an intuitive tool that lets mission planners, educators and the public compare landing sites and dates near the Moon's south pole, by showing where the **Sun** and **Earth** are relative to the local horizon, so they can judge **power** (does sunlight reach a solar panel, and for how long?) and **communications** (can the site see Earth directly, and when does the line of sight break?).
 
-- **power**: will sunlight reach a solar panel there, and for how much of the time?
-- **communications**: can a spacecraft there see Earth directly, and when does it lose it?
+**LunaScope is that tool.** You pick places on the Moon and a stretch of time. For the Sun and for Earth, separately, it tells you *when each is above the surrounding terrain, how much of the time that is, and whether that meets a requirement you set*. It shows the answer three ways: as numbers and plain sentences, as a moving picture of the sky (2D and 3D), and as a timeline. Next to every terrain-aware result it shows what a **flat horizon** would have said, because the gap between the two is the whole point.
 
-**LunaScope is that tool.** You choose a place on the Moon and a stretch of time. It tells you, for the Sun and for Earth separately, *when each one is above the surrounding terrain, how much of the time that is, and whether that meets a requirement you set*. It shows the answer as a timeline, as a moving picture of the sky, and as plain-language sentences. It also shows what a **flat horizon** would have said, because the gap between the two is the whole point.
+**In one sentence for a judge:** *At the lunar south pole the Sun and Earth sit only a few degrees above the horizon, so the terrain around a site, not the Sun's height, decides whether it gets power or a line to Earth; LunaScope computes that from real NASA data, checks it two independent ways, and says plainly what it does not know.*
 
-**What actually exists** (all of it working and tested):
+**What exists, working today**
 
 | Part | What it is |
 | --- | --- |
-| The **science service** | A Python program that does all the computing: it fetches where the Sun and Earth are, builds the terrain skyline from real NASA elevation data, and works out exactly when each is visible. |
-| The **web app** | The pages you click through. It only *displays* what the service decided; it never works out visibility itself. |
-| The **real data** | NASA's JPL Horizons (positions of the Sun and Earth), NASA's LOLA elevation model (the terrain), and NASA's SPICE toolkit (an independent cross-check). |
-| The **reference run, GR-001** | A frozen, fully checked real-data result for three sample sites, used as the project's "golden" example. |
-| The **offline package** | A saved copy of that real result so the demo works with no internet. |
-| The **evidence** | Records, hashes and tests that let anyone check where each number came from. |
+| The **science service** (Python) | Fetches where the Sun and Earth are, builds the terrain skyline from NASA elevation data, finds every moment each one clears the terrain (to the second), and decides pass, fail, indeterminate or excluded. |
+| The **web app** (Next.js) | Displays what the service decided: Home, analysis form, run page, Local sky (polar, unrolled and **3D**), timeline, compare, Time Machine, dates search, evidence. It never decides visibility itself. |
+| **Real NASA data** | JPL Horizons (Sun and Earth positions), LOLA elevation (terrain), NAIF SPICE (independent check), the NASA Goddard LOLA illumination maps (a comparison target), and the IAU's official place names. |
+| **Sites you can pick** | 3 demonstration points, **12 named south-polar places** (two ready-made comparisons), and any **custom coordinates**. |
+| **Evidence** | Data fingerprints, double-checks, a comparison against NASA's published illumination maps, sensitivity and convergence studies, and a frozen reference run that reproduces exactly. |
+| **Hosting** | A public replay demo (Vercel web plus a free container service) and an offline package, so the demo survives a network failure. |
 
-**The single most important result:** at all three sample sites, a flat-horizon estimate says the Sun is visible 100% of the week, while the real terrain says **0%**. Terrain, not geometry, decides. That is exactly the effect the challenge describes, shown with real data.
-
-**An honest note up front.** Nothing here is *validated*: the elevation data has not been formally approved and the project's science decisions have not been signed off. Every result carries a label saying so. The three sample sites are rule-chosen points, **not** proposed landing sites. And LunaScope screens opportunities; it does not certify safety, power or communications.
+**An honest note up front.** Nothing is *validated*: the terrain data is not formally approved and the project's science decisions are unsigned. Every result is labelled **real data, unverified**. The sites in the reference runs are named features or rule-chosen points, **not landing recommendations**. LunaScope screens opportunities; it does not certify safety, power or communications.
 
 ---
 
-## 2. The problem: why this is hard and why it matters
+## 2. Why it matters
 
-### Why the Moon's poles are special
+### The stakes
 
-On Earth the Sun climbs high and sets each day because our spin axis is tilted about 23° from the plane we orbit the Sun in. The Moon's spin axis is tilted only about **1.5°** (the project spec says "about 1.5°"). So near a lunar pole:
+The Moon's south pole is where much of the next decade of lunar exploration is aimed. NASA's Artemis programme named candidate landing regions there for a crewed landing; commercial lunar landers (the CLPS programme) and missions from other space agencies are heading to the same region. Three reasons:
 
-- the Sun never climbs: standing at the pole, it circles the horizon at a very shallow angle, a full turn roughly every 29.5 days;
-- over a month the Sun's height stays within a degree or two of the horizon.
+- **Water ice.** Some crater floors never see sunlight, and the cold keeps ice that could become drinking water or rocket fuel. In 2009 NASA's LCROSS probe struck the crater Cabeus and detected water in the plume.
+- **A few places get a lot of sunlight.** Near the pole the Sun skims the horizon, so ridges and massifs can stay lit for large parts of the year. Those are candidates for solar power.
+- **A lander still has to talk to home.** Earth hangs low in the south-polar sky, so a direct line to Earth is not guaranteed.
 
-In the real run's week at the three sample sites (latitude −89.5°, half a degree from the pole), the Sun's centre was never higher than about **1.3 degrees** above the level horizon and as low as **0.2 degrees**. For comparison, your thumb at arm's length covers about two degrees.
+### Why it is hard
 
-Earth is a similar story from the opposite direction. The Moon always shows nearly the same face to Earth, so from the Moon Earth hangs in almost one place in the sky. It does not stay perfectly still: the Moon wobbles slowly (**libration**), which moves Earth by a few degrees. At a polar site Earth therefore sits close to the horizon too. In the real run Earth's height swung between about **−1.5° and +6.9°** over the week, while its compass direction hardly moved (a spread of only about 4.6°).
+On Earth the Sun climbs and sets daily because our axis is tilted about 23°. The Moon's axis is tilted only about **1.5°**, so near a pole the Sun never climbs: it circles the horizon once every 29.5 days at an elevation within a degree or two of level. In the real run at latitude -89.5°, the Sun's centre never rose above about **1.3°**. For scale, your thumb at arm's length covers about 2°.
+
+Earth is similar from the other direction. The Moon always shows nearly the same face to Earth, so Earth hangs in almost one spot, wobbling a few degrees with **libration**. At a polar site Earth sat between about **-1.5° and +6.9°** over the reference week.
 
 ### Why the ground decides everything
 
-When the Sun is only a degree or two up, almost *any* rise in the ground in that direction hides it. Here is the arithmetic, in plain numbers:
+When the Sun is only a degree or two up, almost *any* rise in the ground hides it. A ridge 300 m higher than you and 5 km away stands about **3.3°**, taller than the Sun ever gets here. The Sun is "above the horizon" in the astronomer's sense, but you will never see it. The real skyline heights at the three reference sites have **medians of 4.4°, 17.4° and 5.3°**, reaching over 31° at one.
 
-> A ridge 300 m higher than you, 5 km away, stands about **3.3°** above a level line from your eyes. (The exact figure is 3.4° for flat ground; the Moon's curved surface drops away about 7 m over 5 km, which trims it to about 3.3°.) That is higher than the Sun ever gets here. The Sun is "above the horizon" in the astronomer's sense, but you will never see it.
+### Why a flat-horizon estimate fails
 
-The south pole is rough. Crater rims, ridges and massifs rise hundreds of metres to kilometres, and the real run found that the terrain's skyline (the highest terrain in each compass direction) has a **median height of 4.4°, 17.4° and 5.3°** at the three sites, reaching over 31° at one of them. Compare that with a Sun at 0.2° to 1.3°.
+The easy method is "the Sun is visible whenever its elevation is above 0°", which treats the Moon as a flat plain. At the south pole it badly overestimates: in the reference run it said **100%** at all three sites where the terrain-aware answer was **0%**. A planner trusting the simple number would choose sites on a false premise.
 
-### Why a "flat horizon" estimate fails
+### The other half: timing
 
-The easy way to estimate sunlight is to say *the Sun is visible whenever its height is above 0°*. That treats the world as a flat plain. At the south pole it overestimates badly: in the real run it said **100%** at all three sites while the terrain-aware answer was **0%**. A planner trusting the simple number would have chosen sites on a false premise.
+A site is not just good or bad: the Sun and Earth move, so each is visible for stretches and hidden for others. Missions care about **how long the longest outage lasts** and **what changes if the launch slips**. That is why LunaScope shows timelines, a countdown to the next sunset or Earthset, a **Time Machine** that shifts the start date, and a **dates search**.
 
-### Why it matters in the real world
+### Real-world examples this speaks to
 
-The Moon's south pole is of interest to space agencies because:
+| Real situation | How LunaScope helps |
+| --- | --- |
+| **Artemis III candidate regions** (NASA named nine near the south pole in October 2024) | Compare the features nearest to each (Haworth, Mons Malapert, Mons Mouton, Nobile, de Gerlache, Slater) over the same week; see which get sunlight, which see Earth, which are walled in. |
+| **Where to put a relay or ground station** | NASA's LOLA team describes the Malapert massif as having high illumination and exceptional Earth visibility. Our run shows Mons Malapert with Earth visible 100% of the week and the Sun for part of it, the kind of finding a planner screens for. |
+| **A launch slips by days** | The Time Machine recomputes the same sites with only the start date moved: in our run a five-day slip took Earth at two sites from 74.5% and 65.0% to **100%**, and the Sun at one site from **0% to 51%**. |
+| **Choosing dates for a short surface mission** | The dates search tests a range of start dates against requirements and shows which pass, with the trade-offs visible and no hidden score. |
+| **Teaching and outreach** | The Guided mode, the "Why the south pole is hard" page and the 3D look-around show students why a few degrees and a ridge decide everything. |
 
-- some crater floors there stay in permanent shadow, and shadowed regions are the places where water ice is thought to survive, which is valuable for future missions;
-- a few high places on rims and ridges get sunlight for a large fraction of the time, which makes them candidates for solar power;
-- a lander or rover also needs a line of sight to Earth to talk to home directly.
-
-Power and communications are exactly the two things LunaScope looks at, and early in planning a team needs to compare many sites and dates quickly and cheaply. A tool that gets the terrain effect right, and is honest about what it is unsure of, helps that screening step. (LunaScope does *not* replace the detailed engineering that follows: see [section 11](#11-what-you-can-and-cannot-claim).)
-
-### The other half of the problem: timing
-
-A site is not just "good" or "bad": the Sun and Earth move, so each is visible for stretches and hidden for others. Missions care about **how long the longest outage lasts** and **what changes if the launch date slips**. That is why LunaScope shows timelines, countdowns to the next sunset or Earthset, and a "Time Machine" that shifts the start date.
+(LunaScope does **not** replace the detailed engineering that follows site screening; see [section 14](#14-what-you-can-and-cannot-claim).)
 
 ---
 
-## 3. The theory, step by step
+## 3. The science, step by step
 
-This section explains the ideas behind each computation. No code, no jargon you cannot look up in the [glossary](USER-GUIDE.md#14-glossary).
+No code and no jargon you cannot look up in the [glossary](USER-GUIDE.md#14-glossary).
 
-### 3.1 Describing "where in the sky": azimuth and elevation
-
-To say where something is in your sky you need two angles:
-
-- **azimuth**: its compass direction, 0° north, 90° east, 180° south, 270° west, measured clockwise;
-- **elevation**: its height above the level horizon. 0° is on the horizon, 90° is straight up, negative is below it.
-
-Everything LunaScope does is about comparing the Sun's or Earth's elevation, at its azimuth, with the **skyline**: the elevation of the highest terrain in that same azimuth.
+### 3.1 Where in the sky: azimuth and elevation
+To say where something is in your sky you need two angles: **azimuth** (compass direction: 0° north, 90° east, 180° south, 270° west, clockwise) and **elevation** (height above the level horizon: 0° on the horizon, 90° straight up, negative below). Everything LunaScope does compares the Sun's or Earth's elevation, at its azimuth, with the **skyline**: the height of the highest terrain in that same direction.
 
 ### 3.2 Conventions are not boring
-
-A *convention* is an agreement about meaning: is longitude measured east or west? Is latitude measured from the planet's centre (**planetocentric**) or along the surface normal? Which reference frame is the Moon's "up"? Get one wrong and the whole sky is mirrored or shifted, yet every number still looks plausible. LunaScope fixes one convention (planetocentric latitude, east-positive longitude, a 1,737.4 km reference sphere, the Moon's "Mean Earth" frame) and **converts your input to it**, keeping what you typed alongside. If a convention is missing the observer is refused rather than guessed. The tests deliberately try the wrong direction, wrong sign and wrong units to prove they are caught.
+An agreement about meaning (longitude east or west? latitude measured from the centre or along the surface normal?) decides whether the whole sky is mirrored, yet every number still looks plausible. LunaScope fixes one convention (planetocentric latitude, east-positive longitude, a 1,737.4 km sphere, the Moon's "Mean Earth" frame) and **converts your input to it**, keeping what you typed alongside. A missing convention is refused rather than guessed, and the tests deliberately try the wrong direction, sign and units to prove they are caught.
 
 ### 3.3 Where are the Sun and Earth? (ephemerides)
-
-An *ephemeris* is a table of where celestial bodies are at any time. NASA's JPL maintains the standard ones. **JPL Horizons** is an online service that, for a point on the Moon's surface, returns the Sun's and Earth's azimuth and elevation at times you ask for. LunaScope asks it for the **apparent** direction, which includes two small real effects:
-
-- **light-time**: light takes time to travel, so you see where a body *was*;
-- **stellar aberration**: motion shifts the apparent direction slightly.
-
-The Moon has no atmosphere, so there is no refraction (bending of light) to correct for.
+An *ephemeris* is a table of where bodies are at any time. **JPL Horizons** returns, for a point on the Moon, the Sun's and Earth's azimuth and elevation at times you ask for, including **light-time** (you see where a body *was*) and **stellar aberration**. The Moon has no atmosphere, so there is no refraction. Positions can be computed for any date, including future ones: this is calculation from orbit models, not a live feed, so a real-time stream would add nothing.
 
 ### 3.4 Checking a second way (SPICE)
+A single source can be wrong invisibly, so LunaScope also computes the same directions with **NAIF SPICE**, NASA's separate toolkit. They are compared at every sample. The agreed tolerance is 0.01 arcseconds; the largest disagreement found was **0.0017 arcseconds**, roughly a million times smaller than the terrain's own uncertainty. This validates the *directions only*, never the terrain.
 
-A single source can be wrong in a way you cannot see. So LunaScope also computes the same directions with **NAIF SPICE**, NASA's separate toolkit, which reads related ephemeris data but is a different implementation. The two are compared at every sample. The agreed tolerance is 0.01 arcseconds; the largest disagreement found was **0.0017 arcseconds**. For scale, the terrain's own uncertainty is a few tenths of a degree, which is roughly **a million times larger**. So geometry is not the weak link. The check validates the *directions only*, never the terrain.
-
-### 3.5 Filling in between the samples
-
-Horizons gives positions every 10 minutes (the default step). The Sun and Earth move smoothly, so between samples LunaScope fits a smooth curve (a cubic **Hermite spline** on direction vectors) and uses a proven bound on the fit error. It then checks that fit against a finer 1-minute series over the first six hours: the largest error was about **1×10⁻⁸ degrees**, far below anything that matters.
+### 3.5 Filling in between samples
+Horizons gives positions every 10 minutes. The Sun and Earth move smoothly, so between samples the tool fits a smooth curve with a proven error bound, then checks it against a finer 1-minute series: the largest error was about **1×10⁻⁸ degrees**.
 
 ### 3.6 The terrain: from laser pulses to a skyline
-
-The terrain comes from **LOLA**, the laser altimeter on NASA's Lunar Reconnaissance Orbiter. It fires laser pulses at the surface and times the return, building a map of heights. The product used here is a grid covering 80°S to the pole at **20 metres per pixel**, in a *polar stereographic* map projection (a way of flattening the polar cap, which distorts distances in a known way that the code undoes exactly). Heights are measured against the 1,737.4 km reference sphere.
-
-To get the **skyline** at a site, the code looks outward in each of 3,600 compass directions (every 0.1°). In each direction it walks out along the surface, up to 150 km, about 7,500 steps. At each step it asks: *seen from the observer's eye, how high above the local level is this ground?* The answer is a 3-D geometry calculation that automatically includes the **curvature** of the Moon: far ground drops away below the level line. The biggest elevation angle along the walk is the skyline in that direction.
-
-Two small but real details: the observer's eye is a couple of metres above the ground (a mast), which slightly changes the skyline; and the Moon is small, so its horizon is close (a 2 m mast sees a flat-ground horizon dipping about 0.09° below level).
-
-**Missing data is kept missing.** If part of the map has no data, those directions are marked *unknown*, not treated as flat ground (which would silently invent a lower skyline).
+The terrain comes from **LOLA**, the laser altimeter on NASA's Lunar Reconnaissance Orbiter: a map of heights at **20 m per pixel** covering 80°S to the pole. To get the skyline at a site, the code looks outward in each of **3,600 compass directions** (every 0.1°) up to **150 km**, asks at each step how high that ground appears from the observer's eye (a 2 m mast), including the **curvature** of the Moon, and keeps the highest. **Missing data stays missing**: an unknown direction is marked unknown, never treated as flat ground.
 
 ### 3.7 The central quantity: clearance
-
-Everything comes down to one number that changes with time:
-
 > **clearance(t) = (target's elevation) − (skyline at the target's azimuth) − (margin)**
 
-Positive clearance means the target is above the terrain and visible. Negative means hidden. The moments clearance crosses zero are the **rises and sets** that the tool reports. The margin is normally zero (the "disc size" check below tries other values).
+Positive clearance: visible. Negative: hidden. The moments it crosses zero are the **rises and sets** the tool reports.
 
-### 3.8 Finding the crossings *without missing any*
+### 3.8 Finding the crossings without missing any
+Looking every 10 minutes could miss a brief dip. LunaScope instead **certifies**: it knows a speed limit on how fast clearance can change; if clearance is bigger than that limit times the time to an interval's ends, the sign *cannot* flip, so the interval is proven entirely visible or hidden. Otherwise it splits the interval and repeats, pinning each crossing to **1 second**. Time too close to zero to call is kept in a narrow **decision band** (0.01°, a fiftieth of the Sun's width) as *unresolved*. If an interval cannot be settled it becomes *uncertified*: the tool says "I could not tell", never "nothing happened".
 
-You could just look at clearance every 10 minutes. But a brief dip below the skyline between two samples would be invisible, and a skyline with a sharp notch could fool you. So LunaScope does something stronger, called **certification**:
-
-1. It knows an upper limit on *how fast clearance can possibly change* (from how fast the Sun moves and how steep the skyline is).
-2. If clearance at a moment is larger than that speed limit times the time to the interval's ends, the sign **cannot** flip in between, so the interval is proven entirely visible or entirely hidden.
-3. Otherwise it splits the interval in half and repeats.
-4. Where it finds a sign change, it pins the crossing time to within **1 second**.
-
-Time too close to zero to call is kept in a narrow **decision band** (0.01°, about a fiftieth of the Sun's width) and called *unresolved*. If the search cannot settle an interval within its limit, the interval becomes *uncertified*: the tool says "I could not tell", never "nothing happened".
-
-### 3.9 Turning intervals into numbers
-
-Once the window is cut into classified stretches (visible, hidden, unresolved, uncertified, no data), the tool adds up **durations** (never counts of samples). It reports:
-
-- **availability**: visible time ÷ window, as a **lower** bound (only certified visible time) and an **upper** bound (also counting the unsure time);
-- the **longest known hidden stretch** (the biggest outage);
-- the **requirement outcome**.
-
-### 3.10 The requirement outcome: why four, not two
-
-You set a minimum, say "Sun at least 60% of the time". With a range [lower, upper] there are four honest answers:
+### 3.9 Durations, bounds and outcomes
+The window is cut into classified stretches (visible, hidden, unresolved, uncertified, no data) and the tool adds up **durations**. **Availability** is a range: a **lower** bound (only certified visible time) and an **upper** bound (also counting unsure time). You set a requirement (say Sun at least 60%). With a range there are four honest outcomes:
 
 | If… | Outcome |
 | --- | --- |
-| lower ≥ 60% | **Pass**: even the pessimistic number meets it |
-| upper < 60% | **Fail**: even the optimistic number misses it |
-| the range straddles 60% | **Indeterminate**: the data cannot decide |
-| data is missing or uncertified | **Excluded**: left out, not failed |
+| lower bound ≥ requirement | **Pass** |
+| upper bound < requirement | **Fail** |
+| the range straddles it | **Indeterminate** |
+| data missing or not certified | **Excluded** (left out, not failed) |
 
-A single "yes/no" would hide the middle two cases, and those are exactly the cases where a mission decision is risky.
+### 3.10 The Sun and Earth are discs
+The Sun is about 0.5° wide and Earth about 1.9° wide from the Moon. Near the skyline part of a disc can show while its centre is hidden. LunaScope brackets this with the **upper limb** (visible as soon as any part clears) and the **whole disc**. In the real run no outcome flipped, but Earth's availability moved by several percentage points.
 
-### 3.11 Does the size of the Sun and Earth matter?
+### 3.11 What if the date slips? (Time Machine, dates search)
+The Sun and Earth move against the same fixed terrain, so shifting the start changes the answer. The **Time Machine** moves *only* the start date and shows both results side by side. The **dates search** does it for a range of dates and shows a tested-dates strip.
 
-Everything above treats the Sun and Earth as single points (their centres). In reality the Sun is about 0.5° wide and **Earth about 1.9° wide** as seen from the Moon. Near the skyline, part of the disc can show while the centre is hidden, or the centre can show while part is still behind the terrain. LunaScope brackets this: it recomputes with the **upper limb** (visible as soon as any part clears) and the **whole disc** (visible only when all of it clears). The real run showed no pass/fail flips, but Earth's availability moved by several percentage points (the whole-disc reading lowest, the upper-limb highest; Earth still passes with 15.5 and 3.8 points to spare at the two sites where it passes), so the effect is real and the tool shows it.
-
-### 3.12 "What if the date slips?" (the Time Machine)
-
-Because the Sun and Earth move against the same fixed terrain, shifting the start date changes the answer. The Time Machine takes a finished run, moves *only* the start date, recomputes, and shows both side by side. Each run keeps its own clock, unless you ask for one shared calendar, so you never compare two different dates as if they were the same.
-
-### 3.13 Visible versus useful
-
-LunaScope measures **geometric visibility**: whether the Sun or Earth is above the terrain. That is necessary, not sufficient:
-
-- for **power** you also need panel orientation, efficiency and battery sizing; a visible Sun a degree above the horizon gives little energy;
-- for **communications** you also need antennas, power, data rates and ground-station availability; "Earth is visible" is not "the link works".
-
-The tool says this on its pages. It is a screen, not an engineering design.
+### 3.12 Visible is not the same as useful
+LunaScope measures **geometric visibility**. For power you also need panel orientation, efficiency and batteries (a Sun one degree up gives little energy). For communications you also need antennas, power, data rate and ground stations ("Earth is visible" is not "the link works"). The tool says this on its pages.
 
 ---
 
@@ -197,202 +148,280 @@ The tool says this on its pages. It is a screen, not an engineering design.
 
 | What | Source | Role | How it is protected |
 | --- | --- | --- | --- |
-| Where the Sun and Earth are | **JPL Horizons** (NASA/JPL) | primary directions | every response stored verbatim with its SHA-256; a request without a project contact is refused |
-| An independent check on those directions | **NAIF SPICE** kernels (NASA/JPL) | cross-check | kernels pinned by checksum and verified before loading |
+| Where the Sun and Earth are | **JPL Horizons** (NASA/JPL) | primary directions | every response stored verbatim with its SHA-256; no request without a project contact |
+| An independent check on those | **NAIF SPICE** kernels (NASA/JPL) | cross-check | kernels pinned by checksum and verified before loading |
 | The terrain | **LOLA 20 m south-polar elevation model**, two releases (PGDA 2023 "adjusted" and the PDS release) | skyline | files pinned by SHA-256; a missing or altered file blocks the run |
-| Looking at the terrain | NASA's **LROC QuickMap** and **Moon Trek** | visual reference only | not a numerical input |
+| A published answer to compare against | **NASA Goddard Lunar Polar Illumination maps** (Mazarico et al. 2011), Sun and Earth, 60 m per pixel | comparison only, not an input | file hashes recorded in the evidence |
+| Names and centre points of places | **IAU Gazetteer of Planetary Nomenclature** (USGS), public domain | the 12 named places | the rows used and the source file's hash are committed (`data/sites/iau_extract.json`) |
+| Looking at terrain | LROC QuickMap and NASA Moon Trek | visual reference only | not a numerical input |
 
-A **manifest** file in `data/manifests/` describes each resource: where it came from, its size and checksum, its coordinate system, its units, and the usage terms. The service checks them every time it starts. The rule is: *no numerical input is used unless it has a manifest*. "Present and matching its checksum" does **not** mean "scientifically approved", and the tool keeps those two ideas separate.
+A **manifest** per resource records its origin, size, checksum, coordinate system, units and terms. The rule is: *no numerical input is used without a manifest.* "Present and matching its checksum" does **not** mean "scientifically approved", and the tool keeps those two ideas apart.
 
-**Why two terrain releases?** They are two published versions of the same 20 m data. Running both shows how much the *choice* of release matters (it is small, but it is a real effect). It does not tell you which is more correct.
+**Why two terrain releases?** They are two published versions of the same 20 m data. Running both shows how much the *choice* of release matters. It does not say which is more correct.
 
----
-
-## 5. The method: one site, start to finish, with real numbers
-
-Take the reference site `rule-89.5S-E0` (latitude −89.5°, longitude 0°), for the week starting 2027-01-10 UTC.
-
-1. **Place the observer.** Convert the coordinates to the standard convention. The ground there is **722 m below** the reference sphere (a low spot), and the observer's eye is 2 m above it.
-2. **Get the sky.** Ask Horizons for the Sun's and Earth's azimuth and elevation every 10 minutes for 7 days (1,009 samples each), and cross-check with SPICE. The Sun's height stays between **0.42° and 0.87°**, sweeping through about 85° of compass direction (from 68° to 154°). Earth's height ranges from **−0.75° to +6.90°** while its direction barely moves (352° to 357°).
-3. **Build the skyline.** Walk 3,600 directions out 150 km across the elevation model. The skyline runs from **−0.26° up to 9.59°**, with a median of **4.4°**. Every one of the 3,600 sectors is certified (no missing data).
-4. **Compare.** The Sun, at 0.4° to 0.9°, is below a skyline that is mostly 4° or more across its whole sweep. Its clearance is negative the whole week: at best it is **5.8° below** the skyline. Result: **0% visible, Fail** against a 60% requirement. A flat horizon would have said 100%.
-5. **Earth is different.** Earth's height reaches 6.9°, above a skyline in its direction that is lower. It is visible about **74.5%** of the week, with one set/rise event and a longest outage of about 1 day 18½ hours. Against a 50% requirement: **Pass**.
-6. **Quantify the doubt.** Re-run with half the azimuth step and with the other terrain release: Earth's availability moves by under 0.25 percentage points and the outcome never changes. Re-run treating Earth as a disc: availability moves by several points, outcome unchanged.
-7. **Record everything.** The request, settings, data checksums, the Horizons responses' hashes, the skyline, every interval and event, the metrics and the caveats are written into one bundle, labelled *real data, unverified*.
-
-The site status is therefore **"Fail: Sun"**: the Earth requirement passes, the Sun requirement fails, and the two are never merged into one score.
+**Other agencies' data.** The organizers allow data from other agencies (except Chinese). This build uses NASA and IAU/USGS data only.
 
 ---
 
-## 6. Honesty built into the maths: bounds, certainty and "unknown"
+## 5. One site from start to finish, with real numbers
 
-Most of the unusual design choices come from three principles.
+Site `rule-89.5S-E0` (latitude -89.5°, longitude 0°), the week from 2027-01-10 UTC.
 
-**1. Unknown is not "not visible".** If the tool cannot prove an interval is visible or hidden, it keeps it as *unknown* (unresolved, uncertified or no-data) and carries it into the **upper bound** of availability only. A hole in the data therefore widens the range; it never silently counts as an outage, and it never silently counts as sunlight either.
+1. **Place the observer.** Convert to the standard convention. The ground there is **722 m below** the reference sphere (a low spot); the eye is 2 m above it.
+2. **Get the sky.** Ask Horizons for the Sun's and Earth's azimuth and elevation every 10 minutes for 7 days (1,009 samples each), and cross-check with SPICE. The Sun's elevation stays between **0.42° and 0.87°**; Earth's ranges from **-0.75° to +6.90°** while its direction barely moves.
+3. **Build the skyline.** 3,600 directions out 150 km. It runs from **-0.26° up to 9.59°** with a median of **4.4°**, every sector certified.
+4. **Compare.** The Sun at 0.4° to 0.9° sits below a skyline mostly above 4° across its whole sweep. At best it is **5.8° below** the skyline. Result: **0% visible, Fail** against a 60% requirement, where a flat horizon says 100%.
+5. **Earth is different.** It climbs to 6.9°, above the skyline in its direction: visible about **74.5%** of the week, with one set or rise event and a longest outage of about 1 day 18½ hours. Against 50%: **Pass**.
+6. **Quantify the doubt.** Re-run with half the azimuth step and with the other terrain release: Earth's availability moves by under 0.25 percentage points and the outcome never changes. Treating Earth as a disc moves it several points, outcome unchanged.
+7. **Record everything.** Request, settings, data fingerprints, Horizons response hashes, skyline, every interval and event, metrics and caveats go into one bundle labelled *real data, unverified*.
 
-**2. Claim only what was proved.** Instead of declaring "visible" from a sampled value, the search proves an interval has one sign using a speed limit on change. Instead of one availability figure, it gives bounds. Instead of "pass/fail", it adds *indeterminate* and *excluded*.
-
-**3. A check must be able to fail.** Throughout the build, each safeguard was tested by deliberately breaking the thing it guards (a corrupted skyline, a wrong unit, a mirrored azimuth, a stale reply, a flat-horizon fallback) and confirming the safeguard noticed. A check that cannot fail proves nothing.
-
-Related ideas:
-
-- **Verification versus validation.** *Verifying* asks "did we compute what we meant to, consistently?" (the tool does this extensively). *Validating* asks "is the model true to the real Moon?" (this needs independent evidence and formal sign-off, which has **not** happened). That is why every result says *unverified*.
-- **Sensitivity.** Re-running with a finer setting or the other terrain release shows whether a conclusion is fragile. A result flagged `SENSITIVITY_HIGH` is one to quote with a caution.
-- **Convergence.** Changing one numerical setting at a time (smaller time step, finer azimuth, bigger or smaller radius) and finding the answer does not move shows the numbers are not artefacts of those settings.
+The site status is **"Fail: Sun"**: Earth passes, the Sun fails, and the two are never merged into one score.
 
 ---
 
-## 7. Trust: how a result can be checked and reproduced
+## 6. A tour of the product
 
-A scientific tool is only as good as the ability to re-check it.
-
-- **Identity by fingerprint.** Each request is reduced to a canonical form (a fixed ordering and number format) and hashed. The **run id** is that fingerprint together with the data checksums and the algorithm version. The same inputs always give the same id, so the same page, and identical requests are never computed twice (even if twelve arrive at the same moment). A **result id** is sealed when a run finishes.
-- **Immutable results.** A finished result is stored under the hash of its own content and re-verified every time it is read. It cannot be silently changed.
-- **Everything is cached verbatim.** The raw Horizons responses are kept byte for byte, so a result can be recomputed later without the internet and produce the same answer.
-- **The frozen reference.** `GR-001` is pinned: its definition contains the fingerprint of its inputs, data and algorithm. Change *anything* scientific and the tool refuses to run it and says to create `GR-002`. The frozen run was recreated from a clean version of the code **with the network switched off** and reproduced the earlier result exactly: same ids, same intervals, same events, same hashes.
-- **Gate 2.** Five named checks over the saved result: the geometry agrees with SPICE; the skyline is intact and certified; the totals add up and re-derive; the event search left nothing uncertified; and every convergence case held. A check passes only if it ran *and* held.
-- **Tests.** More than 520 automated tests (376 for the service, 147 for the web app) plus browser tests that use only the keyboard and check accessibility. Many are "break it on purpose" tests.
-- **The export.** The Evidence page produces a file with the request, settings, data fingerprints, series, skyline, intervals, events, metrics and a snapshot of the validation cards. A "verified" version is refused until something is actually validated.
-
----
-
-## 8. How the software is put together
-
-Think of three layers.
-
-```
-        your browser
-             │  (only asks; never computes)
-             ▼
-   web app  (Next.js)  ── adds a secret token, forwards only allowed requests ──►  science service (Python)
-                                                                                      │
-                                                  ┌───────────────────────────────────┼─────────────────────────────┐
-                                                  ▼                                   ▼                             ▼
-                                        JPL Horizons (cached)              LOLA terrain files (pinned)       SPICE kernels (pinned)
-                                                                                      │
-                                                                              run store (SQLite + files)
-```
-
-- **The browser never decides anything.** Whether a target is visible is computed once, in the service. The page draws it. This avoids two programs disagreeing and keeps the logic testable in one place.
-- **The web app's server layer** (the "backend for frontend") hides the service's address and password from the browser and only forwards a short fixed list of requests.
-- **Each analysis runs as its own process,** so a run that takes too long can be genuinely stopped, and at most two run at once with eight waiting. A crashed run is retried once.
-- **The store** is a small database plus content-addressed files. It needs persistent storage, which is why the service cannot run on "serverless" hosts.
-- **Two modes of the service.** *Live* computes (or serves cached) results. *Replay* serves **only** saved results and refuses anything new, so a demo works offline.
-- **Two data stacks.** *Synthetic* uses invented data and runs instantly with no files; it exists for development and tests and is always labelled. *Live* uses the real data.
-
----
-
-## 9. What the real results say
-
-The frozen reference run `GR-001`: three sites at latitude −89.5° and longitudes 0°, 120°, 240°, one week from 2027-01-10, with requirements of Sun ≥ 60% and Earth ≥ 50% (scenario values, not mission rules).
-
-| Site | Ground height | Sun (terrain) | Earth (terrain) | A flat horizon would have said |
-| --- | --- | --- | --- | --- |
-| 0° E | −722 m | **Fail**, 0% (best 5.8° below skyline) | **Pass**, 74.5% | Sun 100%, Earth 92% |
-| 120° E | −1,714 m | **Fail**, 0% (best 22.7° below) | **Fail**, 0% (best 8.2° below) | Sun 100%, Earth 84% |
-| 240° E | +938 m | **Fail**, 0% (best 2.5° below) | **Pass**, 65.0% | Sun 100%, Earth 85% |
-
-What this tells you:
-
-- **Terrain overturns the simple answer.** Three different Sun results flip from a comfortable pass to zero. This is the effect the challenge describes.
-- **The 120° site is walled in:** a skyline of 11° to 31° means neither target ever clears it.
-- **The 240° site is the closest call for the Sun** (2.5° below at best): it sits on higher ground, so its skyline is lower.
-- **These are not "good sites".** They were chosen by a fixed rule so that nobody can say they were cherry-picked. They are a reference scenario, and the result says nothing about the better-lit places planners would actually study.
-
-**The real five-day shift.** Shifting the start to 2027-01-15 changes the picture: Earth reaches **100%** at two sites (up from 74.5% and 65.0%), and the Sun at the 240° site goes from 0% to **51.2%** with two events (a rise about 76 hours in and a set about 162 hours in), which is still short of the 60% requirement. So *a five-day slip genuinely moves the answer*, which is what the Time Machine is for. This run carries a sensitivity flag at that site: at a finer azimuth step one 4.7-second sliver around the Sun's rise cannot be certified (it is shorter than the 5-second minimum interval), although the availability numbers are identical. It is documented in [`docs/runs/GR-001-plus5d.md`](runs/GR-001-plus5d.md).
-
-**Why a "FAIL" is still a useful result.** The tool's job is to avoid false confidence. Finding out early that a site cannot see the Sun for a week is exactly the information a planner needs, and it is only credible because the same machinery would have said "pass" had the terrain allowed it (it does, for Earth at two sites).
-
----
-
-## 10. How to use it, as a person and as a presenter
-
-### The ten-minute tour
-
-1. **Start the service and the web app** ([User Guide §2](USER-GUIDE.md#2-starting-it)). For real data without waiting, serve the saved package in replay mode (the commands are in [User Guide §9](USER-GUIDE.md#9-offline-replay-and-the-fallback-package)). If the banner says *Synthetic demonstration data*, you are on the invented data.
-2. **Home:** press **Start the reference mission**. You land on the **run page**: a table of sites against Sun and Earth, terrain result beside the flat-horizon result.
-3. **Click a site's Local sky.** Press Play. Watch the Sun and Earth tracks sweep over the hatched terrain skyline. Use **Next event** to jump to a rise or set; read the **countdown**.
-4. **Open its Timeline.** See the bands, the outage bracket, and the plain-words explanation. Flip **Guided / Technical** in the header to see the same facts in the service's own wording.
-5. **Compare** the sites on one page.
-6. **Time Machine:** shift by 5 days and see what changes; try the dates search.
-7. **Evidence:** read the three validation cards, the data fingerprints, the disc-size table, and download the evidence bundle.
-8. **Why the south pole is hard** is the three-minute explainer for any audience.
-
-### As a five-minute pitch (the spec's own outline)
-
-| Time | Show | Say (in your own words) |
+| Page | What it is for | Highlights |
 | --- | --- | --- |
-| 0:00–0:35 | the explainer page | A few degrees of sky and the ground around you decide everything. |
-| 0:35–1:05 | Home, reference mission | One reference week, three sites, requirements of 60% Sun and 50% Earth. |
-| 1:05–2:05 | run page and Local sky | Flat horizon says 100%; real terrain says 0%. Watch why. |
-| 2:05–3:05 | Time Machine | Slip the date five days: Earth improves; the Sun at one site goes from none to about half, still short. |
-| 3:05–3:45 | Evidence | Every number traces to NASA data; geometry is double-checked; we tell you what is *not* validated. |
-| 3:45–4:25 | dates search | Which start dates pass, with the trade-offs shown, not a hidden score. |
-| 4:25–5:00 | limits and impact | A screening tool for planners and learners. It does not certify anything. |
+| **Home** | Start here. | **Start the reference mission** (GR-001); two cards to **compare notable south-polar places** (Artemis III features, well-known craters); links to your own analysis and the explainer. |
+| **New analysis** | Set up your own comparison. | Start date and time (with **Start from now**), duration, step; presets grouped as demonstration points, Artemis III features and well-known craters, each with its IAU entry; **custom coordinates** with a terrain-coverage check; requirements; a share link that fills the form and runs nothing. |
+| **Run page** | The answer: sites against Sun and Earth. | Terrain-aware result beside the flat-horizon result; a verdict line; warnings; the three evidence cards. |
+| **Local sky** | See it. | **Polar**, **Unrolled** and **3D (look around)** views, a time player (play, previous and next event, speed), a countdown to the next sunset or Earthset with a stated model bracket. |
+| **3D view** | An intuitive picture of the real situation. | Stand at the site: the terrain skyline is a wall around you with a bright ridge line; the Sun (sphere) and Earth (diamond) move beyond it. Look around or view from outside; face the Sun or Earth; optional ×3 height exaggeration (stated on screen). A target behind the wall is hidden, with a faint copy through it. |
+| **Timeline** | Outages and bands. | Visibility bands with the longest outage bracketed; a **Guided / Technical** switch for plain sentences or the service's own wording. |
+| **Compare** | Side by side. | Sites against each other. |
+| **Time Machine** | What if the date slips? | Shift the start (±30 days) and see deltas; **dates search** with a tested-dates strip; each run keeps its own clock unless you ask for a shared calendar. |
+| **Evidence** | Why believe it. | Three validation cards, data fingerprints, the disc-size table, sensitivity, and a downloadable evidence bundle (verified export is refused until something is actually validated). |
+| **Why the south pole is hard** | Explainer for any audience. | A three-minute schematic. |
 
-### Questions you are likely to be asked, with honest answers
-
-- **"How do you know the angles are right?"** They come from JPL Horizons and match NASA's independent SPICE toolkit to 0.0017 arcseconds. That check covers the directions only.
-- **"How does terrain change the answer?"** Show the flat-versus-terrain columns and the skyline plot: 100% becomes 0%.
-- **"Is this validated?"** No. The terrain model is not formally approved and the science decisions are unsigned. Everything is labelled *real data, unverified*. What we did do is check it every way we could and make the checks reproducible.
-- **"Is sunlight percentage the same as power?"** No. It is geometric illumination. Power needs spacecraft models.
-- **"Does Earth visible mean communication works?"** No. It is a line of sight, not a link budget.
-- **"What if the data is missing?"** It stays *unknown* or *excluded*. It is never silently counted as visible or hidden.
-- **"Can it choose a safe landing site?"** No. It screens lighting and direct-to-Earth opportunity only.
-- **"Why these three sites?"** A fixed, symmetric rule chosen before looking at any result, so none could be cherry-picked. They are a reference scenario, not candidates.
+The data-status pill is on every page, and a **REPLAY MODE** badge appears on the public demo.
 
 ---
 
-## 11. What you can and cannot claim
+## 7. Every kind of situation, with real examples
+
+These are the cases the tool meets, each with a real result from the project's records (the reference week 2027-01-10, Sun needs at least 60%, Earth at least 50%; scenario values, not mission rules).
+
+| # | Situation | What you see | What it means | Real example |
+| --- | --- | --- | --- | --- |
+| 1 | **Flat horizon says yes, terrain says no** | Sun 100% (flat) against 0% (terrain). | The ground is hiding a target that geometry puts above zero. The core finding. | All three GR-001 sites; also Shackleton, Faustini, Shoemaker and Slater. |
+| 2 | **A lit ridge or massif with a clear line to Earth** | Earth 100%, Sun for part of the week. | The kind of place a planner would screen for power and communications. | **Mons Malapert**: Sun 26.5 to 27.0%, Earth 100%. **Mons Mouton**: Sun 14.6%, Earth 100%. |
+| 3 | **A permanently shadowed crater floor** | Sun 0%, Earth 0% or low. | Cold and dark, where ice survives. Poor for solar power, valuable for science. | **Shackleton**: skyline 19.8° to 23.6°, Sun 0%, Earth 0%. **Haworth**, **de Gerlache**, **Faustini**, **Cabeus**, **Sverdrup**: Sun 0%. |
+| 4 | **A walled-in site** | Neither target ever clears the skyline. | Nothing will reach it this week. | GR-001 site at 120°E: skyline 11° to 31°. |
+| 5 | **Sun yes, Earth no (or the reverse)** | Requirements judged separately; status "Fail: Earth" or "Fail: Sun". | Power and communications are different questions and are never merged into one score. | **Nobile**: Sun 100%, Earth 30.3 to 30.6% (fails 50%). GR-001 0°E: Earth passes, Sun fails. |
+| 6 | **A date slip changes the answer** | Time Machine deltas. | Schedule slips are real engineering events. | +5 days: Earth at 0°E from 74.5% to 100%; the Sun at 240°E from 0% to 51.2%, still short of 60%. |
+| 7 | **No date passes** | A dates strip full of "Fails". | Honest "no" instead of an invented best date. | Eight dates (2027-01-10 to 01-17): none passes; the closest is the Sun at 240°E from 01-15 (51.2%). |
+| 8 | **The data cannot decide** | **Indeterminate** or **Excluded**, with a reason code. | Unknown is never counted as visible or hidden. | The event search could not certify an interval, so the Sun's outcome is Excluded (reason `UNCERTIFIED_EVENT_SEARCH`) at Mons Malapert and Mons Mouton. On 2027-01-17 at 0°E it was a 4.7 s sliver, shorter than the 5 s minimum interval. |
+| 9 | **Part of the terrain is missing** | A coverage warning and fewer certified sectors. | The result is a wide range, not a guess. | **Amundsen**: 3,099 of 3,600 sectors certified, Sun 33.3 to 88.2%, Excluded. |
+| 10 | **The result depends on which terrain release** | A `SENSITIVITY_HIGH` flag and an "Evidence: Terrain horizon: Not met" card. | A real uncertainty is shown, not hidden. | Mons Malapert (the other release changes the Sun's lower bound by 8.8 points), Mons Mouton, Slater. |
+| 11 | **Is the Sun a point or a disc?** | The disc-size table (upper limb, centre, whole disc). | Edge cases near the skyline can shift by several points. | Earth's availability moved several points at two reference sites; no outcome flipped. |
+| 12 | **Your own coordinates** | A coverage check, then a computed run (on a machine with the terrain files). | Works anywhere from 80°S to the pole. Points north of 80°S are refused because there is no terrain data. | Custom points on the local live stack; the public demo refuses them (replay only). |
+| 13 | **Your own requirements** | Change the Sun and Earth thresholds in the form. | Outcomes follow your numbers, never a fixed rule. | Default 60% Sun, 50% Earth. |
+| 14 | **No network at the pitch** | The offline package opens in replay mode. | The demo survives a failed Wi-Fi. | `fallback/` plus the public replay demo. |
+| 15 | **A beginner or a student** | Guided mode, the explainer page, the 3D view. | The same facts in plain sentences. | The "Why the south pole is hard" page. |
+
+---
+
+## 8. What the real results say
+
+### GR-001: the frozen reference (three rule-chosen points at -89.5°)
+
+| Site | Ground height | Sun (terrain) | Earth (terrain) | A flat horizon would say |
+| --- | --- | --- | --- | --- |
+| 0°E | -722 m | **Fail**, 0% (best 5.8° below skyline) | **Pass**, 74.5% | Sun 100%, Earth 92% |
+| 120°E | -1,714 m | **Fail**, 0% (22.7° below) | **Fail**, 0% (8.2° below) | Sun 100%, Earth 84% |
+| 240°E | +938 m | **Fail**, 0% (2.5° below) | **Pass**, 65.0% | Sun 100%, Earth 85% |
+
+These were **chosen by a fixed symmetric rule** before any result was seen, so none could be cherry-picked. They are a reference scenario, not candidates. GR-001 is frozen and reproduces exactly from a clean checkout with the network off.
+
+### The five-day shift and the dates search
+Shifting the start by five days gives Earth **100%** at 0°E and 240°E, and the Sun at 240°E **51.2%** with a rise about 76 hours in and a set about 162 hours in, still short of 60%. That run carries a sensitivity flag (documented in [GR-001-plus5d.md](runs/GR-001-plus5d.md)). Across eight start dates **none passes**.
+
+### GR-002 and GR-003: named places (draft references)
+
+| Place | Sun, terrain | Sun, flat | Earth, terrain | Earth, flat |
+| --- | --- | --- | --- | --- |
+| Haworth | Fail 0.0% | 39.7% | Fail 0.0% | 100% |
+| **Mons Malapert** | Excluded 26.5 to 27.0% | 36.2% | **Pass 100%** | 100% |
+| **Mons Mouton** | Excluded 14.6 to 14.7% | 72.0% | **Pass 100%** | 100% |
+| Nobile | **Pass 100%** | 100% | Fail 30.3 to 30.6% | 100% |
+| de Gerlache | Fail 0.0% | 6.7% | Fail 0.0% | 88.8% |
+| Slater | Fail 0.0% | 100% | Fail 13.1 to 13.5% | 78.6% |
+| Shackleton | Fail 0.0% | 100% | Fail 0.0% | 84.9% |
+| Shoemaker | Fail 0.0% | 100% | Fail 23.7 to 24.1% | 99.6% |
+| Faustini | Fail 0.0% | 100% | Fail 0.0% | 87.9% |
+| Cabeus | Fail 0.0% | 0.0% | Fail 0.0% | 100% |
+| Amundsen | Excluded 33.3 to 88.2% | 100% | Fail 0.0% | 90.0% |
+| Sverdrup | Fail 0.0% | 73.6% | Fail 0.0% | 72.8% |
+
+**Read these carefully.** The places are the IAU's official **centre points** of named features. A **crater centre is its floor, not its rim**, and most floors are permanently shadowed, so a dark result says nothing about the rim where a lander would sit. NASA's Artemis III regions are 15 km areas on or near these features with no published coordinates we could source, so each uses its *nearest named feature*. The lit places are the massifs, which fits what NASA's LOLA team says of the Malapert region (high illumination and good Earth visibility), though ours is one week and theirs is a long-term average.
+
+---
+
+## 9. How we know it is right, and what is not proven
+
+**What we did to check it**
+
+| Check | Result |
+| --- | --- |
+| **Directions against NASA's SPICE** | Agree to 0.0017 arcsec (tolerance 0.01). |
+| **A second, independently written skyline** | A pixel-by-pixel computation (different traversal, sampling and geometry from the ray method) agrees at all three reference sites inside gates declared in the code. Our *first attempt failed* because the check was designed too strictly; the design was fixed and the failure is kept in the record. |
+| **Comparison with NASA's published illumination maps** | We recomputed long-term sunlit and Earth-visible fractions over an 18.6-year cycle and compared them with NASA's maps at ten south-polar sites: correlation **0.974** (Sun) and **0.973** (Earth), mean difference **1.6** and **2.2** percentage points. Where NASA's map says Earth is never visible, so do we. |
+| **A check that failed** | On the three reference sites, one declared gate (the order of the Sun's availability at two sites) was **not met**. A pixel-by-pixel look showed we agree with the map at 7 of 9 pixels around that site; at two adjacent pixels the map is far lower than its own neighbours. Which is right is not established. |
+| **Convergence and sensitivity** | Finer time step, azimuth step and radius do not change the reference results; the other terrain release does at some named places, and the tool flags it. |
+| **Reproducibility** | The frozen run is re-created from a clean version of the code with the network off and reproduces the same ids, intervals and hashes. |
+| **Tests** | Hundreds of automated tests (260 web unit tests, 14 browser tests including accessibility, and the science suite). Many are "break it on purpose" tests: they confirm each safeguard fails when the thing it guards is broken. |
+
+**What is not proven**
+
+- **Nothing is validated.** The terrain model is not formally approved, and the science decisions record (SDR-001) is unsigned. Every result is labelled *real data, unverified*.
+- **The comparisons are not independent of the terrain data.** NASA's maps and our skyline both come from LOLA topography, so agreement tests our *computation*, not the DEM.
+- **No direct lunar measurement** of illumination or Earth visibility at a site was used.
+- **One week, a few sites.** The reference windows and sites are small. The named-place runs are draft references with no convergence report.
+
+---
+
+## 10. Honesty built into the design
+
+1. **Unknown is not "not visible".** A hole in the data stays unknown and widens the availability range; it never silently counts as an outage or as sunlight.
+2. **Claim only what was proved.** Certified intervals instead of sampled guesses; bounds instead of one number; four outcomes instead of two.
+3. **A check must be able to fail.** Each safeguard was tested by deliberately breaking what it guards (a corrupted skyline, a wrong unit, a mirrored azimuth, a stale reply) and confirming it notices.
+4. **Labels everywhere.** `synthetic_demonstration`, `real_data_unverified` and `validated` are separate, and nothing is `validated`. The public demo says **REPLAY MODE**.
+5. **Display only.** The web app draws what the service decided. In the 3D view an unknown skyline sector is left open, not drawn as flat ground, and enlarged markers and exaggerated heights are stated on screen.
+6. **Reproducible by fingerprint.** A run's id is a hash of its inputs, data checksums and algorithm version; a finished result is stored under the hash of its own content and re-checked on every read.
+
+---
+
+## 11. How it is built and where it runs
+
+```
+your browser
+   │ (only asks; never computes)
+   ▼
+web app (Next.js)  ── adds a secret token, forwards only allowed requests ──►  science service (Python)
+                                                                                  │
+                              ┌───────────────────────────────────────────────────┼─────────────────────────────┐
+                              ▼                                                   ▼                             ▼
+                    JPL Horizons (cached)                          LOLA terrain files (pinned)         SPICE kernels (pinned)
+                                                                                  │
+                                                                      run store (SQLite + files)
+```
+
+- **Where it runs**
+  - **Public demo:** web on **Vercel**, science service on a free container host in **replay mode**. It serves the saved real-data runs (GR-001, its five-day shift, the dates search, GR-002 and GR-003) and refuses anything new with a plain "offline copy" message. Free instances sleep when idle, so open it a minute early.
+  - **Live computing:** on a machine with the terrain and SPICE files (about 2.7 GB). Custom coordinates and dates compute there, in minutes.
+  - **Offline package:** a saved copy of the real-data runs, so the demo survives a network failure.
+- **Each analysis runs as its own process**, so one that takes too long can be stopped; at most two run at once with eight waiting.
+- **The 3D view** uses three.js, loaded only when you choose it.
+- **Tested** with automated unit tests, browser tests (keyboard-only, accessibility, phone width, the 3D view) and a smoke test run signed out against the public link.
+
+---
+
+## 12. How to present it
+
+The judging guide gives **5 minutes of demo and 5 minutes of questions**, says complex presentations are not needed, and scores five criteria out of 10 each (**Impact, Creativity, Validity, Relevance, Presentation**). The demo link on the project page must be **at most 7 slides or a 30-second subtitled video**, publicly accessible, with no voices or pictures of anyone under 18, and with an AI/software disclosure.
+
+**Suggested five minutes (live, from a laptop with the full local stack; the public link as backup)**
+
+| Time | Show | Say | Scores on |
+| --- | --- | --- | --- |
+| 0:00 to 0:40 | the explainer page or a slide | A few degrees of sky and the ground around you decide whether a site gets power or a line to Earth. | Impact |
+| 0:40 to 1:30 | Home, **reference mission**, the run page | Flat horizon says the Sun is up 100% of the week; real terrain says 0%. | Creativity, Relevance |
+| 1:30 to 2:30 | **Local sky 3D**: Next event, **Face the Earth** | Earth sits on the ridge line at its predicted rise; hidden is a wall in front of it. | Presentation, Creativity |
+| 2:30 to 3:15 | **Named places**: Mons Malapert against Shackleton | The massif gets Earth all week and some Sun; the crater floor stays dark. | Impact, Relevance |
+| 3:15 to 3:50 | **Time Machine**: shift five days | A slip changes the answer: Earth reaches 100%, the Sun at one site goes from none to about half. | Impact |
+| 3:50 to 4:30 | **Evidence** and the NASA-map comparison | Directions match NASA's SPICE; our long-term numbers track NASA's published maps (0.97); here is the one check that failed. | Validity, Relevance |
+| 4:30 to 5:00 | limits and close | Screening and education tool; unverified; not a landing recommendation. | Validity, Presentation |
+
+If time allows, enter **one custom coordinate live** to show it computes, and say that the public demo is replay-only.
+
+---
+
+## 13. Questions judges will ask
+
+### Impact
+- **Who is this for, and why does it matter?** Mission planners screening sites and dates, educators and the public. Sites and schedules near the south pole are being chosen now, and early screening needs fast, comparable answers.
+- **How is it different from QuickMap, Moon Trek or Horizons?** Those are excellent but separate and expert-oriented. LunaScope joins terrain, geometry and time into one answer, shows flat versus terrain side by side, and states what it is unsure of.
+- **Does it help beyond experts?** Yes: Guided mode, an explainer page, a 3D view and plain-language results.
+- **What about Sri Lanka?** The same screening idea teaches students how terrain and orbits shape exploration; there is no site-specific Sri Lankan content.
+
+### Creativity
+- **What is new here?** Terrain-aware visibility with **certified** event times (no missed crossings, with bounds and an explicit "unknown"), a Time Machine and dates search, and a 3D first-person sky with the skyline as a wall.
+- **Why a 3D view?** It makes the central idea (a ridge hides the Sun) physical. The 2D plots give precision; the 3D view gives intuition.
+
+### Validity
+- **Is this a real result?** It uses real NASA data and is labelled unverified. No validation gate has closed.
+- **How do you know the angles are right?** JPL Horizons, cross-checked against NASA's SPICE to 0.0017 arcseconds. That covers the directions only.
+- **How do you know the skyline is right?** A second, independent computation agrees at the three reference sites, and our long-term fractions correlate at 0.97 with NASA's published illumination maps over ten sites. Both read related LOLA data, so this checks the computation, not the terrain model.
+- **Anything that did not agree?** Yes: one declared check on the three reference sites failed (the order of two sites in the Sun result), traced to an outlier pixel in the map. We report it rather than hide it, and sensitivity to the terrain release is flagged at three named places.
+- **Is the sunlit percentage the same as power?** No. It is geometric illumination. Power needs panel and battery models.
+- **Does "Earth visible" mean communications work?** No. It is a line of sight, not a link budget.
+- **What if the data is missing?** It stays unknown or excluded, and the range widens; it is never counted as hidden or visible.
+- **Does it account for libration, no atmosphere, curvature?** Libration is in the Earth directions from Horizons and SPICE; there is no refraction on the airless Moon; the skyline includes the Moon's curvature.
+- **Why not just use real-time data?** The Sun and Earth positions are calculated from orbit models for any date, and the terrain is static. Real-time would add nothing; "Start from now" simply starts a window at the current hour.
+
+### Relevance
+- **Which NASA data do you use?** LOLA terrain, JPL Horizons, NAIF SPICE, and NASA's published illumination maps for comparison. IAU/USGS names for the places. NASA data is the core of the method.
+- **Did you cover the challenge's objectives?** Site selection and comparison (named places, custom coordinates), date flexibility, Sun and Earth positions with a countdown, key metrics, 2D and 3D visualizations, animation and timelines, and accessibility across skill levels.
+- **Why not Apollo or other landing sites?** Our terrain data covers 80°S to the pole, and most famous landings lie outside it. We say so rather than fake it.
+
+### Presentation and the product
+- **Can I try my own site and dates?** On the public link the demo is a replay of saved runs, so new inputs are refused with a plain message. On a machine with the terrain files it computes them; we show that live.
+- **Why are those sites "Fail"?** A crater centre is its floor, usually permanently shadowed. A rim would behave differently, and these are named features, not landing recommendations.
+- **What if the network fails?** The offline package opens the saved runs with no network.
+- **Can it choose a safe landing site?** No. It screens lighting and direct-to-Earth opportunity only.
+
+### Process and disclosure
+- **Who built this, and was AI used?** The project was built with **Claude Code**, an AI coding assistant, at the team's direction. It wrote most of the code, tests and documentation. It did not choose any site, validate any result or generate any NASA logo. The commit history is public and the disclosure file lists this.
+- **Was this started before the event?** The specification and a first implementation were prepared on 13 November and are disclosed, with the full commit history; the product was extended during the event. We have not obtained written organizer permission for the earlier work, and we say so.
+
+---
+
+## 14. What you can and cannot claim
 
 **You can say** (all backed by the records):
-- LunaScope compares terrain-aware sunlight and direct-to-Earth visibility for south-pole sites and dates, using NASA's JPL Horizons, LOLA elevation data and an independent SPICE check.
+- LunaScope compares terrain-aware sunlight and direct-to-Earth visibility for south-pole sites and dates using NASA's JPL Horizons, LOLA elevation data and an independent SPICE check.
 - On a frozen, reproducible reference run, terrain changes every Sun result from a flat-horizon pass to a fail.
-- Results carry their data fingerprints, settings and limits, and unknown is never counted as an outage.
+- A second skyline written independently agrees, and our long-term numbers correlate at 0.97 with NASA's published illumination maps over ten sites (with one disclosed failed check).
 - A five-day date slip measurably changes the outcome.
-- The demo works offline from a saved real-data package.
+- You can compare twelve IAU-named south-polar places and your own coordinates; unknown is never counted as an outage.
+- The demo works offline from a saved real-data package and is publicly available as a replay.
 
 **You must not say:**
 - that any result is *validated*, *verified*, *accurate*, *optimal* or *recommended*;
-- that the three sites are candidate landing sites, or that LunaScope picks "the best site";
+- that the named places or reference sites are candidate landing sites, or that the tool picks "the best site";
 - that sunlight percentage is power, or that Earth visibility is a communications guarantee;
-- that NASA endorses or approved it (a NASA logo must never be generated or altered);
-- that it is deployed or publicly hosted (it is not);
-- that the organizer permission for pre-event work is on file (it is not).
+- that the public demo computes new analyses online (it replays saved runs);
+- that NASA endorses it, or use or alter a NASA logo;
+- that organizer permission for earlier work is on file (it is not).
 
-The authoritative list, with the status of every claim, is [`docs/submission/CLAIMS-AUDIT.md`](submission/CLAIMS-AUDIT.md).
+The authoritative list, with each claim's status, is [`docs/submission/CLAIMS-AUDIT.md`](submission/CLAIMS-AUDIT.md).
 
 ---
 
-## 12. How it was built, and where everything is
-
-The work ran in phases, each with a gate:
-
-| Phase | What it delivered | State |
-| --- | --- | --- |
-| **0. Decisions** | A record of the science decisions (which terrain release, which coordinate convention, tolerances, ...) with evidence for each. | Decided on evidence, **not signed off** (about 70%) |
-| **1. Foundation** | The service, real data providers, the skyline and event engine, the run store, the first pages, and the first real run (RUN-001). | Essentially complete (about 95%) |
-| **2. Core experience** | Every page, the Time Machine, the Evidence page and export, accessibility, and the frozen reference run GR-001 with its five checks. | all but a few items (about 98%); the independent skyline check is now built and reads met for GR-001 |
-| **3. Extras and delivery** | Dates search, guided mode, explainer, sensitivity views, the share link, the offline package, container images and the submission drafts. | About 50%: deployment, the pitch materials and human sign-offs remain |
-
-**Where things are**
+## 15. Where everything is, and what is still open
 
 | Folder or file | What is in it |
 | --- | --- |
-| `science/lunascope/` | the service: observer, skyline, events, metrics, run lifecycle |
-| `science/scripts/` | command-line tools: reference runs, the offline package, studies |
-| `science/tests/` | the service's tests |
-| `app/`, `components/`, `lib/` | the web app |
-| `tests/` | the web and browser tests |
-| `data/manifests/`, `data/sites/`, `data/reference/` | data descriptions, the sample sites, the frozen reference definition |
-| `docs/runs/` | the real-run records (RUN-001, GR-001, the five-day shift, the studies) |
-| `docs/submission/` | the claims audit, licences, disclosures and pitch draft |
-| `docs/sdr/` | the science decision record |
+| `science/lunascope/` | the service: observer, skyline, events, metrics, run lifecycle, the independent skyline and the illumination comparison |
+| `science/scripts/` | command-line tools: reference runs, the offline package, the studies and checks |
+| `app/`, `components/`, `lib/` | the web app, including the 3D view (`Sky3D.tsx`, `sky3d.ts`) |
+| `tests/` and `science/tests/` | web, browser and science tests |
+| `data/manifests/`, `data/sites/`, `data/reference/` | data descriptions, the site catalog and IAU extract, the reference definitions (GR-001 frozen, GR-002 and GR-003 draft) |
+| `docs/runs/` | the real-run records and evidence |
+| `docs/submission/` | the claims audit, licences, disclosures, pitch pack |
+| `docs/sdr/` | the science decision record and the (unsigned) sign-off sheet |
+| `deploy/`, `render.yaml` | container images, the replay package and the hosting blueprint |
 | `docs/USER-GUIDE.md` | the page-by-page manual |
 | `docs/LunaScope-Phase-Plan.md` | the live status of everything |
 
-**What is still genuinely open** (each is a human decision or a build step, not a bug): organizer permission for pre-event work (a real eligibility risk), the science owner's sign-off, copying the offline package to the pitch machine, and the slides or video. (A public replay-only demo is now live at https://luna-scope.afras.dev.) (The independent second skyline implementation has since been built: the terrain card reads "met" for GR-001, as a check of the computation, not of the DEM.)
+**Still open** (each is a human decision or a presentation task, not a bug):
+- The **7 slides or the 30-second video** and the **project page text** (summary, NASA resources, AI disclosure), which the submission requires.
+- A **timed rehearsal**, and opening the public demo a minute early.
+- The **science owner's sign-off** on SDR-001, without which nothing can be called validated.
+- **Organizer permission** for the pre-event work (not on file; disclosed).
+- Optional upgrades, not needed for the challenge: live computing online (needs a larger paid server), more notable sites with sourced coordinates, rim points for the named craters, and Sri Lanka-specific content.
 
 ---
 
-*If you remember only three things: (1) at the south pole the **terrain**, not the Sun's height, decides whether you get sunlight or a line to Earth; (2) LunaScope shows that with real NASA data and **tells you what it does not know**; (3) it is a **screening and education tool**, honestly labelled as unvalidated.*
+*If you remember only three things: (1) at the south pole the **terrain**, not the Sun's height, decides whether a site gets sunlight or a line to Earth; (2) LunaScope shows that with real NASA data, **checks it independently**, and **tells you what it does not know**; (3) it is a **screening and education tool**, honestly labelled as unvalidated.*
