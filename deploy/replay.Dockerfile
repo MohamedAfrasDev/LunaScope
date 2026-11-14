@@ -6,14 +6,15 @@
 #   docker run -e LUNASCOPE_API_TOKEN=... -p 8000:8000 lunascope-replay
 FROM python:3.12-slim
 
-ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1     LUNASCOPE_STACK=live LUNASCOPE_MODE=replay LUNASCOPE_DATA_DIR=/data LUNASCOPE_LOG=json
+ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 \
+    LUNASCOPE_STACK=live LUNASCOPE_MODE=replay LUNASCOPE_DATA_DIR=/data LUNASCOPE_LOG=json
 
 WORKDIR /app
 COPY science/pyproject.toml science/pyproject.toml
+# dependencies first, so code changes do not reinstall them
 RUN python - <<'PY' > /tmp/requirements.txt
 import tomllib
-print("
-".join(tomllib.load(open("science/pyproject.toml", "rb"))["project"]["dependencies"]))
+print("\n".join(tomllib.load(open("science/pyproject.toml", "rb"))["project"]["dependencies"]))
 PY
 RUN pip install -r /tmp/requirements.txt
 
@@ -27,6 +28,7 @@ RUN useradd --system --uid 10001 lunascope && mkdir /data && chown lunascope /da
 USER lunascope
 EXPOSE 8000
 
-HEALTHCHECK --interval=15s --timeout=3s --start-period=30s --retries=3   CMD python -c "import os,urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:%s/api/v1/health' % os.environ.get('PORT','8000'), timeout=2).status == 200 else 1)"
+HEALTHCHECK --interval=15s --timeout=3s --start-period=30s --retries=3 \
+  CMD python -c "import os,urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:%s/api/v1/health' % os.environ.get('PORT','8000'), timeout=2).status == 200 else 1)"
 
 CMD ["/app/replay-entrypoint.sh"]
