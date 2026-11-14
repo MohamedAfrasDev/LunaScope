@@ -418,9 +418,32 @@ Done when: the file is split below ~200 lines per component, existing Time Machi
 
 Files: `components/CompareView.tsx`, `EvidencePanel.tsx`, `app/why-the-south-pole-is-hard/page.tsx`.
 
-- [ ] Apply primitives and the Sun/Earth hues; reduce card nesting.
-- [ ] Explainer: reuse the new hero skyline styling for the schematic so the story is consistent.
-- [ ] Evidence: group validation cards and provenance under disclosures; export actions stay prominent.
+- [x] **Compare**: sites to compare are selectable pills (still plain checkboxes, same labels); each target section
+  heading carries its Sun dot or Earth diamond (the word still names it); measured values use `readout`; headings
+  use the shared type classes. The "Held constant" and "Changed: the site" cards are unchanged (a unit test finds the
+  held-constant list through its card).
+- [x] **Evidence**: re-ordered as Validation cards, Disc size, **Provenance**, Limits, Export. The three provenance
+  sections (Identity and pinned resources, Method and inputs, Per site) became closed `Disclosure`s under one
+  "Provenance" heading, each still a labelled section. Deliberately **not** folded: the validation cards, the disc-size
+  tables (the e2e flow reads their column headers), the limits that apply to every number, and the export, which is
+  now the primary button ("Download investigative bundle (JSON)"). Cards and per-site boxes became quiet insets
+  inside the result frame (less nesting); the error uses `Alert`.
+- [x] **Explainer**: the schematic now uses the same drawing as the home hero (`SkylineFigure`, extracted from
+  `HeroSkyline`), without Earth, and with its own pinned title, description and caption ("Schematic, not to scale and
+  not computed from data..."). The home caption stays worded differently on purpose (the home page stays mounted
+  after navigation). The page also takes the shared type styles, a "Background" label and the quiet card for
+  "What this page is not". All text is unchanged.
+- [x] **Sweep for leftovers**: the four remaining page titles (run, timeline, sky, new analysis) use `type-title`, and
+  nine boxes still on the old corner radius moved to the shared one. A grep for the old patterns now finds nothing
+  except the unresolved-time pattern in the timeline chart, which uses the warning amber on purpose (a state colour,
+  patterned and in the legend). Note for phase 13: that amber is close to the Sun amber; the pattern and legend
+  distinguish them, but it is worth a look at small sizes.
+
+Verification: vitest 217 (6 new: Evidence layout x3 in `tests/web/phase2.test.tsx`, Compare presentation x2 in
+`tests/web/compare.test.tsx`, explainer shares the hero drawing in `tests/web/hero.test.tsx`), tsc, eslint,
+Playwright e2e 6 (Evidence cards, disc table and keyboard download; explainer axe), fallback e2e 1 (live stack),
+`next build`, axe in dark and light on all 9 routes: 0 violations. Reviewed Evidence and the explainer at 1280 (dark,
+light) and 375px; no sideways scroll. No existing test needed changing.
 
 Done when: no page still uses the old visual language.
 

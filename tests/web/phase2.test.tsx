@@ -199,3 +199,45 @@ describe("Analysis form: custom-site coverage and the draft", () => {
     expect(loadDraft()).toBeNull();
   });
 });
+
+// ----------------------------------------------------------------------------- Evidence layout (phase 12)
+describe("Evidence layout", () => {
+  async function show() {
+    vi.stubGlobal("fetch", vi.fn(async (u: string) => json(String(u).includes("/validation") ? validation : provenance)));
+    render(<EvidencePanel runId={RUN} />);
+    return screen.findByRole("heading", { name: "Validation cards" });
+  }
+  const inClosedDisclosure = (el: HTMLElement) => {
+    const d = el.closest("details");
+    return d !== null && !d.hasAttribute("open");
+  };
+
+  it("keeps the trust answer in view: cards, disc size and the export are not behind a click", async () => {
+    await show();
+    expect(inClosedDisclosure(screen.getAllByRole("article", { name: /geometry/ })[0])).toBe(false);
+    expect(inClosedDisclosure(screen.getByRole("heading", { name: "Disc size: centre or edge?" }))).toBe(false);
+    expect(inClosedDisclosure(screen.getByRole("link", { name: /Download investigative bundle/ }))).toBe(false);
+    expect(inClosedDisclosure(screen.getByText(/Screening and education only/))).toBe(false); // the limits stay visible
+  });
+
+  it("groups the provenance detail under one heading, each part one click away", async () => {
+    await show();
+    const group = screen.getByRole("heading", { name: "Provenance" }).closest("section") as HTMLElement;
+    for (const name of ["Identity and pinned resources", "Method and inputs", "Per site: observer, geometry and skyline"]) {
+      const d = within(group).getByText(name).closest("details")!;
+      expect(d).not.toHaveAttribute("open");
+    }
+    // the content is still there for anyone who opens it (and for the export)
+    expect(within(group).getByText("Decision band ε")).toBeInTheDocument();
+    expect(within(group).getByText(/frame MOON_ME/)).toBeInTheDocument();
+  });
+
+  it("puts the export last and presents it as the primary action", async () => {
+    await show();
+    const link = screen.getByRole("link", { name: /Download investigative bundle/ });
+    expect(link.className).toContain("btn-primary");
+    const headings = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
+    expect(headings.at(-1)).toBe("Export");
+    expect(headings.indexOf("Provenance")).toBeGreaterThan(headings.indexOf("Disc size: centre or edge?"));
+  });
+});
