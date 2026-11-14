@@ -116,8 +116,8 @@ export default function WhySouthPoleIsHard() {
       </ul>
 
       <p className="mt-10 flex flex-wrap gap-6 text-sm">
-        <Link href="/" className="font-medium text-accent underline underline-offset-4">Start the reference mission</Link>
-        <Link href="/analyze" className="font-medium text-accent underline underline-offset-4">Set up your own analysis</Link>
+        <Link href="/" className="tap font-medium text-accent underline underline-offset-4">Start the reference mission</Link>
+        <Link href="/analyze" className="tap font-medium text-accent underline underline-offset-4">Set up your own analysis</Link>
       </p>
     </article>
   );

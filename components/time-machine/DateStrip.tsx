@@ -85,7 +85,7 @@ export function DateStrip({ strip, onOpenDate }: { strip: SearchStrip; onOpenDat
                     })}
                     <td className="py-1 pr-3">
                       {d.run_id && d.state !== "baseline" && (d.verdict !== null) && (
-                        <button type="button" onClick={() => onOpenDate(d.offset_days, d.run_id as string)} className="text-accent underline underline-offset-4">
+                        <button type="button" onClick={() => onOpenDate(d.offset_days, d.run_id as string)} className="tap text-accent underline underline-offset-4">
                           Compare
                         </button>
                       )}

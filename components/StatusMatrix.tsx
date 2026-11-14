@@ -42,7 +42,7 @@ export function ExcludedSites({ runId, rows: excluded }: { runId: string; rows: 
         {excluded.map((r) => (
           <li key={r.site_id}>
             {siteLabel(r.site_id)}:{" "}
-            <Link href={`/runs/${runId}/timeline/${encodeURIComponent(r.site_id)}`} className="text-accent underline underline-offset-4">
+            <Link href={`/runs/${runId}/timeline/${encodeURIComponent(r.site_id)}`} className="tap text-accent underline underline-offset-4">
               see why on the timeline
             </Link>
           </li>
@@ -75,7 +75,7 @@ export function StatusMatrix({
     <div className="overflow-x-auto">
       {showCompareLink && all.length >= 2 && (
         <p className="mb-3 text-sm">
-          <Link href={`/runs/${runId}/compare`} className="font-medium text-accent underline underline-offset-4">
+          <Link href={`/runs/${runId}/compare`} className="tap font-medium text-accent underline underline-offset-4">
             Compare these sites side by side
           </Link>
         </p>
@@ -106,13 +106,13 @@ export function StatusMatrix({
                   {siteLabel(r.site_id)}
                   <Link
                     href={`/runs/${runId}/timeline/${encodeURIComponent(r.site_id)}`}
-                    className="mt-1 block text-sm font-normal text-accent underline underline-offset-4"
+                    className="tap-block mt-1 text-sm font-normal text-accent underline underline-offset-4"
                   >
                     Timeline and evidence
                   </Link>
                   <Link
                     href={`/runs/${runId}/sky/${encodeURIComponent(r.site_id)}`}
-                    className="mt-1 block text-sm font-normal text-accent underline underline-offset-4"
+                    className="tap-block mt-1 text-sm font-normal text-accent underline underline-offset-4"
                   >
                     Local sky
                   </Link>

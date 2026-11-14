@@ -75,7 +75,7 @@ export function ComparisonSummary({ cmp }: { cmp: RunComparisonResponse }) {
           </ul>
         </Card>
         <Disclosure summary={`Held constant (${cmp.held_constant.length} inputs)`} className="text-sm">
-          <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1">
+          <dl className="kv">
             {cmp.held_constant.map((h) => (
               <div key={h.field} className="contents">
                 <dt className="text-muted">{fieldLabel(h.field)}</dt>

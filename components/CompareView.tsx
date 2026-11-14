@@ -79,7 +79,7 @@ export function CompareView({ runId }: { runId: string }) {
   if (err)
     return (
       <div className="grid gap-3">
-        <Link href={`/runs/${runId}`} className="text-sm text-accent underline underline-offset-4">← Back to the status matrix</Link>
+        <Link href={`/runs/${runId}`} className="tap text-sm text-accent underline underline-offset-4">← Back to the status matrix</Link>
         <Alert tone="fail">{err}</Alert>
       </div>
     );
@@ -124,7 +124,7 @@ export function CompareView({ runId }: { runId: string }) {
               <div className="mt-2 grid gap-4 lg:grid-cols-2">
                 <Card variant="inset">
                   <h3 className="text-sm font-semibold">Held constant (identical for every site)</h3>
-                  <dl className="mt-2 grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-sm">
+                  <dl className="kv mt-2 text-sm">
                     {cmp.held_constant.map((h) => (
                       <div key={h.field} className="contents">
                         <dt className="text-muted">{fieldLabel(h.field)}</dt>

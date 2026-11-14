@@ -190,7 +190,7 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
   if (err)
     return (
       <div className="grid gap-3">
-        <Link href={`/runs/${runId}`} className="text-sm text-accent underline underline-offset-4">← Back to the status matrix</Link>
+        <Link href={`/runs/${runId}`} className="tap text-sm text-accent underline underline-offset-4">← Back to the status matrix</Link>
         <p role="alert" className="rounded-md border border-fail/40 bg-fail-soft px-3 py-2 text-fail">{err}</p>
       </div>
     );
@@ -239,7 +239,7 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="type-title">Local sky: {siteLabel(siteId)}</h1>
         <StatusChip p={sp} title={sp.help} />
-        <Link href={`/runs/${runId}/timeline/${encodeURIComponent(siteId)}`} className="text-sm text-accent underline underline-offset-4">
+        <Link href={`/runs/${runId}/timeline/${encodeURIComponent(siteId)}`} className="tap text-sm text-accent underline underline-offset-4">
           Timeline
         </Link>
       </div>
@@ -332,7 +332,7 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
                       <span aria-hidden="true" className={sun ? "text-sun" : "text-earth"}>{sun ? "●" : "◆"}</span>
                       {targetLabel(c.target)}
                     </h2>
-                    <dl className="mt-2 grid grid-cols-[max-content_1fr] gap-x-3 gap-y-0.5">
+                    <dl className="kv mt-2">
                       <dt className="text-muted">Azimuth</dt><dd className="readout">{c.cursor.az.toFixed(2)}°</dd>
                       <dt className="text-muted">Elevation</dt><dd className="readout">{degrees(c.cursor.el)}</dd>
                       <dt className="text-muted">Skyline there</dt>

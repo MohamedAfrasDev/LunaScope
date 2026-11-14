@@ -73,13 +73,13 @@ export function SiteCard({ runId, row }: { runId: string; row: MatrixRow }) {
       <footer className="mt-auto flex flex-wrap gap-x-5 gap-y-1 border-t border-border pt-3 text-sm">
         <Link
           href={`/runs/${runId}/timeline/${encodeURIComponent(row.site_id)}`}
-          className="text-accent underline underline-offset-4"
+          className="tap text-accent underline underline-offset-4"
         >
           Timeline and evidence
         </Link>
         <Link
           href={`/runs/${runId}/sky/${encodeURIComponent(row.site_id)}`}
-          className="text-accent underline underline-offset-4"
+          className="tap text-accent underline underline-offset-4"
         >
           Local sky
         </Link>

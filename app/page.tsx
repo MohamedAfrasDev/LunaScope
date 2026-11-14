@@ -20,10 +20,10 @@ export default function Home() {
             <ReferenceMissionButton />
           </div>
           <p className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-            <Link href="/analyze" className="text-accent underline underline-offset-4">
+            <Link href="/analyze" className="tap text-accent underline underline-offset-4">
               Or set up your own analysis
             </Link>
-            <Link href="/why-the-south-pole-is-hard" className="text-accent underline underline-offset-4">
+            <Link href="/why-the-south-pole-is-hard" className="tap text-accent underline underline-offset-4">
               Why the south pole is hard
             </Link>
           </p>

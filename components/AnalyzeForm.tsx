@@ -401,7 +401,7 @@ export function AnalyzeForm() {
       {shareUrl && (
         <label className="grid gap-1 text-sm">
           <span className="font-medium">Link to these inputs</span>
-          <input readOnly value={shareUrl} onFocus={(e) => e.currentTarget.select()} className="rounded-md border border-border bg-surface px-3 py-2 font-mono text-xs" />
+          <input readOnly value={shareUrl} onFocus={(e) => e.currentTarget.select()} className="rounded-md border border-border-strong bg-surface px-3 py-2 font-mono text-xs" />
         </label>
       )}
     </form>

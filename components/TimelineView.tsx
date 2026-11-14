@@ -73,7 +73,7 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
   const bands = useMemo(() => (site ? buildBands(site) : []), [site]);
 
   const back = (
-    <Link href={`/runs/${runId}`} className="text-sm text-accent underline underline-offset-4">
+    <Link href={`/runs/${runId}`} className="tap text-sm text-accent underline underline-offset-4">
       ← Back to the status matrix
     </Link>
   );
@@ -102,7 +102,7 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="type-title">Timeline: {siteLabel(siteId)}</h1>
         <StatusChip p={sp} title={sp.help} />
-        <Link href={`/runs/${runId}/sky/${encodeURIComponent(siteId)}`} className="text-sm text-accent underline underline-offset-4">
+        <Link href={`/runs/${runId}/sky/${encodeURIComponent(siteId)}`} className="tap text-sm text-accent underline underline-offset-4">
           Local sky
         </Link>
       </div>
@@ -172,7 +172,7 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
                       </ul>
                     </div>
                   )}
-                  <dl className="mt-2 grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1">
+                  <dl className="kv mt-2">
                     <dt className="text-muted">Availability, terrain</dt>
                     <dd className="tabular-nums">{pctRange(m.availability_lower, m.availability_upper, 2)} (needs at least {Math.round(m.threshold * 100)}%)</dd>
                     <dt className="text-muted">Availability, flat horizon</dt>
