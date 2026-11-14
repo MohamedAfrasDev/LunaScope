@@ -1,0 +1,106 @@
+{
+ "algorithm_version": "0.2.0-phase1",
+ "built_utc": "2026-11-14T07:53:34Z",
+ "commit": "60e0fcc7e8f488ddc7cd4f37034d8cc71c6d38df",
+ "dirty": false,
+ "horizons_responses": {
+  "in_package": 246,
+  "newly_fetched": 0,
+  "seeded_from_cache": 246
+ },
+ "reference_definition_sha256": "0be977245ec9407e324a8b9bc4bcffdb8188b53818e18c4ba1a56268890be7d0",
+ "reference_status": "frozen",
+ "result_states": [
+  "real_data_unverified"
+ ],
+ "runs": [
+  {
+   "analysis_artifact_sha256": "ba9f9efee29ee58bdea264b2ffb9496263532428a44046338ccaec39c3d861d6",
+   "kind": "reference",
+   "name": "GR-001",
+   "result_id": "00044a07694a567b4a47ce659398b95cccdcd4eac8da6f7ee7a360d732d6572b",
+   "result_state": "real_data_unverified",
+   "run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+   "status": "complete_with_warnings"
+  },
+  {
+   "analysis_artifact_sha256": "ef9e2bad7afb3049b1121ea7e36d87cb8681ab54f408f2467efed020158f2bc4",
+   "kind": "date_shift",
+   "name": "GR-001 +5 d",
+   "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+   "result_id": "8c8f7b368cf59ed020fb952d0ad18362a63bfaa447496febb18882886c01614f",
+   "result_state": "real_data_unverified",
+   "run_id": "cca199d9cd48b767944e648272fdce82142457177abf8297d74966a676eec337",
+   "status": "complete_with_warnings"
+  },
+  {
+   "analysis_artifact_sha256": "052e955e01fecd288b8604d2b1bc732e7f639d65b0abc77b3babca2eb235ee63",
+   "kind": "search_date",
+   "name": "GR-001 +1 d (search)",
+   "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+   "result_id": "5ddf163f83f74d6493d331d1804dec5927dd6358f0452cf208e06f9c6e11e6a3",
+   "result_state": "real_data_unverified",
+   "run_id": "8f335dcf16b39705f13f9437897b2d57790c6fa7268e16a31d28f7492b91aca1",
+   "status": "complete_with_warnings"
+  },
+  {
+   "analysis_artifact_sha256": "77dba5b5e47df89e8728db76a5f5c14375bf94f4092d58b4325175b87077797f",
+   "kind": "search_date",
+   "name": "GR-001 +2 d (search)",
+   "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+   "result_id": "8069ccb684de5b8657ce31dddabf05b8d4f77d44bf2a761242f38d0f76d8dee0",
+   "result_state": "real_data_unverified",
+   "run_id": "bdaf55c21c659d60aeadee9fa82824386beb84e3887098796aa3fa72066858b4",
+   "status": "complete_with_warnings"
+  },
+  {
+   "analysis_artifact_sha256": "dafb535ff5344911a1bacb1f86b01e5aaf122a88d1d0d4bc601b326eeab8d3f2",
+   "kind": "search_date",
+   "name": "GR-001 +3 d (search)",
+   "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+   "result_id": "774e050c18b49ff605d753851d4add808f87e290c7c07da3bb47ed5b767cea26",
+   "result_state": "real_data_unverified",
+   "run_id": "cb97a035337aafdb7422eae9dc5e932707a4f654586155872dd5adba9ffe91ce",
+   "status": "complete_with_warnings"
+  },
+  {
+   "analysis_artifact_sha256": "b459dcce2bde0a3ab33e5f4a96db807dd86284d7cdfa93fcf5ef7f6e65fb69f3",
+   "kind": "search_date",
+   "name": "GR-001 +4 d (search)",
+   "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+   "result_id": "c2f0892b71cc2f833e03dad40dadee4e0cd2d1ea5affdaaafb40aeeb947ac76c",
+   "result_state": "real_data_unverified",
+   "run_id": "7e4828d654bdb007f813f53a73ae6e8843d801447c29ec81375d09de11f6f1dc",
+   "status": "complete_with_warnings"
+  },
+  {
+   "analysis_artifact_sha256": "3ab7e7b73fbba951812568e0fe339764ac6202efc56255afb7541b6101856fb3",
+   "kind": "search_date",
+   "name": "GR-001 +6 d (search)",
+   "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+   "result_id": "ee9129569a146cf65b59fb19aa2e8e296506bd0616d6296afca754803e2509f7",
+   "result_state": "real_data_unverified",
+   "run_id": "d44bc9f9dbb23c4ba8960d9c99710ca23d2fc9550ba8373b20dfe3d25303c14e",
+   "status": "complete_with_warnings"
+  },
+  {
+   "analysis_artifact_sha256": "77652b42f8dee979edac68d6a8348bcecefad4e66f88d751bc59405a9f9d28cf",
+   "kind": "search_date",
+   "name": "GR-001 +7 d (search)",
+   "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+   "result_id": "70b1590a00fc9951b7d4c5a7c81207fac20652e8567c7e9bd91c41af14077897",
+   "result_state": "real_data_unverified",
+   "run_id": "5da9776fb814e49e46b68057ad803ee65925f5fe6d4680bf56e195a204347e0e",
+   "status": "complete_with_warnings"
+  }
+ ],
+ "schema": "lunascope.fallback/1",
+ "search": {
+  "from_days": 1,
+  "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+  "search_id": "7e17e879d2b14651281ad4f2cbec87f6",
+  "step_days": 1,
+  "to_days": 7
+ },
+ "stack": "live"
+}

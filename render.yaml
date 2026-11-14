@@ -1,0 +1,14 @@
+# Render blueprint: the science service in REPLAY mode (saved real-data runs only, no live computing).
+# Create it from the dashboard: New > Blueprint > pick this repository. Then copy the generated
+# LUNASCOPE_API_TOKEN into the web app's SCIENCE_API_TOKEN (see docs/deploy.md, "Hosted demo").
+services:
+  - type: web
+    name: lunascope-science
+    runtime: docker
+    dockerfilePath: ./deploy/replay.Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: LUNASCOPE_API_TOKEN
+        generateValue: true
