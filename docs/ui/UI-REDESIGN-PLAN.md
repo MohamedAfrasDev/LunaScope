@@ -324,10 +324,28 @@ Done when: chart is above the fold on a 1280x800 screen and every existing fact 
 
 Files: `components/SkyView.tsx`, `SkyPlots.tsx`.
 
-- [ ] Larger, centred plot; cursor readout as a compact side panel (Sun and Earth cards in their hues).
-- [ ] Playback controls in a slim bar under the plot; keep keyboard operation of the slider and buttons.
-- [ ] Plot colours from tokens; keep marker shape plus colour (not colour-only).
-- [ ] Optional one-time skyline reveal animation (reduced-motion safe).
+- [x] **One stage card** (`surface-card`): the view switch ("Polar (north up)" / "Unrolled (azimuth across)", now
+  pill-style labels that highlight when checked), the plot, and the time player attached underneath on a
+  slightly darker strip. The polar plot is centred and a little larger (`max-w-[38rem]`). The player is the same
+  focusable `role="group"` with the same keyboard shortcuts (Space, comma, period, arrows); Play is the primary
+  button, Previous/Next event are secondary, Speed sits on the right, and the slider keeps its labels.
+- [x] **One readout panel** beside the stage: "At the cursor" (time and day as readouts), then the Sun and Earth blocks
+  separated by rules. Each block is still a `section` named "Sun at the cursor" / "Earth at the cursor" with its
+  Sun dot / Earth diamond in the heading, readout values, and the countdown card inside. Below `lg` the panel
+  stacks under the stage.
+- [x] Plot colours from tokens: Sun `--sun`, Earth `--earth` (the plot used `--warn` and `--info` before, which
+  happened to look similar). The flat 0 degree horizon used the accent blue, which read as Earth's blue; it is now
+  the muted neutral in both views, so blue only ever means Earth. State is still carried by stroke pattern, and
+  Sun and Earth by hue, marker shape and a label.
+- [x] The terrain fades in once (0.9s, finite). The reduced-motion rule collapses it to the final state.
+- [x] The positions table is a `Disclosure` (closed, same summary text) and the CSV download is a `Button`.
+- Left for later: the "Sun" and "Earth" text labels beside the plot markers can sit on top of the track line
+  (existing behaviour); a halo behind the labels would fix it (phase 13 sweep).
+
+Verification: vitest 199 (4 new in `tests/web/sky-view.test.tsx`: stage composition and order, one readout panel
+with shape plus word, Sun and Earth hues and no accent blue in either view, keyboard group attributes), tsc, eslint,
+Playwright e2e 6, fallback e2e 1 (live stack), `next build`, axe in dark and light on all 9 routes: 0 violations.
+Reviewed at 1280 (dark, light) and 375px; no sideways scroll. No existing test needed changing.
 
 Done when: the plot is the visual anchor of the page, and keyboard and table fallbacks still work.
 

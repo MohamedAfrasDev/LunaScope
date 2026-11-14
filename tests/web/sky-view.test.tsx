@@ -137,3 +137,57 @@ describe("SkyView", () => {
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });
 });
+
+describe("SkyView stage layout", () => {
+  const follows = (a: Node, b: Node) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+  it("makes the view switch, the plot and the time player one object, plot before player", async () => {
+    render(<SkyView runId={RUN} siteId={SITE} />);
+    const plot = await screen.findByRole("img", { name: /Local sky for/ });
+    const player = screen.getByRole("group", { name: /Time player/ });
+    const views = screen.getByRole("group", { name: "Sky view" });
+    const stage = plot.closest(".surface-card");
+    expect(stage).not.toBeNull();
+    expect(stage).toContainElement(player);
+    expect(stage).toContainElement(views);
+    expect(follows(views, plot)).toBe(true);
+    expect(follows(plot, player)).toBe(true);
+    // the controls live in the stage, not in a separate full-width block
+    expect(within(stage as HTMLElement).getByRole("button", { name: "Next event" })).toBeInTheDocument();
+    expect(within(stage as HTMLElement).getByRole("slider")).toBeInTheDocument();
+  });
+
+  it("puts the cursor time and both targets in one readout panel beside the stage", async () => {
+    render(<SkyView runId={RUN} siteId={SITE} />);
+    await screen.findByRole("img", { name: /Local sky for/ });
+    const sun = screen.getByRole("region", { name: /Sun at the cursor/ });
+    const earth = screen.getByRole("region", { name: /Earth at the cursor/ });
+    const panel = sun.closest(".surface-card");
+    expect(panel).toBe(earth.closest(".surface-card"));
+    expect(within(panel as HTMLElement).getByRole("heading", { name: "At the cursor" })).toBeInTheDocument();
+    expect(panel).not.toContainElement(screen.getByRole("group", { name: /Time player/ }));
+    // each target keeps shape plus word, not colour alone
+    expect(within(sun).getByRole("heading", { name: "Sun" })).toHaveTextContent("●");
+    expect(within(earth).getByRole("heading", { name: "Earth" })).toHaveTextContent("◆");
+  });
+
+  it("draws Sun and Earth in their own hues in both views, and never reuses Earth's blue for the flat horizon", async () => {
+    render(<SkyView runId={RUN} siteId={SITE} />);
+    const polar = await screen.findByRole("img", { name: /Local sky for/ });
+    expect(polar.outerHTML).toContain("var(--sun)");
+    expect(polar.outerHTML).toContain("var(--earth)");
+    expect(polar.outerHTML).not.toContain("var(--accent)");
+    fireEvent.click(screen.getByLabelText(/Unrolled/));
+    await screen.findByText(/azimuth, clockwise from north/);
+    const flat = screen.getByRole("img", { name: /Local sky for/ });
+    expect(flat.outerHTML).not.toContain("var(--accent)");
+  });
+
+  it("keeps the time player keyboard-operable as a focusable group", async () => {
+    render(<SkyView runId={RUN} siteId={SITE} />);
+    await screen.findByRole("img", { name: /Local sky for/ });
+    const player = screen.getByRole("group", { name: /Time player/ });
+    expect(player).toHaveAttribute("tabindex", "0");
+    expect(player).toHaveAttribute("aria-keyshortcuts", "Space , . ArrowLeft ArrowRight");
+  });
+});

@@ -26,7 +26,7 @@ const DASH: Record<IntervalClass | "none", string | undefined> = {
   none: "1 1",
 };
 const WIDTH: Record<IntervalClass | "none", number> = { V: 2.6, H: 1.8, U: 2.2, X: 2.2, G: 1.6, none: 1 };
-const HUE: Record<Target, string> = { sun_center: "var(--warn)", earth_center: "var(--info)" };
+const HUE: Record<Target, string> = { sun_center: "var(--sun)", earth_center: "var(--earth)" };
 
 function Marker({ target, x, y }: { target: Target; x: number; y: number }) {
   return target === "sun_center" ? (
@@ -126,7 +126,7 @@ export function PolarSky({ profile, tracks, band, title, desc }: {
   const runs = knownRuns(profile.horizon_el_deg);
 
   return (
-    <svg viewBox="-135 -135 270 270" role="img" aria-labelledby={`${id}-t`} aria-describedby={`${id}-d`} className="h-auto w-full max-w-[34rem]">
+    <svg viewBox="-135 -135 270 270" role="img" aria-labelledby={`${id}-t`} aria-describedby={`${id}-d`} className="mx-auto h-auto w-full max-w-[38rem]">
       <title id={`${id}-t`}>{title}</title>
       <desc id={`${id}-d`}>{desc}</desc>
       <Patterns id={id} />
@@ -143,7 +143,7 @@ export function PolarSky({ profile, tracks, band, title, desc }: {
       {/* terrain: everything below the skyline is blocked */}
       {allKnown ? (
         <path d={`M${Array.from({ length: n }, (_, i) => { const p = pt(i); return `${f(p.x)},${f(p.y)}`; }).join("L")}Z`}
-          fill={`url(#${id}-terrain)`} strokeWidth={1.6} style={{ stroke: "var(--foreground)" }} />
+          fill={`url(#${id}-terrain)`} strokeWidth={1.6} style={{ stroke: "var(--foreground)" }} className="reveal" />
       ) : (
         <>
           <circle r={R} fill={`url(#${id}-unknown)`} />
@@ -154,8 +154,8 @@ export function PolarSky({ profile, tracks, band, title, desc }: {
         </>
       )}
       {/* flat 0 degree horizon for comparison */}
-      <circle r={flatR} fill="none" strokeWidth={1.2} strokeDasharray="4 3" style={{ stroke: "var(--accent)" }} />
-      <text x={flatR + 2} y={-2} fontSize="6.5" style={{ fill: "var(--accent)" }}>0° flat horizon</text>
+      <circle r={flatR} fill="none" strokeWidth={1.2} strokeDasharray="4 3" style={{ stroke: "var(--muted)" }} />
+      <text x={flatR + 2} y={-2} fontSize="6.5" style={{ fill: "var(--muted)" }}>0° flat horizon</text>
       {/* compass */}
       {([["N", 0], ["E", 90], ["S", 180], ["W", 270]] as const).map(([l, a]) => {
         const p = polar(a, band.max, band, R + 11);
@@ -208,8 +208,8 @@ export function UnrolledSky({ profile, tracks, band, title, desc }: {
       {ticks.map((e) => (
         <g key={e}>
           <line x1={L} x2={W - RGT} y1={Y(e)} y2={Y(e)} strokeWidth={e === 0 ? 1.2 : 0.5}
-            strokeDasharray={e === 0 ? "4 3" : undefined} style={{ stroke: e === 0 ? "var(--accent)" : "var(--border)" }} />
-          <text x={L - 6} y={Y(e) + 3} fontSize="10" textAnchor="end" style={{ fill: e === 0 ? "var(--accent)" : "var(--muted)" }}>{e}°</text>
+            strokeDasharray={e === 0 ? "4 3" : undefined} style={{ stroke: e === 0 ? "var(--muted)" : "var(--border)" }} />
+          <text x={L - 6} y={Y(e) + 3} fontSize="10" textAnchor="end" style={{ fill: "var(--muted)" }}>{e}°</text>
         </g>
       ))}
       {[0, 45, 90, 135, 180, 225, 270, 315, 360].map((a) => (
