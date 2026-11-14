@@ -4,6 +4,8 @@ Terrain-aware lunar power and direct-to-Earth opportunity navigator — NASA Spa
 
 LunaScope is a **screening and education tool**. It is not a certification of landing safety, electrical power, link performance or mission feasibility. No result in this repository is a validated lunar result yet; synthetic values carry a persistent label.
 
+**Live demo (replay of saved real-data runs, unverified): https://luna-scope.afras.dev**
+
 ## Documents
 
 - [**User guide**: how it works and how to use every page and control](docs/USER-GUIDE.md)
