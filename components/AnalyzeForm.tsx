@@ -43,7 +43,7 @@ function Field({
   children: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-sm font-medium">
         {label}
       </label>
@@ -64,7 +64,7 @@ function Field({
 }
 
 const input =
-  "rounded border border-border bg-surface px-3 py-2 text-sm aria-[invalid=true]:border-fail aria-[invalid=true]:bg-fail-soft";
+  "rounded-md border border-border-strong bg-surface px-3 py-2 text-sm aria-[invalid=true]:border-fail aria-[invalid=true]:bg-fail-soft";
 
 export function AnalyzeForm() {
   const router = useRouter();
@@ -101,7 +101,7 @@ export function AnalyzeForm() {
 
   if (loadErr)
     return (
-      <p role="alert" className="rounded border border-fail/40 bg-fail-soft px-3 py-2 text-fail">
+      <p role="alert" className="rounded-md border border-fail/40 bg-fail-soft px-3 py-2 text-fail">
         {loadErr}
       </p>
     );
@@ -159,19 +159,19 @@ export function AnalyzeForm() {
     }
   }
 
-  const fieldset = "rounded-lg border border-border bg-surface p-4";
-  const legend = "px-1 text-base font-semibold";
+  const fieldset = "surface-card p-5";
+  const legend = "px-1 text-base font-semibold tracking-tight";
 
   return (
-    <form onSubmit={submit} noValidate className="grid gap-6">
+    <form onSubmit={submit} noValidate className="grid max-w-5xl gap-5">
       {Object.keys(errors).length > 0 && (
-        <div role="alert" className="rounded border border-fail/40 bg-fail-soft px-4 py-3 text-sm text-fail">
+        <div role="alert" className="rounded-md border border-fail/40 bg-fail-soft px-4 py-3 text-sm text-fail">
           <strong>Fix {Object.keys(errors).length} field(s) before submitting.</strong> Nothing has been sent.
         </div>
       )}
-      {notice && <p role="status" className="rounded border border-info/40 bg-info-soft px-4 py-3 text-sm text-info">{notice}</p>}
+      {notice && <p role="status" className="rounded-md border border-info/40 bg-info-soft px-4 py-3 text-sm text-info">{notice}</p>}
       {formErr && (
-        <p role="alert" className="rounded border border-fail/40 bg-fail-soft px-4 py-3 text-sm text-fail">
+        <p role="alert" className="rounded-md border border-fail/40 bg-fail-soft px-4 py-3 text-sm text-fail">
           {formErr}
         </p>
       )}
@@ -179,7 +179,7 @@ export function AnalyzeForm() {
       <fieldset className={fieldset}>
         <legend className={legend}>Mission window (UTC)</legend>
         <p className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted">
-          <button type="button" className="rounded border border-border bg-surface px-3 py-1.5 text-sm font-medium"
+          <button type="button" className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium"
             onClick={() => {
               const n = nowStart();
               const next = { ...d, ...n };
@@ -272,7 +272,7 @@ export function AnalyzeForm() {
         <ul className="mt-3 grid gap-2 sm:grid-cols-2">
           {catalog.sites.map((s) => (
             <li key={s.site_id}>
-              <label className="flex items-start gap-3 rounded border border-border p-3 text-sm">
+              <label className="flex cursor-pointer items-start gap-3 rounded-md border border-border p-3 text-sm transition-colors hover:border-border-strong hover:bg-surface-2 has-[:checked]:border-accent has-[:checked]:bg-info-soft">
                 <input type="checkbox" className="mt-1" checked={d.siteIds.includes(s.site_id)}
                   onChange={(e) => set("siteIds", e.target.checked ? [...d.siteIds, s.site_id]
                     : d.siteIds.filter((x) => x !== s.site_id))} />
@@ -289,7 +289,7 @@ export function AnalyzeForm() {
         </ul>
 
         {d.custom.map((c, i) => (
-          <div key={i} className="mt-4 grid gap-3 rounded border border-border p-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div key={i} className="mt-4 grid gap-3 rounded-md border border-border bg-surface-2 p-4 sm:grid-cols-2 lg:grid-cols-5">
             <Field id={fid(`clat${i}`)} label="Latitude (°)" error={errors[`custom.${i}.lat`]}>
               <input id={fid(`clat${i}`)} className={input} value={c.lat}
                 aria-invalid={errors[`custom.${i}.lat`] ? true : undefined}
@@ -328,7 +328,7 @@ export function AnalyzeForm() {
             <CustomCoverage c={c} index={i} errors={customErrors(d, i)} />
           </div>
         ))}
-        <button type="button" className="mt-3 rounded border border-border px-3 py-2 text-sm"
+        <button type="button" className="mt-3 rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium"
           onClick={() => set("custom", [...d.custom, emptyCustom()])}>
           Add a custom point
         </button>
@@ -347,15 +347,15 @@ export function AnalyzeForm() {
         </label>
       </fieldset>
 
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="sticky bottom-0 -mx-4 flex flex-wrap items-center gap-3 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
         <button type="submit" disabled={busy}
-          className="rounded-lg bg-accent px-5 py-3 text-base font-semibold text-background disabled:opacity-60">
+          className="btn-primary">
           {busy ? "Submitting…" : "Run analysis"}
         </button>
-        <button type="button" onClick={reset} className="rounded border border-border px-3 py-2 text-sm">
+        <button type="button" onClick={reset} className="rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium">
           Reset to the reference mission
         </button>
-        <button type="button" onClick={share} className="rounded border border-border px-3 py-2 text-sm">
+        <button type="button" onClick={share} className="rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium">
           Copy a link to these inputs
         </button>
         <p className="text-sm text-muted" aria-live="polite">

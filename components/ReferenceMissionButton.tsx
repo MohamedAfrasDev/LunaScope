@@ -45,7 +45,7 @@ export function ReferenceMissionButton() {
         type="button"
         onClick={start}
         disabled={busy || !ref}
-        className="rounded-lg bg-accent px-5 py-3 text-base font-semibold text-background disabled:opacity-60"
+        className="btn-primary"
       >
         {busy ? "Starting…" : "Start the reference mission"}
       </button>

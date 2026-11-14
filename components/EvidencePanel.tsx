@@ -133,7 +133,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
     return (
       <div className="grid gap-3">
         {back}
-        <p role="alert" className="rounded border border-fail/40 bg-fail-soft px-3 py-2 text-fail">{err}</p>
+        <p role="alert" className="rounded-md border border-fail/40 bg-fail-soft px-3 py-2 text-fail">{err}</p>
       </div>
     );
   if (!p) return <div className="grid gap-3">{back}<p className="text-muted">Loading the evidence…</p></div>;
@@ -324,7 +324,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
 export function EvidenceLink({ runId }: { runId: string }) {
   const { v } = useEvidence(runId);
   return (
-    <section aria-label="Evidence summary" className="rounded-lg border border-border bg-surface p-4 text-sm">
+    <section aria-label="Evidence summary" className="surface-card p-4 text-sm">
       <h2 className="text-lg font-semibold">Evidence</h2>
       {v && (
         <ul className="mt-2 flex flex-wrap gap-x-6 gap-y-2">

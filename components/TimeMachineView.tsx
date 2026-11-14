@@ -115,7 +115,7 @@ export function TimeMachineView({ runId }: { runId: string }) {
 
   if (notFound)
     return (
-      <p role="alert" className="rounded border border-border bg-surface p-4">
+      <p role="alert" className="surface-card p-4">
         No run with this id exists. <Link className="text-accent underline" href="/analyze">Start a new analysis</Link>.
       </p>
     );
@@ -136,10 +136,10 @@ export function TimeMachineView({ runId }: { runId: string }) {
         </p>
       </div>
 
-      {baseErr && <p role="alert" className="rounded border border-warn/50 bg-warn-soft px-3 py-2 text-warn">{baseErr}</p>}
+      {baseErr && <p role="alert" className="rounded-md border border-warn/50 bg-warn-soft px-3 py-2 text-warn">{baseErr}</p>}
       {!base && !baseErr && <p className="text-muted">Loading the baseline…</p>}
       {base && !baseReady && (
-        <p className="rounded border border-border bg-surface p-4 text-sm" aria-live="polite">
+        <p className="surface-card p-4 text-sm" aria-live="polite">
           {base.status === "failed"
             ? "The baseline did not complete, so there is nothing to compare against."
             : `The baseline is ${base.status}. The Time Machine opens when it has finished.`}
@@ -208,7 +208,7 @@ export function TimeMachineView({ runId }: { runId: string }) {
       )}
 
       {baseReady && childId && (
-        <fieldset id="time-alignment" className="rounded-lg border border-border bg-surface p-4">
+        <fieldset id="time-alignment" className="surface-card p-4">
           <legend className="px-1 text-base font-semibold">Time alignment</legend>
           <div className="grid gap-2 sm:grid-cols-2">
             {ALIGNMENTS.map((a) => (
@@ -333,7 +333,7 @@ function ShiftComparison({ baseId, childId, alignment }: { baseId: string; child
     }));
   }, [results, siteId]);
 
-  if (childErr) return <p role="alert" className="rounded border border-warn/50 bg-warn-soft px-3 py-2 text-warn">{childErr} Retrying…</p>;
+  if (childErr) return <p role="alert" className="rounded-md border border-warn/50 bg-warn-soft px-3 py-2 text-warn">{childErr} Retrying…</p>;
   if (!child) return <p className="text-muted">Loading the shifted run…</p>;
   if (child.status === "failed")
     return (
@@ -343,7 +343,7 @@ function ShiftComparison({ baseId, childId, alignment }: { baseId: string; child
     );
   if (!ready)
     return (
-      <div className="rounded-lg border border-border bg-surface p-4" aria-live="polite">
+      <div className="surface-card p-4" aria-live="polite">
         <p className="font-medium">
           Shifted run {child.status}
           {child.stage && child.status === "running" ? `: ${child.stage}` : ""}
@@ -355,7 +355,7 @@ function ShiftComparison({ baseId, childId, alignment }: { baseId: string; child
   return (
     <div className="grid gap-6" aria-live="polite">
       {cmpErr && (
-        <p role="alert" className="rounded border border-fail/40 bg-fail-soft px-3 py-2 text-fail">
+        <p role="alert" className="rounded-md border border-fail/40 bg-fail-soft px-3 py-2 text-fail">
           {cmpErr}
         </p>
       )}
@@ -483,7 +483,7 @@ function ShiftComparison({ baseId, childId, alignment }: { baseId: string; child
               const bands = bandsFor(p.site, p.title);
               const start = bands[0]?.intervals[0]?.start_utc;
               return (
-                <article key={p.key} aria-label={`${p.title} run`} className="rounded-lg border border-border bg-surface p-4">
+                <article key={p.key} aria-label={`${p.title} run`} className="surface-card p-4">
                   <h3 className="font-semibold">
                     {p.title} <span className="font-mono text-xs text-muted">{shortId(p.run.run_id)}</span>
                   </h3>
