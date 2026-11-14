@@ -90,7 +90,7 @@ export function CompareView({ runId }: { runId: string }) {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Compare sites</h1>
+        <h1 className="type-title">Compare sites</h1>
         <p className="mt-1 max-w-3xl text-sm text-muted">
           Every site below was computed from identical inputs. Sunlight and Earth visibility are judged separately and
           LunaScope does not rank the sites: it shows the trade-offs.
@@ -99,9 +99,9 @@ export function CompareView({ runId }: { runId: string }) {
 
       <fieldset className="surface-card p-4" aria-describedby={selected.length < 2 ? `${uid}-n` : undefined}>
         <legend className="px-1 text-base font-semibold">Sites to compare</legend>
-        <div className="flex flex-wrap gap-x-6 gap-y-2">
+        <div className="mt-1 flex flex-wrap gap-2">
           {allSites.map((id) => (
-            <label key={id} className="flex items-center gap-2 text-sm">
+            <label key={id} className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm transition-colors hover:border-border-strong has-[:checked]:border-accent has-[:checked]:bg-surface-2 has-[:checked]:font-medium">
               <input type="checkbox" checked={selected.includes(id)} onChange={(e) => toggle(id, e.target.checked)} />
               {siteLabel(id)}
             </label>
@@ -120,7 +120,7 @@ export function CompareView({ runId }: { runId: string }) {
         <ResultStateFrame state={cmp.result_state}>
           <div className="grid gap-8">
             <section aria-labelledby={`${uid}-held`}>
-              <h2 id={`${uid}-held`} className="text-lg font-semibold">Held constant and changed</h2>
+              <h2 id={`${uid}-held`} className="type-section">Held constant and changed</h2>
               <div className="mt-2 grid gap-4 lg:grid-cols-2">
                 <Card variant="inset">
                   <h3 className="text-sm font-semibold">Held constant (identical for every site)</h3>
@@ -149,7 +149,7 @@ export function CompareView({ runId }: { runId: string }) {
             </section>
 
             <section aria-labelledby={`${uid}-facts`}>
-              <h2 id={`${uid}-facts`} className="text-lg font-semibold">What differs</h2>
+              <h2 id={`${uid}-facts`} className="type-section">What differs</h2>
               <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-6">
                 {cmp.facts.map((f, i) => <li key={i}>{factText(f)}</li>)}
               </ul>
@@ -159,7 +159,12 @@ export function CompareView({ runId }: { runId: string }) {
               const block = cmp.targets[t];
               return (
                 <section key={t} aria-labelledby={`${uid}-${t}`}>
-                  <h2 id={`${uid}-${t}`} className="text-lg font-semibold">{targetLabel(t)}</h2>
+                  <h2 id={`${uid}-${t}`} className="type-section flex items-center gap-2">
+                    <span aria-hidden="true" className={t === "sun_center" ? "text-sun" : "text-earth"}>
+                      {t === "sun_center" ? "●" : "◆"}
+                    </span>
+                    {targetLabel(t)}
+                  </h2>
                   <p className="mt-1 text-sm text-muted">
                     Availability across the compared sites ranges from{" "}
                     <strong>{(block.spread.availability_lower_min * 100).toFixed(1)}%</strong> to{" "}
@@ -183,13 +188,13 @@ export function CompareView({ runId }: { runId: string }) {
                             <th scope="row" className="py-2 pr-3 text-left font-medium">{siteLabel(r.site_id)}</th>
                             <td className="py-2 pr-3">
                               <StatusChip p={OUTCOME[r.terrain.outcome]} title={OUTCOME[r.terrain.outcome].help} />
-                              <div className="mt-1 tabular-nums">{pctRange(r.terrain.availability_lower, r.terrain.availability_upper, 2)}</div>
+                              <div className="readout mt-1">{pctRange(r.terrain.availability_lower, r.terrain.availability_upper, 2)}</div>
                             </td>
                             <td className="py-2 pr-3 tabular-nums">{duration(r.terrain.longest_known_hidden_s)}</td>
                             <td className="py-2 pr-3 tabular-nums">{r.terrain.events}</td>
                             <td className="py-2 pr-3">
                               <StatusChip p={OUTCOME[r.flat.outcome]} />
-                              <div className="mt-1 tabular-nums">{pctRange(r.flat.availability_lower, r.flat.availability_upper, 2)}</div>
+                              <div className="readout mt-1">{pctRange(r.flat.availability_lower, r.flat.availability_upper, 2)}</div>
                             </td>
                           </tr>
                         ))}

@@ -284,7 +284,7 @@ export function AnalyzeForm() {
                 <input id={fid(`cprec${i}`)} className={`${input} w-full`} value={c.precision}
                   aria-invalid={errors[`custom.${i}.precision`] ? true : undefined}
                   onChange={(e) => set("custom", d.custom.map((x, j) => (j === i ? { ...x, precision: e.target.value } : x)))} />
-                <button type="button" className="rounded border border-border px-2 text-sm"
+                <button type="button" className="rounded-md border border-border px-2 text-sm"
                   onClick={() => set("custom", d.custom.filter((_, j) => j !== i))}
                   aria-label={`Remove custom site ${i + 1}`}>
                   Remove
@@ -401,7 +401,7 @@ export function AnalyzeForm() {
       {shareUrl && (
         <label className="grid gap-1 text-sm">
           <span className="font-medium">Link to these inputs</span>
-          <input readOnly value={shareUrl} onFocus={(e) => e.currentTarget.select()} className="rounded border border-border bg-surface px-3 py-2 font-mono text-xs" />
+          <input readOnly value={shareUrl} onFocus={(e) => e.currentTarget.select()} className="rounded-md border border-border bg-surface px-3 py-2 font-mono text-xs" />
         </label>
       )}
     </form>
@@ -438,7 +438,7 @@ function CustomCoverage({ c, index, errors }: { c: CustomDraft; index: number; e
   return (
     <div className="sm:col-span-2 lg:col-span-5" aria-live="polite">
       <button type="button" onClick={check} disabled={busy || invalid}
-        className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">
+        className="rounded-md border border-border px-3 py-1.5 text-sm disabled:opacity-50">
         {busy ? "Checking…" : `Check terrain coverage for point ${index + 1}`}
       </button>
       {invalid && <span className="ml-3 text-xs text-muted">Fix this point&rsquo;s fields first.</span>}

@@ -25,7 +25,7 @@ const pp = (x: number) => (Math.abs(x) < 0.0005 ? "no change" : `${x > 0 ? "+" :
 export function SensitivityPanel({ variants }: { variants: SensitivityVariant[] }) {
   if (variants.length === 0)
     return (
-      <section aria-label="Sensitivity" className="rounded border border-border p-3 text-sm">
+      <section aria-label="Sensitivity" className="rounded-md border border-border p-3 text-sm">
         <h2 className="text-base font-semibold">Sensitivity</h2>
         <p className="mt-1 text-muted">
           No sensitivity check was run for this analysis. Start one from{" "}
@@ -36,12 +36,12 @@ export function SensitivityPanel({ variants }: { variants: SensitivityVariant[] 
       </section>
     );
   return (
-    <section aria-label="Sensitivity" className="grid gap-3 rounded border border-border p-3 text-sm">
+    <section aria-label="Sensitivity" className="grid gap-3 rounded-md border border-border p-3 text-sm">
       <h2 className="text-base font-semibold">Sensitivity</h2>
       {variants.map((v) => {
         const meta = NAMES[v.variant] ?? { label: v.variant, what: "" };
         return (
-          <div key={v.variant} className="rounded border border-border/60 p-2">
+          <div key={v.variant} className="rounded-md border border-border/60 p-2">
             <h3 className="flex flex-wrap items-center gap-2 font-medium">
               {meta.label}
               {v.sensitivity_high ? (

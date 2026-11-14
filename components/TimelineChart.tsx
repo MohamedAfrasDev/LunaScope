@@ -142,7 +142,7 @@ export function TimelineChart({ bands, title }: { bands: Band[]; title: string }
 
 export function IntervalTable({ band }: { band: Band }) {
   return (
-    <details className="rounded border border-border">
+    <details className="rounded-md border border-border">
       <summary className="cursor-pointer px-3 py-2 text-sm font-medium">
         {band.label ?? targetLabel(band.target)}, {band.sub ?? (band.horizon === "terrain" ? "terrain-aware" : "flat horizon")}: view as table ({band.intervals.length} intervals)
       </summary>

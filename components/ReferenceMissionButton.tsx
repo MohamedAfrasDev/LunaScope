@@ -66,7 +66,7 @@ export function ReferenceMissionButton() {
         </p>
       )}
       {err && (
-        <p role="alert" className="mt-3 rounded border border-fail/40 bg-fail-soft px-3 py-2 text-sm text-fail">
+        <p role="alert" className="mt-3 rounded-md border border-fail/40 bg-fail-soft px-3 py-2 text-sm text-fail">
           {err}
         </p>
       )}

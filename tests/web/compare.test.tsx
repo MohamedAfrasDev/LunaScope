@@ -149,3 +149,22 @@ describe("CompareView", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("run is queued");
   });
 });
+
+describe("CompareView presentation (phase 12)", () => {
+  it("marks Sun and Earth with their shapes in the section headings; the word still names each", async () => {
+    stub();
+    render(<CompareView runId={RUN} />);
+    await screen.findByText("Held constant (identical for every site)");
+    expect(screen.getByRole("heading", { name: "Sun", level: 2 })).toHaveTextContent("●");
+    expect(screen.getByRole("heading", { name: "Earth", level: 2 })).toHaveTextContent("◆");
+  });
+
+  it("offers the sites as selectable pills that are still plain checkboxes", async () => {
+    stub();
+    render(<CompareView runId={RUN} />);
+    await screen.findByText("Held constant (identical for every site)");
+    const box = screen.getByLabelText("89.5°S, 0°E");
+    expect(box).toBeChecked();
+    expect(box.closest("label")?.className).toContain("has-[:checked]:border-accent");
+  });
+});

@@ -9,6 +9,8 @@ import { duration, pctRange, shortId, siteLabel, targetLabel, utc } from "@/lib/
 import { CARD_STATUS, OUTCOME, WARNING_TEXT } from "@/lib/status";
 import { ResultStateFrame } from "./ResultStateFrame";
 import { StatusChip } from "./StatusChip";
+import { Alert } from "./ui/Alert";
+import { Disclosure } from "./ui/Disclosure";
 
 const Hash = ({ v, n = 16 }: { v: string; n?: number }) => (
   <span className="break-all font-mono text-xs" title={v}>
@@ -37,7 +39,7 @@ function GroupCard({ g, cards }: { g: ValidationGroup; cards: ValidationCard[] }
   const members = cards.filter((c) => g.card_ids.includes(c.id));
   const s = CARD_STATUS[g.status];
   return (
-    <article aria-labelledby={`card-${g.id}`} className="flex flex-col rounded-lg border border-border bg-surface p-4">
+    <article aria-labelledby={`card-${g.id}`} className="flex flex-col rounded-md border border-border p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 id={`card-${g.id}`} className="font-semibold">{g.title}</h3>
         <StatusChip p={s} title={s.help} />
@@ -133,7 +135,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
     return (
       <div className="grid gap-3">
         {back}
-        <p role="alert" className="rounded-md border border-fail/40 bg-fail-soft px-3 py-2 text-fail">{err}</p>
+        <Alert tone="fail">{err}</Alert>
       </div>
     );
   if (!p) return <div className="grid gap-3">{back}<p className="text-muted">Loading the evidence…</p></div>;
@@ -163,7 +165,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Evidence</h1>
+        <h1 className="type-title">Evidence</h1>
         <p className="mt-1 max-w-3xl text-sm text-muted">
           What was used, what was checked against what, and what was not checked. Every number in this run
           traces to the inputs below.
@@ -173,7 +175,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
       <ResultStateFrame state={p.result_state}>
         <div className="grid gap-8">
           <section aria-labelledby={`${uid}-cards`}>
-            <h2 id={`${uid}-cards`} className="text-lg font-semibold">Validation cards</h2>
+            <h2 id={`${uid}-cards`} className="type-section">Validation cards</h2>
             {v ? (
               <>
                 <p className="mt-1 text-sm text-muted">
@@ -188,8 +190,33 @@ export function EvidencePanel({ runId }: { runId: string }) {
             )}
           </section>
 
-          <section aria-labelledby={`${uid}-ids`}>
-            <h2 id={`${uid}-ids`} className="text-lg font-semibold">Identity and pinned resources</h2>
+          <section aria-labelledby={`${uid}-disc`}>
+            <h2 id={`${uid}-disc`} className="type-section">Disc size: centre or edge?</h2>
+            <p className="mt-1 max-w-3xl text-sm text-muted">
+              Every result treats the Sun and Earth as a single point, their centre. Earth is about 1.9° across and the
+              Sun about 0.5°, so near the skyline that can matter. The table brackets it: the same sky and terrain with
+              the edge of the disc used instead.
+            </p>
+            {p.sites.some((s) => s.disk_edge) ? (
+              p.sites.map((s) => (s.disk_edge
+                ? <DiskEdgeTable key={s.site_id} siteId={s.site_id} d={s.disk_edge} />
+                : <p key={s.site_id} className="mt-2 text-sm text-muted">{siteLabel(s.site_id)}: not computed for this result.</p>))
+            ) : (
+              <p className="mt-2 text-sm text-muted">Not computed for this analysis: it was made before this check existed. Run it again to get it.</p>
+            )}
+            {p.sites.find((s) => s.disk_edge)?.disk_edge && (
+              <p className="mt-2 text-xs text-muted">{p.sites.find((s) => s.disk_edge)?.disk_edge?.note}</p>
+            )}
+          </section>
+
+          <section aria-labelledby={`${uid}-prov`} className="grid gap-3">
+            <h2 id={`${uid}-prov`} className="type-section">Provenance</h2>
+            <p className="max-w-3xl text-sm text-muted">
+              Where every number comes from, one click each: the hashes that pin this run, the inputs and method, and
+              the geometry and skyline behind each site.
+            </p>
+          <section aria-label="Identity and pinned resources">
+            <Disclosure summary="Identity and pinned resources">
             <dl className="mt-2 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-[max-content_1fr]">
               <dt className="text-muted">Run (hash of request, resources and algorithm)</dt>
               <dd><Hash v={p.run_id} n={24} /></dd>
@@ -204,11 +231,12 @@ export function EvidencePanel({ runId }: { runId: string }) {
                 </div>
               ))}
             </dl>
+            </Disclosure>
           </section>
 
           {method.length > 0 && (
-            <section aria-labelledby={`${uid}-method`}>
-              <h2 id={`${uid}-method`} className="text-lg font-semibold">Method and inputs</h2>
+            <section aria-label="Method and inputs">
+              <Disclosure summary="Method and inputs">
               <dl className="mt-2 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-[max-content_1fr]">
                 {method.map(([k, val]) => (
                   <div key={k} className="contents">
@@ -217,14 +245,15 @@ export function EvidencePanel({ runId }: { runId: string }) {
                   </div>
                 ))}
               </dl>
+              </Disclosure>
             </section>
           )}
 
-          <section aria-labelledby={`${uid}-sites`}>
-            <h2 id={`${uid}-sites`} className="text-lg font-semibold">Per site</h2>
+          <section aria-label="Per site: observer, geometry and skyline">
+            <Disclosure summary="Per site: observer, geometry and skyline">
             <div className="mt-2 grid gap-4">
               {p.sites.map((s) => (
-                <article key={s.site_id} aria-label={`Evidence for ${siteLabel(s.site_id)}`} className="rounded border border-border p-3 text-sm">
+                <article key={s.site_id} aria-label={`Evidence for ${siteLabel(s.site_id)}`} className="rounded-md border border-border p-3 text-sm">
                   <h3 className="font-semibold">{siteLabel(s.site_id)}</h3>
                   <p className="text-muted">
                     {s.observer.lat_deg}°, {s.observer.lon_deg_east}° E planetocentric
@@ -269,36 +298,20 @@ export function EvidencePanel({ runId }: { runId: string }) {
             <p className="mt-2 text-xs text-muted">
               Geometry agreement checks the Sun and Earth directions only. It does not validate the terrain horizon.
             </p>
+            </Disclosure>
           </section>
 
-          <section aria-labelledby={`${uid}-disc`}>
-            <h2 id={`${uid}-disc`} className="text-lg font-semibold">Disc size: centre or edge?</h2>
-            <p className="mt-1 max-w-3xl text-sm text-muted">
-              Every result treats the Sun and Earth as a single point, their centre. Earth is about 1.9° across and the
-              Sun about 0.5°, so near the skyline that can matter. The table brackets it: the same sky and terrain with
-              the edge of the disc used instead.
-            </p>
-            {p.sites.some((s) => s.disk_edge) ? (
-              p.sites.map((s) => (s.disk_edge
-                ? <DiskEdgeTable key={s.site_id} siteId={s.site_id} d={s.disk_edge} />
-                : <p key={s.site_id} className="mt-2 text-sm text-muted">{siteLabel(s.site_id)}: not computed for this result.</p>))
-            ) : (
-              <p className="mt-2 text-sm text-muted">Not computed for this analysis: it was made before this check existed. Run it again to get it.</p>
-            )}
-            {p.sites.find((s) => s.disk_edge)?.disk_edge && (
-              <p className="mt-2 text-xs text-muted">{p.sites.find((s) => s.disk_edge)?.disk_edge?.note}</p>
-            )}
           </section>
 
           <section aria-labelledby={`${uid}-limits`}>
-            <h2 id={`${uid}-limits`} className="text-lg font-semibold">Limits that apply to every number here</h2>
+            <h2 id={`${uid}-limits`} className="type-section">Limits that apply to every number here</h2>
             <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">
               {Array.from(new Set(p.sites.flatMap((s) => s.caveats))).map((c) => <li key={c}>{c}</li>)}
             </ul>
           </section>
 
           <section aria-labelledby={`${uid}-export`}>
-            <h2 id={`${uid}-export`} className="text-lg font-semibold">Export</h2>
+            <h2 id={`${uid}-export`} className="type-section">Export</h2>
             <p className="mt-1 max-w-3xl text-sm text-muted">
               The bundle holds the request, settings, resource pins, provider response hashes, angle series, skyline,
               classified intervals, events, metrics and caveats, plus a frozen snapshot of the validation cards above.
@@ -308,7 +321,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
             <a
               href={`/api/v1/analyses/${runId}/export`}
               download={`lunascope-${shortId(runId)}-investigative.json`}
-              className="mt-3 inline-block rounded border border-border px-3 py-2 text-sm font-medium"
+              className="btn-primary btn-sm mt-3"
             >
               Download investigative bundle (JSON)
             </a>
@@ -324,7 +337,7 @@ export function EvidenceLink({ runId }: { runId: string }) {
   const { v } = useEvidence(runId);
   return (
     <section aria-label="Evidence summary" className="surface-card p-4 text-sm">
-      <h2 className="text-lg font-semibold">Evidence</h2>
+      <h2 className="type-section">Evidence</h2>
       {v && (
         <ul className="mt-2 flex flex-wrap gap-x-6 gap-y-2">
           {v.groups.map((g) => (
