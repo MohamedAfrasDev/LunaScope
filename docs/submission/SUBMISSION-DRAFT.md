@@ -14,7 +14,7 @@ _Word count: 156. Re-read it against `CLAIMS-AUDIT.md` before use._
 | --- | --- | --- | --- |
 | 0:00 to 0:35 | The problem: a few degrees of sky and the ground decide | `/why-the-south-pole-is-hard` (schematic) | Yes |
 | 0:35 to 1:05 | The reference mission | Home: "Start the reference mission" (GR-001) | Yes; its three sites are rule-chosen points, not candidate sites |
-| 1:05 to 2:05 | Baseline: matrix, animated sky, countdown, flat versus terrain | `/runs/{id}`, `/sky/{site}`, `/timeline/{site}` | Yes on synthetic and on RUN-001; **numbers wait for the locked run** |
+| 1:05 to 2:05 | Baseline: matrix, animated sky, countdown, flat versus terrain | `/runs/{id}`, `/sky/{site}`, `/timeline/{site}` | Yes; numbers from the frozen GR-001 record (the Sun fails everywhere, Earth passes at two of three sites) |
 | 2:05 to 3:05 | Time Machine: shift five days, see the deltas | `/runs/{id}/time-machine` | Yes on synthetic; **not yet run on real data** |
 | 3:05 to 3:45 | Evidence: Horizons request, SPICE residual, pinned DEM, three cards | `/runs/{id}/evidence` | Yes; the terrain-horizon card honestly reads "not evaluated" |
 | 3:45 to 4:25 | Alternatives: the tested-dates strip and the trade-off | Time Machine, "Which dates pass?" | Yes on synthetic |
@@ -24,7 +24,7 @@ If the real data shows no dramatic change, show the real stability or trade-off.
 
 ## Before this can be used
 
-1. Freeze GR-001 (it has run live and passes its checks; see `docs/runs/GR-001-run.md`), then take the pitch numbers from the frozen run.
+1. GR-001 is frozen and passes its checks (`docs/runs/GR-001-run.md`): take the pitch numbers from it, labelled `real_data_unverified`.
 2. Settle D-12 (organizer permission). D-09 and D-11 are settled for GR-001.
 3. Fill in the demo link, team roles and the slide or video content: **not written here**, because they depend on decisions and people outside the repository.
 4. Re-run `CLAIMS-AUDIT.md` against the final text.

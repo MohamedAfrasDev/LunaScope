@@ -34,8 +34,8 @@ Landing safety, electrical power, link performance or mission feasibility; NASA 
 
 | Claim | Status |
 | --- | --- |
-| "GR-001 passes the scientific gates" | **Partly delivered.** The draft has run live on real data and passes the five Gate 2 checks (geometry, horizon, aggregation, event search, convergence; see `docs/runs/GR-001-run.md`). It is **not frozen**, its three sites are rule-chosen points and not candidate sites, and its terrain-horizon validation card reads "not evaluated" because no independent skyline implementation exists. Say "passes internal consistency, convergence and SPICE checks", never "validated". |
-| "Computed claims are added only after the golden run passes the scientific gates" (spec summary) | The draft run now passes its checks, so numbers from `docs/runs/GR-001-run.md` may be quoted, labelled `real_data_unverified`. Prefer to wait for the frozen run before scripting numbers for the pitch. |
+| "GR-001 passes the scientific gates" | **Delivered, with limits.** GR-001 is **frozen** (14 Nov, on the project owner's go-ahead; SDR-001 sign-off is still pending) and its frozen run, made at a clean commit with no network, passes the five Gate 2 checks (geometry, horizon, aggregation, event search, convergence; see `docs/runs/GR-001-run.md`). Its three sites are rule-chosen points and not candidate sites, and its terrain-horizon validation card reads "not evaluated" because no independent skyline implementation exists. Say "passes internal consistency, convergence and SPICE checks", never "validated". |
+| "Computed claims are added only after the golden run passes the scientific gates" (spec summary) | The frozen run passes its checks, so numbers from `docs/runs/GR-001-run.md` may be quoted, labelled `real_data_unverified`. They are the same numbers as RUN-001 (same coordinates and window). |
 
 ## Open items that block honest claims
 

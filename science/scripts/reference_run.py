@@ -99,7 +99,8 @@ def cmd_gate(directory: str) -> int:
     """Gate 2 over saved site bundles: five named checks, exit 0 only if every one passes."""
     bundles = [json.loads(p.read_text(encoding="utf-8")) for p in sorted(Path(directory).glob("*.json"))
                if p.name != "manifest.json"]
-    rep = gate_report(bundles, horizon_dir=REPO / "var" / "horizons")
+    store = REPO / "var" / "horizons"
+    rep = gate_report(bundles, horizon_dir=store if store.is_dir() else None)
     for g in rep["gates"]:
         print(f"{g['status'].upper():14s} {g['gate']:13s} {g['detail']}")
         for f in g["failing"][:20]:

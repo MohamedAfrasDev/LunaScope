@@ -44,7 +44,8 @@ def main() -> int:
     manifest = json.loads((d / "manifest.json").read_text(encoding="utf-8"))
     bundles = [json.loads(Path(f).read_text(encoding="utf-8")) for f in sorted(glob.glob(str(d / "*_*.json")))]
     bundles.sort(key=lambda b: b["request"]["site"]["lon_east_deg"])  # a stable, readable order
-    gates = gate_report(bundles, horizon_dir=REPO / "var" / "horizons")
+    store = REPO / "var" / "horizons"
+    gates = gate_report(bundles, horizon_dir=store if store.is_dir() else None)
     cards = run_cards({"run_id": manifest["run_id"], "result_state": bundles[0]["result_state"], "sites": bundles, "validated_scopes": []})
     req = bundles[0]["request"]
     eff = bundles[0]["effective_settings"]

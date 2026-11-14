@@ -1,7 +1,7 @@
 # LunaScope — Phase Plan and To-Do Tracker
 
 **Companion to:** [Implementation Specification v1.1](LunaScope-Implementation-Spec.md) · [SDR-001 (draft)](sdr/SDR-001.md)
-**Last updated:** 14 Nov 2026 · **Code state:** `main` at `9f5e087` plus the uncommitted GR-001 work (370 science tests, 146 web tests, ruff, typecheck, lint and `next build` passing; 5 Playwright tests and 1 offline-fallback spec passing locally; no CI service exists, so `npm run verify` and the commands in the README are the gate)
+**Last updated:** 14 Nov 2026 · **Code state:** branch `freeze-gr-001`, two commits past `main` at `9f5e087` (GR-001 frozen, record in `docs/runs/GR-001/`); 376 science tests, 147 web tests, ruff, typecheck, lint and `next build` passing; 5 Playwright tests and 1 offline-fallback spec passing locally; no CI service exists, so `npm run verify` and the commands in the README are the gate)
 
 Legend: `[x]` done and verified in this repo · `[~]` partly done (the note says what is missing) · `[ ]` not started.
 Dates are intended work windows, not evidence that a gate will pass.
@@ -16,14 +16,14 @@ Dates are intended work windows, not evidence that a gate will pass.
 | --- | --- | --- | --- | --- |
 | **0. Decision & contract gate** | 13 Nov | Settle science/contract decisions before real data | SDR-001 approved | `[~]` decisions made on evidence (~70 %), none signed off: SDR-001 is unsigned |
 | **1. Validity foundation** | 13 Nov | One real site end to end through the science pipeline | **Gate 1** | `[x]` Gate 1 checklist complete (5 of 5, via RUN-001). Phase not formally closed: SDR-001 unsigned, near/far terrain merge not built |
-| **2. Core experience** | 14 Nov | Three-site reference run, all workspaces, evidence | **Gate 2** | `[~]` GR-001 has run live and passes Gate 2's five checks (draft, 14 Nov). Not closed: GR-001 is not frozen (waiting for an explicit go-ahead and a clean-commit re-run), and the terrain-horizon card reads "not evaluated" (no independent skyline implementation) |
+| **2. Core experience** | 14 Nov | Three-site reference run, all workspaces, evidence | **Gate 2** | `[~]` GR-001 is **frozen** and passes Gate 2's five checks on a clean-commit, no-network re-run (14 Nov). Not closed: the terrain-horizon validation card reads "not evaluated" (no independent skyline implementation), and SDR-001 is unsigned |
 | **3. Extras, presentation, reliability** | 15 Nov | Animation, alternatives, fallback, submission | **Gate 3** | `[~]` started 14 Nov: extras and the fallback built; deployment, the live package and the human items are open |
 
 ```
-Phase 0 ███████░░░ 70 %   Phase 1 █████████▌ 95 %   Phase 2 █████████░ 90 %   Phase 3 █████░░░░░ 50 %
+Phase 0 ███████░░░ 70 %   Phase 1 █████████▌ 95 %   Phase 2 █████████▌ 95 %   Phase 3 █████░░░░░ 50 %
 ```
 
-Percentages are the share of each phase's own checklist that is done (a partly done item counts as half, checked 14 Nov). They are not effort or gate readiness. **Gate 1's checklist is complete; Gates 2 and 3 are not passed**: Gate 2's `GR-001` checks pass on the draft live run, but the reference is not frozen and one validation card is not evaluated.
+Percentages are the share of each phase's own checklist that is done (a partly done item counts as half, checked 14 Nov). They are not effort or gate readiness. **Gate 1's checklist is complete; Gates 2 and 3 are not passed**: `GR-001` is frozen and passes its Gate 2 checks, but one validation card is not evaluated and SDR-001 is unsigned.
 
 **Done so far (summary)**
 
@@ -184,8 +184,8 @@ Priority order: validity → relevance → core experience.
 
 ### 2.1 Reference run `GR-001`
 - [x] Sites (D-09), decided for GR-001 on 14 Nov by the project owner: the three **rule points** (latitude -89.5 deg at 0, 120 and 240 E), fixed by an equal-spacing rule before any result was seen, as a **declared reference scenario, not candidate landing sites**. Recorded in `data/reference/GR-001.json` and SDR-001. Science-owner sign-off is still pending. Real candidate sites, with coordinate and terrain provenance, would be a new reference version (GR-002)
-- [~] Freeze the request, window, DEM identity, settings (D-08): the definition is complete with a recorded reason for every field, and its run id is known (`a06f9440...`); **not frozen**, because freezing is irreversible (later changes become GR-002) and is waiting for an explicit go-ahead. To freeze: commit, set `frozen.run_id`, re-run from the clean commit (all Horizons responses are cached, so only compute time) into `docs/runs/GR-001/`
-- [~] Run and cache; record commit, build, algorithm version, checksums: **run live on 14 Nov** (three sites, seven days, live Horizons + LOLA 20 m + SPICE, sensitivity variants, full convergence report, about 6 minutes). Record: [GR-001-run.md](runs/GR-001-run.md); manifest has the commit, algorithm version, definition hash and per-site hashes. **The working tree was dirty**, so this run is not yet reproducible from a commit: the frozen run must be redone at a clean commit. Results are identical to RUN-001 (same coordinates and window)
+- [x] Freeze the request, window, DEM identity, settings (D-08): **frozen on 14 Nov** on the project owner's go-ahead. `data/reference/GR-001.json` pins the live-stack run id (`a06f9440...`, which includes the DEM and SPICE kernel hashes and the algorithm version); `check_freeze` refuses to run if any pinned input changes, and the answer is then GR-002, never an edit. Guards: `test_the_committed_gr001_pin_still_matches_its_inputs_on_the_live_stack` and `test_gr001_record.py` (both shown to fail when the definition is touched). Science-owner sign-off on SDR-001 is still pending
+- [x] Run and cache; record commit, build, algorithm version, checksums: the frozen run was made from the **clean freeze commit** `75b7e6b` into `docs/runs/GR-001/` (manifest: commit, `dirty: false`, algorithm 0.2.0-phase1, definition hash, resource pins, and each site's bundle, skyline and Horizons-response hashes); record [runs/GR-001-run.md](runs/GR-001-run.md). It was re-run with **no Horizons contact set**, so no request could have been sent, and it reproduced the earlier draft run exactly: run and result ids, every interval, event and metric, skyline digests, Horizons response hashes and convergence
 - [x] Convergence report, on real data: all five cases (time step 60 s, azimuth 0.5 and 0.25 deg, radius 100 and 200 km) ran at all three sites; **none is flagged `SENSITIVITY_HIGH`**; no outcome or event count changes, availability moves by at most 0.02 percentage points, and event times by at most 119 s (Earth at `rule-89.5S-E0`, coarsest azimuth step). The near-field on/off case is recorded as not applicable (no multi-resolution merge exists). Earlier offline partial: [RUN-001-convergence.md](runs/RUN-001-convergence.md)
 - [x] Mark unstable cases `SENSITIVITY_HIGH` (`apply_convergence`; tested: a 1 km radius cutting off a 5 km ridge is flagged)
 - [x] Disk-edge sensitivity (S-2, OQ-06): every run now carries a bracket for the Sun and Earth (`disk_edge.py`): the upper limb (visible when any part of the disc clears the skyline), the centre (used everywhere), and the whole disc, recomputed with the same geometry, skyline and event search by moving the clearance margin by the angular radius (Sun 0.27 deg, Earth 0.95 deg; Earth's 0.90 to 1.03 variation is stated, not modelled). Tested against hand-derived rise times. Shown on the Evidence page ("Disc size: centre or edge?") and in `GET .../provenance`; it is outside the hashed result, so run and result ids do not change. **On the real RUN-001 sites** ([record](runs/RUN-001-disk-edge.md), computed offline from the stored bundles): no outcome changes at any site; Earth's availability moves by roughly 10 percentage points either way, and at `S89.5-E240` Earth still passes on the whole-disc reading with only 3.8 points to spare; the Sun fails at every site even on the upper limb
@@ -211,7 +211,7 @@ Priority order: validity → relevance → core experience.
 - [x] Cache reads of finished runs by `result_id`: results, provenance, countdown and horizon carry `ETag: "<result_id>"` with `immutable` and answer `If-None-Match` with 304 before any work (inside the token check); parsed analyses kept per artifact SHA-256 (LRU of 8). Validation cards and the export carry their own content tags with `no-cache`. The BFF passes these headers and 304 through; everything else stays no-store
 
 ### Gate 2 checklist
-- [x] `GR-001` passes geometry, horizon, aggregation, event-search and convergence checks, **on the draft live run**: `reference.gate_report` defines the five checks over the saved bundles (a check passes only if it ran and held; `not_evaluated` also keeps the gate shut; each can fail, tested), and `scripts/reference_run.py gate` runs them: SPICE within 0.0017 arcsec, every skyline sector certified, results re-derive, no uncertified interval and all 5 events inside the root tolerance, convergence unflagged. Passing says the run is sound and converged, **not** that the science is validated. To be repeated on the frozen run
+- [x] `GR-001` passes geometry, horizon, aggregation, event-search and convergence checks, **on the frozen run**: `reference.gate_report` defines the five checks over the saved bundles (a check passes only if it ran and held; `not_evaluated` also keeps the gate shut; each can fail, tested). `scripts/reference_run.py gate docs/runs/GR-001` runs them and `test_gr001_record.py` keeps them true: SPICE within 0.0017 arcsec, every skyline sector certified, results re-derive, no uncertified interval and all 5 events inside the root tolerance, convergence unflagged. Passing says the run is sound and converged, **not** that the science is validated
 - [~] Three validation cards populated: on the live run, **geometry: met** (12 checks), **numerical convergence: met**, **terrain horizon: not evaluated** (6 met, 3 not evaluated) because no second, independent skyline implementation exists to compare against. Building one would let that card read met; until then it honestly cannot. Corrupted-horizon test fails readiness (case 13) **done**: `reference.readiness` recomputes the skyline digest and re-derives events, intervals and metrics from the stored series and skyline
 - [x] Core flow works by keyboard (Playwright, keyboard only)
 - [x] Time Machine five-day shift verified (case 14): `test_variants.py` (own UTC, events, countdown per run; calendar refusal) and `time-machine.test.tsx` (panels on their own clocks); Playwright spec still pending
@@ -313,18 +313,16 @@ Only after Gate 2.
 | 8 | Mock data mistaken for results | Mitigated: persistent data-status banner, a state frame on every numeric surface, a Replay mode badge, and result states on every export |
 | 9 | Scope too large for a solo build | Largely met: the buildable scope is done; what remains is human decisions and real-data runs |
 | 10 | Horizons/hosting/network failure at the pitch | Partly mitigated: Horizons responses cached verbatim; replay-mode fallback built and rehearsed offline on a **synthetic** package; images built and run locally. Nothing deployed; no live fallback package |
-| 11 | DEM / convention / sites not approved in time | **Open** — D-01 … D-09 |
+| 11 | DEM / convention / sites not approved in time | Partly open: D-09 is decided for GR-001 (rule points, a declared reference scenario) and GR-001 is frozen on the project owner's go-ahead, but D-01 to D-08 and SDR-001 still await the science owner's sign-off |
 
 ---
 
 ## 9. Immediate next actions
 
-The items from 13 Nov (approve the DEM downloads, the Horizons provider, interpolation and the whole-interval bound, request models and the run store) are done. What remains:
+Done since 13 Nov: the DEM downloads, the Horizons provider, interpolation and the whole-interval bound, request models and the run store; **D-11** (the project's GitHub URL is used as the Horizons contact, set per run through `LUNASCOPE_CONTACT` and not stored in the repository); **D-09** for GR-001; GR-001 run live, converged and **frozen**. What remains:
 
-1. [ ] Settle **D-11**: a team email or URL for the Horizons User-Agent. The live stack refuses to call Horizons without it
-2. [ ] Choose the three `GR-001` sites with coordinate and terrain provenance (**D-09**)
-3. [ ] Run `GR-001` live, review the convergence report, mark unstable cases, freeze it
-4. [ ] Build the live fallback package and rehearse it with the network off
-5. [ ] Deploy web and service somewhere reachable and run `scripts/smoke.mjs` there, signed out
-6. [ ] File the organizer permission (**D-12**); science owner and product owner sign **SDR-001**
-7. [ ] Slides or video; confirm the disclosure and licence wording; manual screen-reader pass; Earth disk-edge sensitivity (S-2)
+1. [ ] Build the **live fallback package** from the frozen GR-001 and rehearse it with the network off (`build_fallback.py build --stack live`). The five-day Time Machine shift is a new window, so it needs new Horizons requests: set the contact for that build
+2. [ ] Deploy web and service somewhere reachable and run `scripts/smoke.mjs` there, signed out
+3. [ ] File the organizer permission (**D-12**); science owner and product owner sign **SDR-001** (D-01 to D-08, D-10)
+4. [ ] Optional but it changes a card: build a **second, independent skyline implementation** so the terrain-horizon validation card can read `met` instead of `not evaluated`
+5. [ ] Slides or video; confirm the disclosure and licence wording; manual screen-reader pass
