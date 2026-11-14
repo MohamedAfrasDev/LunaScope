@@ -28,7 +28,7 @@ test("guided and technical views, and the sensitivity panel", async ({ page, req
   test.setTimeout(300_000);
   const id = await gr001(request);
   await page.goto(`/runs/${id}`);
-  await expect(page.getByRole("table").first()).toBeVisible({ timeout: 240_000 });
+  await expect(page.getByRole("region", { name: /Result state/ }).first()).toBeVisible({ timeout: 240_000 });
   await page.goto(`/runs/${id}/timeline/rule-89.5S-E0`);
 
   const sun = page.getByRole("region", { name: "Sun summary" });
@@ -53,7 +53,7 @@ test("which dates pass: a three-date search fills the strip and opens a comparis
   test.setTimeout(420_000);
   const id = await gr001(request);
   await page.goto(`/runs/${id}`);
-  await expect(page.getByRole("table").first()).toBeVisible({ timeout: 240_000 });
+  await expect(page.getByRole("region", { name: /Result state/ }).first()).toBeVisible({ timeout: 240_000 });
   await page.goto(`/runs/${id}/time-machine`);
 
   await page.getByLabel("From (days)").fill("-1");

@@ -8,7 +8,11 @@ import { shortId } from "@/lib/format";
 import { WARNING_TEXT } from "@/lib/status";
 import { EvidenceLink } from "./EvidencePanel";
 import { ResultStateFrame } from "./ResultStateFrame";
-import { StatusMatrix } from "./StatusMatrix";
+import { RunVerdict } from "./RunVerdict";
+import { SiteCards } from "./SiteCard";
+import { ExcludedSites, StatusMatrix } from "./StatusMatrix";
+import { Disclosure } from "./ui/Disclosure";
+import { WarningItem } from "./ui/WarningItem";
 
 const TERMINAL = new Set(["complete", "complete_with_warnings", "failed"]);
 
@@ -123,20 +127,33 @@ export function RunView({ runId }: { runId: string }) {
             </Link>
           </p>
           <ResultStateFrame state={run.result_state}>
-            <StatusMatrix runId={runId} rows={run.matrix} />
-            {run.warnings && run.warnings.length > 0 && (
-              <div className="mt-4">
-                <h2 className="text-sm font-semibold">Warnings carried with these results</h2>
-                <ul className="mt-1 space-y-1 text-sm">
-                  {run.warnings.map((w) => (
-                    <li key={w}>
-                      <code className="rounded bg-surface-2 px-1 text-xs">{w}</code>{" "}
-                      <span className="text-muted">{WARNING_TEXT[w] ?? ""}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <div className="grid gap-6">
+              <RunVerdict rows={run.matrix} />
+              <SiteCards runId={runId} rows={run.matrix} />
+              <ExcludedSites runId={runId} rows={run.matrix.filter((r) => r.site_status === "UNKNOWN_COVERAGE")} />
+              {run.matrix.length >= 2 && (
+                <p className="text-sm">
+                  <Link href={`/runs/${runId}/compare`} className="font-medium text-accent underline underline-offset-4">
+                    Compare these sites side by side
+                  </Link>
+                </p>
+              )}
+              <Disclosure
+                summary="Full comparison table (terrain-aware and flat horizon)"
+                open={run.matrix.every((r) => r.site_status === "UNKNOWN_COVERAGE")}
+              >
+                <StatusMatrix runId={runId} rows={run.matrix} showExcluded={false} showCompareLink={false} />
+              </Disclosure>
+              {run.warnings && run.warnings.length > 0 && (
+                <Disclosure summary={`Warnings carried with these results (${run.warnings.length})`}>
+                  <ul className="space-y-1 text-sm">
+                    {run.warnings.map((w) => (
+                      <WarningItem key={w} code={w} text={WARNING_TEXT[w]} />
+                    ))}
+                  </ul>
+                </Disclosure>
+              )}
+            </div>
           </ResultStateFrame>
           <EvidenceLink runId={runId} />
         </>

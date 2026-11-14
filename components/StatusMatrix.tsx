@@ -24,16 +24,56 @@ function Cell({ c, decides }: { c: MatrixCell; decides: boolean }) {
 }
 
 /**
+ * Sites the service could not decide, grouped apart: excluded is not a failure (FR-03).
+ * Always shown on the run page, never tucked away with the table.
+ */
+export function ExcludedSites({ runId, rows: excluded }: { runId: string; rows: MatrixRow[] }) {
+  if (excluded.length === 0) return null;
+  return (
+    <section aria-label="Excluded sites" className="rounded-md border border-border bg-surface-2 p-3 text-sm">
+      <h3 className="font-semibold">
+        <StatusChip p={SITE_STATUS.UNKNOWN_COVERAGE} /> Excluded: not enough data to decide ({excluded.length})
+      </h3>
+      <p className="mt-1 text-muted">
+        Missing terrain coverage or uncertified time leaves these sites undecided. They are not counted as
+        failures, and their numbers are not shown in the results.
+      </p>
+      <ul className="mt-2 space-y-1">
+        {excluded.map((r) => (
+          <li key={r.site_id}>
+            {siteLabel(r.site_id)}:{" "}
+            <Link href={`/runs/${runId}/timeline/${encodeURIComponent(r.site_id)}`} className="text-accent underline underline-offset-4">
+              see why on the timeline
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+/**
  * Status matrix: sites in rows, requirements in columns. Each requirement is judged on its own
  * and there is no overall winner or score. Excluded and indeterminate are not failures.
  */
-export function StatusMatrix({ runId, rows: all }: { runId: string; rows: MatrixRow[] }) {
+export function StatusMatrix({
+  runId,
+  rows: all,
+  showExcluded = true,
+  showCompareLink = true,
+}: {
+  runId: string;
+  rows: MatrixRow[];
+  /** the run page shows these outside the table, so it turns the in-table copies off */
+  showExcluded?: boolean;
+  showCompareLink?: boolean;
+}) {
   // Sites the service could not decide are grouped apart: excluded is not a failure (FR-03).
   const rows = all.filter((r) => r.site_status !== "UNKNOWN_COVERAGE");
   const excluded = all.filter((r) => r.site_status === "UNKNOWN_COVERAGE");
   return (
     <div className="overflow-x-auto">
-      {all.length >= 2 && (
+      {showCompareLink && all.length >= 2 && (
         <p className="mb-3 text-sm">
           <Link href={`/runs/${runId}/compare`} className="font-medium text-accent underline underline-offset-4">
             Compare these sites side by side
@@ -91,27 +131,7 @@ export function StatusMatrix({ runId, rows: all }: { runId: string; rows: Matrix
         </tbody>
       </table>
       {rows.length === 0 && <p className="mt-2 text-sm text-muted">No site in this run could be decided.</p>}
-      {excluded.length > 0 && (
-        <section aria-label="Excluded sites" className="mt-4 rounded border border-border bg-surface-2 p-3 text-sm">
-          <h3 className="font-semibold">
-            <StatusChip p={SITE_STATUS.UNKNOWN_COVERAGE} /> Excluded: not enough data to decide ({excluded.length})
-          </h3>
-          <p className="mt-1 text-muted">
-            Missing terrain coverage or uncertified time leaves these sites undecided. They are not counted as
-            failures, and their numbers are not shown in the matrix above.
-          </p>
-          <ul className="mt-2 space-y-1">
-            {excluded.map((r) => (
-              <li key={r.site_id}>
-                {siteLabel(r.site_id)}:{" "}
-                <Link href={`/runs/${runId}/timeline/${encodeURIComponent(r.site_id)}`} className="text-accent underline underline-offset-4">
-                  see why on the timeline
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      {showExcluded && <ExcludedSites runId={runId} rows={excluded} />}
     </div>
   );
 }

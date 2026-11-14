@@ -43,11 +43,12 @@ describe("run page", () => {
     const { rerender } = render(<RunView key={RUN_A} runId={RUN_A} />);
     rerender(<RunView key={RUN_B} runId={RUN_B} />);
     await act(async () => b.resolve(json(summary(RUN_B, "rule-89.5S-E120"))));
-    expect(await screen.findByText("89.5°S, 120°E")).toBeInTheDocument();
+    // the site now shows on its card and in the comparison table, so count matches instead of expecting one
+    expect((await screen.findAllByText("89.5°S, 120°E")).length).toBeGreaterThan(0);
     await act(async () => a.resolve(json(summary(RUN_A, "rule-89.5S-E0")))); // the old run answers last
     await new Promise((r) => setTimeout(r, 20));
-    expect(screen.queryByText("89.5°S, 0°E")).toBeNull();
-    expect(screen.getByText("89.5°S, 120°E")).toBeInTheDocument();
+    expect(screen.queryAllByText("89.5°S, 0°E")).toHaveLength(0);
+    expect(screen.getAllByText("89.5°S, 120°E").length).toBeGreaterThan(0);
   });
 });
 

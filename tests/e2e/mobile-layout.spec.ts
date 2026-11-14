@@ -20,7 +20,7 @@ test("no page scrolls sideways at phone width", async ({ page }) => {
   await page.getByRole("button", { name: "Start the reference mission" }).click();
   await page.waitForURL(/\/runs\/[0-9a-f]{64}$/);
   const run = page.url();
-  await expect(page.getByRole("table").first()).toBeVisible({ timeout: 90_000 });
+  await expect(page.getByRole("region", { name: /Result state/ }).first()).toBeVisible({ timeout: 90_000 });
   await noSidewaysScroll(page, "run");
 
   const sky = await page.getByRole("link", { name: "Local sky" }).first().getAttribute("href");
