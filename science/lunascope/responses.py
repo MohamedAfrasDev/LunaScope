@@ -151,11 +151,18 @@ class CatalogSiteResponse(_Out):
     precision_m: float
     kind: str
     dem_coverage_150km: DemCoverage
+    # named places only (IAU gazetteer): which group, the short name, the official entry and its size
+    name: str | None = None
+    group: str | None = None
+    iau_url: str | None = None
+    feature_type: str | None = None
+    diameter_km: float | None = None
 
 
 class SitesResponse(_Out):
     note: str
     sites: list[CatalogSiteResponse]
+    groups: dict[str, str] = {}
 
 
 # ----------------------------------------------------------------------------- results

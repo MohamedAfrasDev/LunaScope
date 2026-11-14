@@ -1,0 +1,156 @@
+{
+ "source": "IAU Gazetteer of Planetary Nomenclature, Moon, centre points (USGS Astrogeology)",
+ "file": "MOON_nomenclature_center_pts.zip",
+ "sha256": "bcb1a37a195babb159ee1f720a6c64d03842de87d10a7ba7d754f8873477606b",
+ "licence": "Public domain (per the file's metadata)",
+ "groups": {
+  "artemis_iii_regions": "Artemis III candidate-region features (NASA's October 2024 list of nine regions, nearest named feature)",
+  "shadowed_craters": "Well-known south-polar craters (permanently shadowed floors, ice research)"
+ },
+ "features": [
+  {
+   "name": "Haworth",
+   "group": "artemis_iii_regions",
+   "iau_feature_id": 14502,
+   "iau_url": "https://planetarynames.wr.usgs.gov/Feature/14502",
+   "feature_type": "Crater, craters",
+   "diameter_km": 51.4,
+   "lat_deg": -87.45,
+   "lon_east_deg": 354.83,
+   "approval": "Adopted by IAU",
+   "origin": "Sir Walter Norman; English chemist, 1937 Nobel Prize winner for chemistry (1883-1950)."
+  },
+  {
+   "name": "Mons Malapert",
+   "group": "artemis_iii_regions",
+   "iau_feature_id": 16338,
+   "iau_url": "https://planetarynames.wr.usgs.gov/Feature/16338",
+   "feature_type": "Mons, montes",
+   "diameter_km": 67.0,
+   "lat_deg": -85.98,
+   "lon_east_deg": 358.33,
+   "approval": "Adopted by IAU",
+   "origin": "Named for nearby crater, Malapert."
+  },
+  {
+   "name": "Mons Mouton",
+   "group": "artemis_iii_regions",
+   "iau_feature_id": 16070,
+   "iau_url": "https://planetarynames.wr.usgs.gov/Feature/16070",
+   "feature_type": "Mons, montes",
+   "diameter_km": 130.0,
+   "lat_deg": -84.6,
+   "lon_east_deg": 31.0,
+   "approval": "Adopted by IAU",
+   "origin": "Melba Roy; American mathematician (1929-1990)."
+  },
+  {
+   "name": "Nobile",
+   "group": "artemis_iii_regions",
+   "iau_feature_id": 4321,
+   "iau_url": "https://planetarynames.wr.usgs.gov/Feature/4321",
+   "feature_type": "Crater, craters",
+   "diameter_km": 79.3,
+   "lat_deg": -85.2752,
+   "lon_east_deg": 53.2725,
+   "approval": "Adopted by IAU",
+   "origin": "Umberto; Italian artic explorer (1885-1978)."
+  },
+  {
+   "name": "de Gerlache",
+   "group": "artemis_iii_regions",
+   "iau_feature_id": 1439,
+   "iau_url": "https://planetarynames.wr.usgs.gov/Feature/1439",
+   "feature_type": "Crater, craters",
+   "diameter_km": 32.7,
+   "lat_deg": -88.4849,
+   "lon_east_deg": 271.6553,
+   "approval": "Adopted by IAU",
+   "origin": "Adrien; Belgian Antarctic explorer (1866-1934)."
+  },
+  {
+   "name": "Slater",
+   "group": "artemis_iii_regions",
+   "iau_feature_id": 15325,
+   "iau_url": "https://planetarynames.wr.usgs.gov/Feature/15325",
+   "feature_type": "Crater, craters",
+   "diameter_km": 25.1,
+   "lat_deg": -88.0792,
+   "lon_east_deg": 111.2881,
+   "approval": "Adopted by IAU",
+   "origin": "David Charles; American planetary scientist, specialist in optics and detectors (1957-2011)."
+  },
+  {
+   "name": "Shackleton",
+   "group": "shadowed_craters",
+   "iau_feature_id": 5450,
+   "iau_url": "https://planetarynames.wr.usgs.gov/Feature/5450",
+   "feature_type": "Crater, craters",
+   "diameter_km": 20.9,
+   "lat_deg": -89.67,
+   "lon_east_deg": 129.78,
+   "approval": "Adopted by IAU",
+   "origin": "Sir Ernest Henry; Irish-born British Antarctic explorer (1874-1922)."
+  },
+  {
+   "name": "Shoemaker",
+   "group": "shadowed_craters",
+   "iau_feature_id": 5494,
+   "iau_url": "https://planetarynames.wr.usgs.gov/Feature/5494",
+   "feature_type": "Crater, craters",
+   "diameter_km": 51.8,
+   "lat_deg": -88.137,
+   "lon_east_deg": 45.911,
+   "approval": "Adopted by IAU",
+   "origin": "Eugene Merle; American astrogeologist (1928-1997)."
+  },
+  {
+   "name": "Faustini",
+   "group": "shadowed_craters",
+   "iau_feature_id": 1919,
+   "iau_url": "https://planetarynames.wr.usgs.gov/Feature/1919",
+   "feature_type": "Crater, craters",
+   "diameter_km": 42.5,
+   "lat_deg": -87.1832,
+   "lon_east_deg": 84.3099,
+   "approval": "Adopted by IAU",
+   "origin": "Arnaldo; Italian polar geographer (1874-1944)."
+  },
+  {
+   "name": "Cabeus",
+   "group": "shadowed_craters",
+   "iau_feature_id": 953,
+   "iau_url": "https://planetarynames.wr.usgs.gov/Feature/953",
+   "feature_type": "Crater, craters",
+   "diameter_km": 100.6,
+   "lat_deg": -85.3303,
+   "lon_east_deg": 317.8673,
+   "approval": "Adopted by IAU",
+   "origin": "Cabeo, Niccolo; Italian astronomer (1586-1650)."
+  },
+  {
+   "name": "Amundsen",
+   "group": "shadowed_craters",
+   "iau_feature_id": 247,
+   "iau_url": "https://planetarynames.wr.usgs.gov/Feature/247",
+   "feature_type": "Crater, craters",
+   "diameter_km": 103.4,
+   "lat_deg": -84.4398,
+   "lon_east_deg": 83.0691,
+   "approval": "Adopted by IAU",
+   "origin": "Roald Engelbregt Gravning; Norwegian explorer (1872-1928)."
+  },
+  {
+   "name": "Sverdrup",
+   "group": "shadowed_craters",
+   "iau_feature_id": 5782,
+   "iau_url": "https://planetarynames.wr.usgs.gov/Feature/5782",
+   "feature_type": "Crater, craters",
+   "diameter_km": 32.8,
+   "lat_deg": -88.3209,
+   "lon_east_deg": 206.6125,
+   "approval": "Adopted by IAU",
+   "origin": "Otto; Norwegian polar explorer (1855-1930)."
+  }
+ ]
+}

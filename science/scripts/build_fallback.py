@@ -1,6 +1,6 @@
 """Build and check the offline fallback package (phase plan 3.2, spec 15.3, test case 16).
 
-  python scripts/build_fallback.py build [--stack synthetic|live] [--out ../fallback] [--shift-days 5] [--search-days 7] [--timeout 3600] [--seed-from ../var]
+  python scripts/build_fallback.py build [--stack synthetic|live] [--out ../fallback] [--shift-days 5] [--search-days 7] [--extra-refs GR-002 GR-003] [--timeout 3600] [--seed-from ../var]
   python scripts/build_fallback.py check <fallback-dir> [--stack synthetic|live]
 
 `build` runs GR-001 (exactly what Home submits) and its date-shift variant through the real service
@@ -80,7 +80,7 @@ def wait_done(c: TestClient, run_id: str, timeout: float) -> dict:
 
 
 def build(stack: str, out: Path, shift_days: int, timeout: float, seed_from: Path | None = None,
-          search_days: int = 0) -> int:
+          search_days: int = 0, extra_refs: tuple[str, ...] = ()) -> int:
     out = out.resolve()
     if out.exists():
         shutil.rmtree(out)
@@ -110,6 +110,12 @@ def build(stack: str, out: Path, shift_days: int, timeout: float, seed_from: Pat
             wait_done(c, v.json()["run_id"], timeout)
             runs.append({"name": f"GR-001 {shift_days:+d} d", "run_id": v.json()["run_id"],
                          "kind": "date_shift", "parent_run_id": base_id})
+        for rid in extra_refs:  # more reference definitions (named-places comparisons): ordinary runs, packaged as they are
+            ex = c.post("/api/v1/analyses", content=json.dumps(load_definition(rid)["request"]))
+            if ex.status_code not in (200, 202):
+                raise SystemExit(f"{rid} was refused: {ex.status_code} {ex.text[:300]}")
+            wait_done(c, ex.json()["run_id"], timeout)
+            runs.append({"name": rid, "run_id": ex.json()["run_id"], "kind": "reference_extra", "reference_id": rid})
         search_info = None
         if search_days:  # the dates search over 1..N days after the baseline: every date is an ordinary run
             sv = c.post(f"/api/v1/analyses/{base_id}/variants", content=json.dumps(
@@ -163,6 +169,7 @@ def build(stack: str, out: Path, shift_days: int, timeout: float, seed_from: Pat
         "dirty": bool(git("status", "--porcelain")), "result_states": sorted(states),
         "reference_definition_sha256": sha256_hex((REPO / "data" / "reference" / "GR-001.json").read_bytes()),
         "reference_status": defn["status"], "runs": entries, "search": search_info,
+        "extra_references": list(extra_refs),
         "horizons_responses": {"seeded_from_cache": seeded, "in_package": fetched, "newly_fetched": max(fetched - seeded, 0)}}
     (out / "FALLBACK-MANIFEST.json").write_text(json.dumps(manifest, indent=1, sort_keys=True) + "\n",
                                                 encoding="utf-8")
@@ -254,6 +261,10 @@ def check(package: Path, stack: str | None) -> int:
                         again = c.post("/api/v1/analyses", content=json.dumps(load_definition("GR-001")["request"]))
                         need(again.status_code == 200 and again.json()["run_id"] == rid,
                              f"{name}: the Home button's request resolves to the packaged run")
+                    if e["kind"] == "reference_extra":
+                        again = c.post("/api/v1/analyses", content=json.dumps(load_definition(e["reference_id"])["request"]))
+                        need(again.status_code == 200 and again.json()["run_id"] == rid,
+                             f"{name}: its definition's request resolves to the packaged run")
                     if e["kind"] == "date_shift":
                         v = c.post(f"/api/v1/analyses/{e['parent_run_id']}/variants", content=json.dumps(
                             {"variant_type": "date_shift", "changes": {"start_offset_s": 5 * 86400}}))
@@ -291,13 +302,14 @@ def main() -> int:
     b.add_argument("--out", default=str(REPO / "fallback"))
     b.add_argument("--shift-days", type=int, default=5)
     b.add_argument("--search-days", type=int, default=0, help="also run and package a dates search over 1..N days after the baseline")
+    b.add_argument("--extra-refs", nargs="*", default=[], help="also package these reference definitions (for example GR-002 GR-003)")
     b.add_argument("--timeout", type=float, default=3600.0)
     b.add_argument("--seed-from", default=None, help="a data dir (for example var) whose recorded Horizons responses and skylines are reused")
     c = sub.add_parser("check")
     c.add_argument("package")
     c.add_argument("--stack", choices=("synthetic", "live"), default=None)
     a = ap.parse_args()
-    return build(a.stack, Path(a.out), a.shift_days, a.timeout, Path(a.seed_from) if a.seed_from else None, a.search_days) if a.cmd == "build" else check(Path(a.package), a.stack)
+    return build(a.stack, Path(a.out), a.shift_days, a.timeout, Path(a.seed_from) if a.seed_from else None, a.search_days, tuple(a.extra_refs)) if a.cmd == "build" else check(Path(a.package), a.stack)
 
 
 if __name__ == "__main__":

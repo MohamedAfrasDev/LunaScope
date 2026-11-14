@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { HeroSkyline } from "@/components/HeroSkyline";
 import { ReferenceMissionButton } from "@/components/ReferenceMissionButton";
+import { ReferenceRunCard } from "@/components/ReferenceRunCard";
 
 export default function Home() {
   return (
@@ -37,6 +38,24 @@ export default function Home() {
           </p>
         </div>
       </div>
+
+      <section aria-labelledby="notable">
+        <h2 id="notable" className="type-section">
+          Compare notable south-polar places
+        </h2>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
+          Named places from the IAU&rsquo;s official list, over the same week and requirements as the reference mission.
+          Each set opens a saved comparison; or pick any of them (and your own coordinates) in{" "}
+          <Link href="/analyze" className="text-accent underline underline-offset-4">
+            your own analysis
+          </Link>
+          . These are named features, not landing recommendations.
+        </p>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <ReferenceRunCard refId="GR-002" buttonLabel="Compare the Artemis III features" />
+          <ReferenceRunCard refId="GR-003" buttonLabel="Compare the well-known craters" />
+        </div>
+      </section>
 
       <aside aria-labelledby="rules" className="surface-card p-5 sm:p-6">
         <h2 id="rules" className="type-section">

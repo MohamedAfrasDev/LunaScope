@@ -211,7 +211,8 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
         except FileNotFoundError as e:
             raise LunaScopeError(NOT_FOUND, f"no reference {ref_id}") from e
         return {"reference_id": d["reference_id"], "status": d["status"], "frozen": d.get("frozen"),
-                "sites_status": d.get("sites_status"), "request": d["request"]}
+                "sites_status": d.get("sites_status"), "title": d.get("title"), "purpose": d.get("purpose"),
+                "request": d["request"]}
 
     @app.get("/api/v1/sites", response_model=SitesResponse)
     def sites() -> dict:
@@ -223,7 +224,7 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
                                reference_radius_km=1737.4, ground_height_m=0.0,
                                ground_height_source="coverage-check", observer_height_above_ground_m=0.0)
             out.append({**s, "dem_coverage_150km": footprint_coverage(o, 150.0)})
-        return {"note": cat["note"], "sites": out}
+        return {"note": cat["note"], "sites": out, "groups": cat.get("groups", {})}
 
     @app.post("/api/v1/sites/custom")
     async def custom_site(request: Request) -> dict:

@@ -1,0 +1,57 @@
+{
+  "reference_id": "GR-002",
+  "status": "draft",
+  "title": "Artemis III candidate-region features",
+  "purpose": "Compare the named features nearest to NASA's nine Artemis III candidate landing regions (October 2024), same week and requirements as GR-001.",
+  "sites_status": "NAMED PLACES, NOT RECOMMENDATIONS. The sites are the IAU's official centre points of named south-polar features (data/sites/iau_extract.json). A crater centre is its floor, not its rim; NASA's Artemis III regions are 15 km areas on or near these features. The same mission window, requirements and settings as GR-001 are used so results can be read next to it. This definition is a DRAFT: it has not been through the convergence report or the Gate 2 checks, and it is not frozen.",
+  "selection_reasons": {
+    "mission.start_utc": "2027-01-10 00:00 UTC, the round date already used by the recorded fixtures and RUN-001, inside the kernel, Horizons and DEM coverage; fixed before looking at any result (S-11, D-08). Not chosen to contain or avoid an outage.",
+    "mission.duration_s": "seven days, the scenario length used throughout",
+    "requirements": "scenario values (Sun 60 %, Earth 50 %), not mission rules",
+    "terrain": "primary DEM release recommended in D-01, 150 km radius, 0.1 deg azimuth step (D-05), 2 m mast",
+    "sites": "Named places chosen by hand from public NASA material before any terrain or illumination result was computed for them; coordinates are the IAU centre points, not tuned."
+  },
+  "request": {
+    "schema_version": "1",
+    "mission": {
+      "start_utc": "2027-01-10T00:00:00Z",
+      "duration_s": 604800,
+      "step_s": 600
+    },
+    "requirements": {
+      "sun_min_availability": 0.6,
+      "earth_min_availability": 0.5
+    },
+    "terrain": {
+      "dem_profile": "lola-80s-20m-adj",
+      "radius_km": 150.0,
+      "az_step_deg": 0.1,
+      "clearance_margin_deg": 0.0,
+      "observer_height_m": 2.0
+    },
+    "sites": [
+      {
+        "site_id": "iau-haworth"
+      },
+      {
+        "site_id": "iau-mons-malapert"
+      },
+      {
+        "site_id": "iau-mons-mouton"
+      },
+      {
+        "site_id": "iau-nobile"
+      },
+      {
+        "site_id": "iau-de-gerlache"
+      },
+      {
+        "site_id": "iau-slater"
+      }
+    ],
+    "options": {
+      "sensitivity": true
+    }
+  },
+  "freeze_rule": "Draft. It may change until frozen; once frozen it is never edited (see GR-001)."
+}

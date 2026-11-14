@@ -69,3 +69,16 @@ def test_a_package_can_hold_a_dates_search_and_check_serves_it_offline(tmp_path)
     man["search"]["search_id"] = "0" * 32
     (out / "FALLBACK-MANIFEST.json").write_text(json.dumps(man), encoding="utf-8")
     assert fb.check(out, None) == 1
+
+
+def test_a_package_can_hold_extra_reference_runs_and_check_resolves_their_definitions(tmp_path):
+    out = tmp_path / "pkg"
+    assert fb.build("synthetic", out, 0, 600.0, None, 0, ("GR-002",)) == 0
+    man = json.loads((out / "FALLBACK-MANIFEST.json").read_text(encoding="utf-8"))
+    assert man["extra_references"] == ["GR-002"]
+    assert [r["kind"] for r in man["runs"]] == ["reference", "reference_extra"]
+    assert fb.check(out, None) == 0
+    # a check must be able to fail: an extra run whose id the package never held is not ready
+    man["runs"][1]["run_id"] = "0" * 64
+    (out / "FALLBACK-MANIFEST.json").write_text(json.dumps(man), encoding="utf-8")
+    assert fb.check(out, None) == 1

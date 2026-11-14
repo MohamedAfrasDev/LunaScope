@@ -69,6 +69,20 @@ const isAdvancedKey = (k: string) => /^(requirements|terrain|options)\./.test(k)
 const input =
   "rounded-md border border-border-strong bg-surface px-3 py-2 text-sm aria-[invalid=true]:border-fail aria-[invalid=true]:bg-fail-soft";
 
+/** The catalog grouped for display: demonstration points first, then each named group in catalog order. */
+function siteGroups(catalog: SitesResponse): [string, SitesResponse["sites"]][] {
+  const order: string[] = ["demonstration"];
+  const label: Record<string, string> = { demonstration: "Demonstration points (rule-chosen, not candidate sites)", ...(catalog.groups ?? {}) };
+  const by: Record<string, SitesResponse["sites"]> = {};
+  for (const s of catalog.sites) {
+    const g = s.group ?? "demonstration";
+    if (!by[g]) by[g] = [];
+    by[g].push(s);
+    if (!order.includes(g)) order.push(g);
+  }
+  return order.filter((g) => by[g]).map((g) => [label[g] ?? g, by[g]]);
+}
+
 export function AnalyzeForm() {
   const router = useRouter();
   const uid = useId();
@@ -235,24 +249,43 @@ export function AnalyzeForm() {
       <fieldset className={fieldset} aria-describedby={errors.sites ? fid("sites-err") : undefined}>
         <legend className={legend}>Sites</legend>
         <p className="text-xs text-muted">{catalog.note}</p>
-        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-          {catalog.sites.map((s) => (
-            <li key={s.site_id}>
-              <label className="flex cursor-pointer items-start gap-3 rounded-md border border-border p-3 text-sm transition-colors hover:border-border-strong hover:bg-surface-2 has-[:checked]:border-accent has-[:checked]:bg-info-soft">
-                <input type="checkbox" className="mt-1" checked={d.siteIds.includes(s.site_id)}
-                  onChange={(e) => set("siteIds", e.target.checked ? [...d.siteIds, s.site_id]
-                    : d.siteIds.filter((x) => x !== s.site_id))} />
-                <span>
-                  <strong>{siteLabel(s.site_id)}</strong>
-                  <span className="block text-xs text-muted">
-                    Source: {s.source}. Precision ±{s.precision_m} m. Terrain footprint{" "}
-                    {s.dem_coverage_150km.fully_covered ? "fully covered" : "partly outside the data"}.
-                  </span>
-                </span>
-              </label>
-            </li>
-          ))}
-        </ul>
+        {siteGroups(catalog).map(([heading, sites]) => (
+          <div key={heading} className="mt-4">
+            <h2 className="text-sm font-semibold">{heading}</h2>
+            <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+              {sites.map((s) => (
+                <li key={s.site_id}>
+                  <label className="flex cursor-pointer items-start gap-3 rounded-md border border-border p-3 text-sm transition-colors hover:border-border-strong hover:bg-surface-2 has-[:checked]:border-accent has-[:checked]:bg-info-soft">
+                    <input type="checkbox" className="mt-1" checked={d.siteIds.includes(s.site_id)}
+                      onChange={(e) => set("siteIds", e.target.checked ? [...d.siteIds, s.site_id]
+                        : d.siteIds.filter((x) => x !== s.site_id))} />
+                    <span>
+                      <strong>{siteLabel(s.site_id)}</strong>
+                      {s.name && (
+                        <span className="block text-xs text-muted">
+                          {s.feature_type?.split(",")[0]}
+                          {s.diameter_km ? `, ${s.diameter_km} km across` : ""}; {s.lat_deg.toFixed(2)}°, {s.lon_east_deg.toFixed(2)}°E
+                          {s.iau_url && (
+                            <>
+                              {" "}
+                              <a href={s.iau_url} target="_blank" rel="noreferrer" className="text-accent underline">
+                                IAU entry
+                              </a>
+                            </>
+                          )}
+                        </span>
+                      )}
+                      <span className="block text-xs text-muted">
+                        Source: {s.source}. Precision ±{s.precision_m} m. Terrain footprint{" "}
+                        {s.dem_coverage_150km.fully_covered ? "fully covered" : "partly outside the data"}.
+                      </span>
+                    </span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
 
         {d.custom.map((c, i) => (
           <div key={i} className="mt-4 grid gap-3 rounded-md border border-border bg-surface-2 p-4 sm:grid-cols-2 lg:grid-cols-5">
