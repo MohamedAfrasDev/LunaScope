@@ -605,7 +605,7 @@ Up to **6 sites**; at most **60,000 samples** (sites × 2 targets × steps); win
 - **The built-in sites are demonstration points**, not candidate landing sites. A real candidate-site selection would be a new reference.
 - **The dates search** has been run once on real data (eight dates of GR-001; no date passes; see `docs/runs/GR-001-dates-search.md`), and the Time Machine once. Neither is validated.
 - **No near/far DEM merge**, so that convergence case is not applicable.
-- **Nothing is deployed.** There is no public web address yet; the offline package is local to one machine.
+- **The public demo is replay only.** https://luna-scope.afras.dev serves the saved real-data runs (GR-001, its five-day shift and the dates search) and refuses anything else with a plain "offline copy" message. Live computing runs only on a machine that has the terrain and SPICE files. The free service sleeps when idle, so the first request can take about a minute. The offline package is local to one machine.
 - **Disc size** brackets the centre assumption; it does not model partial illumination, partial signal, or Earth's changing size.
 - A manual screen-reader pass has not been done (keyboard and automated accessibility checks have).
 - Organizer permission for pre-event work (D-12) is **not on file**, and the submission materials (slides or video) are not written.

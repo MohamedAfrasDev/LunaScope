@@ -31,7 +31,7 @@ No voice or picture of anyone under 18. Do not generate or alter a NASA logo.
 
 ## Five-minute run sheet
 
-Use the outline in [SUBMISSION-DRAFT.md](SUBMISSION-DRAFT.md). Demo on the offline package in Replay mode (see [deploy.md](../deploy.md)); the banner says so on screen, say it out loud too. Rehearse the Time Machine step and the dates strip, because those are the two pages that need a click.
+Use the outline in [SUBMISSION-DRAFT.md](SUBMISSION-DRAFT.md). Demo link: https://luna-scope.afras.dev (a replay of the saved real-data runs; the free service sleeps when idle, so open it a minute early). Keep the offline package on the pitch machine as the backup (see [deploy.md](../deploy.md)). The banner says "Replay mode" on screen; say it out loud too. Rehearse the Time Machine step and the dates strip, because those are the two pages that need a click.
 
 ## Questions you will be asked
 

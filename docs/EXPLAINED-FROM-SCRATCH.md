@@ -391,7 +391,7 @@ The work ran in phases, each with a gate:
 | `docs/USER-GUIDE.md` | the page-by-page manual |
 | `docs/LunaScope-Phase-Plan.md` | the live status of everything |
 
-**What is still genuinely open** (each is a human decision or a build step, not a bug): organizer permission for pre-event work (a real eligibility risk), the science owner's sign-off, a public deployment, rebuilding the offline package from the final commit and copying it to the pitch machine, and the slides or video. (The independent second skyline implementation has since been built: the terrain card reads "met" for GR-001, as a check of the computation, not of the DEM.)
+**What is still genuinely open** (each is a human decision or a build step, not a bug): organizer permission for pre-event work (a real eligibility risk), the science owner's sign-off, copying the offline package to the pitch machine, and the slides or video. (A public replay-only demo is now live at https://luna-scope.afras.dev.) (The independent second skyline implementation has since been built: the terrain card reads "met" for GR-001, as a check of the computation, not of the DEM.)
 
 ---
 
