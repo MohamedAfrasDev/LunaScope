@@ -219,3 +219,56 @@ export function clearDraft(): void {
     /* nothing to clear */
   }
 }
+
+// ----------------------------------------------------------------------------- share link (FR-15)
+/**
+ * A shareable link carries the form's inputs and nothing else: no run id, token or result. Opening it
+ * fills the form; it never starts a run by itself. Decoding is strict, so a hand-edited or hostile
+ * link can only produce a draft the normal validation already handles, or be ignored.
+ */
+const SHARE_VERSION = 1;
+export const SHARE_PARAM = "d";
+const MAX_SHARE_CHARS = 3000;
+const STR_FIELDS = ["startDate", "startTime", "durationDays", "stepMin", "sunMinPct", "earthMinPct", "radiusKm", "azStepDeg", "mastM"] as const;
+const SITE_ID = /^[A-Za-z0-9._-]{1,64}$/;
+
+function toB64Url(bytes: Uint8Array): string {
+  let bin = "";
+  bytes.forEach((b) => (bin += String.fromCharCode(b)));
+  return btoa(bin).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+}
+
+function fromB64Url(s: string): Uint8Array {
+  const bin = atob(s.replaceAll("-", "+").replaceAll("_", "/"));
+  return Uint8Array.from(bin, (c) => c.charCodeAt(0));
+}
+
+export function encodeShare(d: Draft): string {
+  return toB64Url(new TextEncoder().encode(JSON.stringify({ v: SHARE_VERSION, ...d })));
+}
+
+/** The draft in a share parameter, or null if it is not a well-formed LunaScope link. */
+export function decodeShare(raw: string | null): Draft | null {
+  if (!raw || raw.length > MAX_SHARE_CHARS || !/^[A-Za-z0-9_-]+$/.test(raw)) return null;
+  try {
+    const x = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(fromB64Url(raw))) as Record<string, unknown>;
+    if (typeof x !== "object" || x === null || x.v !== SHARE_VERSION) return null;
+    const short = (v: unknown, max = 40): v is string => typeof v === "string" && v.length <= max;
+    if (!STR_FIELDS.every((k) => short(x[k]))) return null;
+    if (x.demProfile !== "lola-80s-20m-adj" && x.demProfile !== "lola-80s-20m-pds") return null;
+    if (typeof x.sensitivity !== "boolean") return null;
+    if (!Array.isArray(x.siteIds) || x.siteIds.length > MAX_SITES || !x.siteIds.every((s) => typeof s === "string" && SITE_ID.test(s))) return null;
+    if (!Array.isArray(x.custom) || x.custom.length > MAX_SITES) return null;
+    const custom: CustomDraft[] = [];
+    for (const c of x.custom as Record<string, unknown>[]) {
+      if (typeof c !== "object" || c === null || !short(c.lat) || !short(c.lon) || !short(c.precision) || !short(c.source, 200)) return null;
+      if (c.direction !== "east_positive" && c.direction !== "west_positive") return null;
+      custom.push({ lat: c.lat, lon: c.lon, direction: c.direction, source: c.source, precision: c.precision });
+    }
+    const out = { custom, siteIds: x.siteIds as string[], sensitivity: x.sensitivity, demProfile: x.demProfile } as Draft;
+    for (const k of STR_FIELDS) (out as unknown as Record<string, string>)[k] = x[k] as string;
+    return out;
+  } catch {
+    return null;
+  }
+}

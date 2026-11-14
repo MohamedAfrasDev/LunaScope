@@ -56,6 +56,8 @@ export const postJson = <T>(path: string, body: unknown) =>
 export function describeError(e: unknown): string {
   if (e instanceof ApiError) {
     if (e.code === "QUEUE_FULL") return "The service is busy. Try again in a few seconds.";
+    if (e.code === "REPLAY_ONLY")
+      return "This is an offline copy that only holds saved runs, so this request cannot be computed. Open the saved reference run instead.";
     if (e.code === "SERVICE_UNAVAILABLE" || e.code === "NETWORK_ERROR")
       return "The science service is not reachable. Nothing was started.";
     return e.message;

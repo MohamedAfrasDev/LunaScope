@@ -11,6 +11,9 @@ dependencies = [
   "uvicorn>=0.30",
   "httpx>=0.27",
   "rfc8785>=0.1.4",
+  "spiceypy>=6",  # independent geometry reference (providers/geometry/spice.py)
+  "rasterio>=1.4",  # LOLA DEM reading (dem.py)
+  "pyproj>=3.6",  # polar stereographic projection (dem.py)
 ]
 
 [project.optional-dependencies]

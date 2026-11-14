@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import { DataStatusBanner } from "@/components/DataStatusBanner";
+import { ViewModeToggle } from "@/components/ViewMode";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -42,7 +43,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <Link href="/analyze" className="text-sm text-muted hover:text-foreground">
               New analysis
             </Link>
-            <span className="ml-auto text-xs text-muted">Screening and education tool</span>
+            <Link href="/why-the-south-pole-is-hard" className="text-sm text-muted hover:text-foreground">
+              Why the south pole is hard
+            </Link>
+            <span className="ml-auto flex items-center gap-4">
+              <ViewModeToggle />
+              <span className="hidden text-xs text-muted sm:inline">Screening and education tool</span>
+            </span>
           </nav>
         </header>
         <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">

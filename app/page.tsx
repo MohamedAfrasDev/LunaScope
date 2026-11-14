@@ -17,9 +17,12 @@ export default function Home() {
         <div className="mt-8">
           <ReferenceMissionButton />
         </div>
-        <p className="mt-6 text-sm">
+        <p className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm">
           <Link href="/analyze" className="text-accent underline underline-offset-4">
             Or set up your own analysis
+          </Link>
+          <Link href="/why-the-south-pole-is-hard" className="text-accent underline underline-offset-4">
+            Why the south pole is hard
           </Link>
         </p>
       </section>

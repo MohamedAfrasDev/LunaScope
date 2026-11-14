@@ -293,3 +293,66 @@ class HorizonResponse(_Out):
     cache_key: str
     terrain_identity: dict
     payload_sha256: str | None = None  # absent on bundles written before it was recorded
+
+
+# ----------------------------------------------------------------------------- alternatives search
+class SearchAdmissionResponse(_Out):
+    search_id: str
+    parent_run_id: str
+    variant_type: Literal["alternatives_search"]
+    planned: int
+    attached: bool
+    objective: str
+    status_url: str
+
+
+class StripSite(_Out):
+    site_id: str
+    site_status: SiteStatusName
+    sun_outcome: Outcome
+    earth_outcome: Outcome
+    sun_margin: float
+    earth_margin: float
+    objective_margin: float
+
+
+class StripError(_Out):
+    code: str | None
+    message: str | None
+
+
+class StripDate(_Out):
+    offset_s: int
+    offset_days: float
+    run_id: str | None
+    state: Literal["baseline", "pending", "queued", "running", "complete", "complete_with_warnings", "failed"]
+    start_utc: str
+    verdict: Literal["pass", "fail", "unknown"] | None
+    sites: list[StripSite]
+    error: StripError | None
+
+
+class StripCounts(_Out):
+    planned: int
+    tested: int
+    passing: int
+    failing: int
+    unknown: int
+    pending: int
+    failed_runs: int
+
+
+class SearchStripResponse(_Out):
+    search_id: str
+    parent_run_id: str
+    objective: str
+    complete: bool
+    counts: StripCounts
+    dates: list[StripDate]
+    largest_margin_among_passing: dict[str, int | None]
+    note: str
+
+
+class SearchListResponse(_Out):
+    run_id: str
+    searches: list[SearchStripResponse]

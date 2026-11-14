@@ -8,6 +8,9 @@ import { degrees, duration, pctRange, siteLabel, targetLabel, utc } from "@/lib/
 import { OUTCOME, SITE_STATUS, WARNING_TEXT } from "@/lib/status";
 import { ResultStateFrame } from "./ResultStateFrame";
 import { StatusChip } from "./StatusChip";
+import { plainFact } from "@/lib/guided";
+import { SensitivityPanel } from "./SensitivityPanel";
+import { useViewMode } from "./ViewMode";
 import { AvailabilityBar, IntervalTable, Legend, TimelineChart, type Band } from "./TimelineChart";
 
 const TARGETS: Target[] = ["sun_center", "earth_center"];
@@ -48,6 +51,7 @@ function csv(bands: Band[]): string {
 }
 
 export function TimelineView({ runId, siteId }: { runId: string; siteId: string }) {
+  const mode = useViewMode();
   const [data, setData] = useState<ResultsResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -110,11 +114,20 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
               if (!r || !f) return null;
               const m = r.metrics;
               const o = OUTCOME[m.outcome];
+              const facts = site.target_metrics[t]?.explanations ?? [];
               return (
                 <section key={t} aria-label={`${targetLabel(t)} summary`} className="rounded border border-border p-3 text-sm">
                   <h2 className="flex flex-wrap items-center gap-2 text-base font-semibold">
                     {targetLabel(t)} <StatusChip p={o} title={o.help} />
                   </h2>
+                  {facts.length > 0 && (
+                    <div className="mt-2">
+                      <h3 className="text-sm font-semibold">{mode === "guided" ? "In plain words" : "Facts from the service"}</h3>
+                      <ul className="mt-1 list-disc space-y-1 pl-5">
+                        {facts.map((f) => <li key={f.code}>{mode === "guided" ? plainFact(f, t) : f.text}</li>)}
+                      </ul>
+                    </div>
+                  )}
                   <dl className="mt-2 grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1">
                     <dt className="text-muted">Availability, terrain</dt>
                     <dd className="tabular-nums">{pctRange(m.availability_lower, m.availability_upper, 2)} (needs at least {Math.round(m.threshold * 100)}%)</dd>
@@ -178,6 +191,8 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
               </ul>
             </div>
           )}
+
+          <SensitivityPanel variants={site.sensitivity ?? []} />
 
           {site.warnings.length > 0 && (
             <ul className="space-y-1 text-sm">

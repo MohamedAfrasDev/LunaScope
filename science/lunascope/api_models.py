@@ -9,9 +9,17 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    TypeAdapter,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 
 from .errors import INVALID_INPUT, LunaScopeError
 from .horizon import HorizonSettings
@@ -144,11 +152,42 @@ class DateShift(_Strict):
         return v
 
 
-class VariantRequest(_Strict):
-    """Spec 8.4. Only `date_shift` is built; alternatives and sensitivity variants come later."""
-
+class DateShiftRequest(_Strict):
     variant_type: Literal["date_shift"]
     changes: DateShift
+
+
+MAX_SEARCH_DATES = 15  # spec 8.4: up to 15 child runs
+
+
+class SearchRange(_Strict):
+    from_days: int = Field(ge=-30, le=30)
+    to_days: int = Field(ge=-30, le=30)
+    step_days: int = Field(default=1, ge=1, le=30)
+
+    @model_validator(mode="after")
+    def _bounded(self):
+        if self.from_days > self.to_days:
+            raise ValueError("from_days must not be after to_days")
+        if len(self.offsets_s()) > MAX_SEARCH_DATES:
+            raise ValueError(f"at most {MAX_SEARCH_DATES} dates per search; widen the step or narrow the range")
+        if not [o for o in self.offsets_s() if o != 0]:
+            raise ValueError("the range holds only the baseline date; there is nothing new to test")
+        return self
+
+    def offsets_s(self) -> list[int]:
+        """Every tested date as a start offset in seconds, ascending. The baseline (0) is included
+        only if the grid reaches it; the strip always shows the baseline separately."""
+        return [d * 86400 for d in range(self.from_days, self.to_days + 1, self.step_days)]
+
+
+class SearchRequest(_Strict):
+    variant_type: Literal["alternatives_search"]
+    changes: SearchRange
+
+
+VariantRequest = Annotated[DateShiftRequest | SearchRequest, Field(discriminator="variant_type")]
+_VARIANT = TypeAdapter(VariantRequest)
 
 
 class ComparisonRequest(_Strict):
@@ -201,14 +240,19 @@ def parse_comparison(body: bytes) -> ComparisonRequest:
         raise LunaScopeError(INVALID_INPUT, err["msg"], field=".".join(str(p) for p in err["loc"]) or None) from e
 
 
-def parse_variant(body: bytes) -> VariantRequest:
+def parse_variant(body: bytes) -> DateShiftRequest | SearchRequest:
     if len(body) > 4096:
         raise LunaScopeError(INVALID_INPUT, "request body exceeds 4096 bytes")
     try:
-        return VariantRequest.model_validate_json(body)
+        return _VARIANT.validate_json(body)
     except ValidationError as e:
         err = e.errors()[0]
-        raise LunaScopeError(INVALID_INPUT, err["msg"], field=".".join(str(p) for p in err["loc"]) or None) from e
+        loc = [str(p) for p in err["loc"]]
+        if err["type"] in ("union_tag_invalid", "union_tag_not_found"):  # an unknown variant_type
+            loc = ["variant_type"]
+        elif loc and loc[0] in ("date_shift", "alternatives_search"):  # drop the union branch tag
+            loc = loc[1:]
+        raise LunaScopeError(INVALID_INPUT, err["msg"], field=".".join(loc) or None) from e
 
 
 def shifted_request(parent_canon: dict, offset_s: int) -> dict:

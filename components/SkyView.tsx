@@ -58,7 +58,8 @@ function CountdownCard({ runId, siteId, target, t, playing }: { runId: string; s
           ctl.signal,
         )
           .then((r) => {
-            if (r.run_id === runId && r.site_id === siteId) {
+            // a reply for a cursor position the user has since left must never replace a newer answer
+            if (!ctl.signal.aborted && r.run_id === runId && r.site_id === siteId) {
               setCd(r);
               setErr(null);
             }
@@ -108,8 +109,8 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
       getJson<ResultsResponse>(`analyses/${runId}/results?site=${encodeURIComponent(siteId)}&include=intervals,events,series`, ctl.signal),
       getJson<HorizonProfileResponse>(`analyses/${runId}/horizon/${encodeURIComponent(siteId)}`, ctl.signal),
     ])
-      .then(([results, profile]) => results.run_id === runId && setData({ results, profile }))
-      .catch((e) => !(e instanceof DOMException) && setErr(describeError(e)));
+      .then(([results, profile]) => !ctl.signal.aborted && results.run_id === runId && setData({ results, profile }))
+      .catch((e) => !(e instanceof DOMException) && !ctl.signal.aborted && setErr(describeError(e)));
     return () => ctl.abort();
   }, [runId, siteId]);
 

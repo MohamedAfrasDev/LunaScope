@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+var
+test-results
+playwright-report
+.playwright-mcp
+science/.venv
+science/**/__pycache__
+data/raw
+data/derived
+docs/runs
+fallback

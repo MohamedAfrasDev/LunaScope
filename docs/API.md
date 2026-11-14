@@ -31,9 +31,18 @@ LUNASCOPE_STACK=live      .venv/Scripts/python -m uvicorn lunascope.main:create_
 | `GET /analyses/{run_id}/horizon/{site_id}` | Skyline profile |
 | `GET /analyses/{run_id}/countdown?site=&target=&horizon=&t=` | Server-decided countdown at a cursor time `t` (seconds from the window start): next set or rise with its solver bracket, `in_decision_band`, `unknown`, `no_event` or `mission_end`. The browser only subtracts the cursor from the returned time |
 | `POST /comparisons` | Body `{runs: [id] or [idA, idB], sites?: [...], alignment?: "elapsed" or "calendar"}`. One run: compares its sites (at least two) on identical inputs. Two runs: checks they are variants of each other (`422 INCOMPATIBLE_RUNS` with reasons otherwise), lists held and changed fields, deltas and changed intervals under the chosen alignment. Facts are typed records; there is no winner, rank or score |
-| `GET /analyses/{run_id}/export` | Investigative bundle + `X-Content-SHA256`; `?verified=true` is refused (`409 EXPORT_BLOCKED_UNVERIFIED`) |
+| `GET /references/{id}` | A golden reference definition (`GR-001`): status, whether frozen, and the exact request Home submits |
+| `POST /analyses/{run_id}/variants` | Body `{variant_type, changes}`. `date_shift` with `{start_offset_s}` (whole minutes, within 30 days either way, not zero) copies the parent request, changes only `mission.start_utc`, admits it as an ordinary run and links it (`202` new, `200` attached; the same inputs as a fresh request are the same run). `alternatives_search` with `{from_days, to_days, step_days}` plans up to 15 dates and returns `202` with a `search_id`; dates are admitted as runs in bounded batches (at most two of a search in flight, pausing when the queue is full). In replay mode only packaged variants and searches are served (`409 REPLAY_ONLY`) |
+| `GET /analyses/{run_id}/variants` | Runs this one is a variant of, and the variants of it, with status and start time |
+| `GET /analyses/{run_id}/searches` and `/searches/{search_id}` | The tested-dates strip: one row per date (baseline, pending, queued, running, complete, failed) with a verdict per date and a result per site. Counts never include a pending or failed date as a pass or fail. The stated objective names, per site, the passing date with the largest margin; there is no score or ranking |
+| `GET /analyses/{run_id}/validation` | Validation cards and their roll-up into three groups (geometry, terrain horizon, numerical convergence): `not_met` if any check failed, `met` only if every check ran and passed, otherwise `not_evaluated`. Tagged separately and always revalidated |
+| `GET /analyses/{run_id}/export` | Investigative bundle with a frozen snapshot of the validation cards, the analysis artifact hash and `X-Content-SHA256`; deterministic bytes; `?verified=true` is refused (`409 EXPORT_BLOCKED_UNVERIFIED`) |
 
 Not built yet: variants, comparisons, facts, share links.
+
+## Caching
+
+Reads of a finished result (`/results`, `/provenance`, `/countdown`, `/horizon/{site}`) carry `ETag: "<result_id>"` and `Cache-Control: private, max-age=31536000, immutable`; `If-None-Match` is answered `304` before any work (after the token check). Run status, errors, the validation cards and the export are not cached as immutable: the cards use their own content tag with `no-cache`, because a scope can close after a result is sealed.
 
 ## Request (`POST /analyses`)
 

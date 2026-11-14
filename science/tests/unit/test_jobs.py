@@ -1,6 +1,7 @@
 """Supervisor behaviour with FAKE worker processes (tiny `python -c` scripts) so timeouts, crashes
 and concurrency run in seconds. The real worker is covered by test_service.py."""
 
+import json
 import sys
 import time
 
@@ -163,3 +164,16 @@ def test_queue_capacity_is_enforced_at_admission_not_by_the_workers(tmp_path, n)
     with pytest.raises(Exception) as e:
         submit(store, "z" * 64)
     assert getattr(e.value, "code", "") == "QUEUE_FULL"
+
+
+def test_a_refused_progress_write_never_fails_the_run(tmp_path, monkeypatch):
+    """Windows refuses to replace progress.json while the supervisor has it open (WinError 5)."""
+    from lunascope import worker
+
+    def refuse(path, obj):
+        raise PermissionError(5, "Access is denied")
+    monkeypatch.setattr(worker, "_write", refuse)
+    worker.write_progress(tmp_path, "site 1/3", 0.3)  # must not raise
+    monkeypatch.undo()
+    worker.write_progress(tmp_path, "site 2/3", 0.6)
+    assert json.loads((tmp_path / "progress.json").read_text())["progress"] == 0.6

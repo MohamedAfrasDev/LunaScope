@@ -1,0 +1,24 @@
+# Full stack: docker compose -f deploy/compose.yml up --build   (web on :3000, service internal)
+# Live data needs the DEM and SPICE files under ./data/raw (see docs/deploy.md).
+services:
+  service:
+    build: { context: .., dockerfile: deploy/service.Dockerfile }
+    environment:
+      LUNASCOPE_STACK: ${LUNASCOPE_STACK:-synthetic}   # synthetic | live
+      LUNASCOPE_MODE: ${LUNASCOPE_MODE:-live}          # live | replay
+      LUNASCOPE_API_TOKEN: ${LUNASCOPE_API_TOKEN:?set a long random token}
+    volumes:
+      - lunascope-data:/data
+      - ../data/raw:/app/data/raw:ro
+    restart: unless-stopped
+  web:
+    build: { context: .., dockerfile: deploy/web.Dockerfile }
+    environment:
+      SCIENCE_API_URL: http://service:8000
+      SCIENCE_API_TOKEN: ${LUNASCOPE_API_TOKEN:?set a long random token}
+    ports: ["3000:3000"]
+    depends_on:
+      service: { condition: service_healthy }
+    restart: unless-stopped
+volumes:
+  lunascope-data:

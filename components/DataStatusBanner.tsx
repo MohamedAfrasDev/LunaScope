@@ -40,13 +40,19 @@ export function DataStatusBanner() {
     text = synthetic
       ? "Synthetic demonstration data: values are invented test fixtures, not lunar results."
       : "Real data, unverified: no validation gate has closed. Screening and education only, not flight-qualified.";
-    if (s.h.mode === "replay") text += " Replay mode: showing saved runs only.";
   }
+  const replay = s.kind === "ok" && s.h.mode === "replay";
 
   return (
     <div role="status" className={`border-b px-4 py-2 text-center text-sm ${tone}`}>
+      {replay && (
+        <span className="mr-2 rounded border border-current px-2 py-0.5 text-xs font-semibold uppercase tracking-wide">
+          Replay mode
+        </span>
+      )}
       <span className="font-medium">Data status: </span>
       {text}
+      {replay && " This is an offline copy: it shows saved runs only and cannot compute new ones."}
     </div>
   );
 }
