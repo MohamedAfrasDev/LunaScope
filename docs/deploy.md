@@ -7,10 +7,10 @@
 | Service and web run locally (`uvicorn`, `next dev`) | Verified |
 | Service installs and imports in a clean environment with only its declared dependencies | Verified (this found that `pyproject.toml` omitted `spiceypy`, `rasterio` and `pyproj`; fixed) |
 | `scripts/smoke.mjs` against the local synthetic stack | Verified, 10 of 10 steps |
-| Offline fallback: build, rehearse with the network blocked, browser spec | Verified on the **synthetic** stack |
+| Offline fallback: build, rehearse with the network blocked, browser spec | Verified on the **synthetic** stack and on a **real-data (live) package** |
 | `deploy/*.Dockerfile` and `deploy/compose.yml` | **Built and run on one machine (14 Nov, Docker Desktop on Windows).** Both images build; the stack starts healthy; `smoke.mjs` passes 10 of 10 against it; the service runs as a non-root user; the token is enforced (only `/health` is exempt); the store and skylines are written to the volume and a run survives a service restart; the packaged fallback opens in a replay container. **Not yet run on a host or from a clean CI machine** |
 | Anything hosted (Vercel, a container host) | **Not deployed** |
-| A fallback package of **real** data | **Not built** (needs the DEMs, the SPICE kernels, the Horizons contact, and network) |
+| A fallback package of **real** data | **Built on 14 Nov** (10.5 MB, stack `live`) from the frozen GR-001 and its five-day shift; rehearsed offline (17 of 17 checks, zero network attempts) and opened in a browser. **Local to one machine and gitignored**; built from a tree with uncommitted changes, so rebuild it from a clean commit and copy it to the pitch machine. Rebuilding needs no network now: every Horizons response is cached |
 
 ## Two processes
 
@@ -65,7 +65,7 @@ npm run test:e2e:fallback                                                       
 
 To start it for real, see `fallback/README.md` (written by `build`). The web app shows a **Replay mode** badge on every page.
 
-**A synthetic package is only a rehearsal.** For the pitch, build with `--stack live` after GR-001 is chosen and frozen, then run `check` on that package.
+**A synthetic package is only a rehearsal.** For the pitch use the live package: `build_fallback.py build --stack live --seed-from ../var` (the seed reuses recorded Horizons responses and verified skylines, so only a genuinely new window reaches JPL, and that needs `LUNASCOPE_CONTACT`), then `check ../fallback --stack live` and `LUNASCOPE_FALLBACK_STACK=live npm run test:e2e:fallback`.
 
 ## Before relying on any of this
 
