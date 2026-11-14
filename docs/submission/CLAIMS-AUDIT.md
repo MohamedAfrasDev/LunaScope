@@ -23,7 +23,7 @@ Status words: **Delivered** (works and is tested), **Delivered, synthetic only**
 | Sensitivity checks (finer azimuth step, other DEM release) | Delivered | Shown on the Timeline from the service's numbers | Convergence on real data: the full report has not been run |
 | Keyboard-complete core flow, no meaning by colour alone | Delivered | Playwright keyboard-only flow; axe on eight pages. **A manual screen-reader pass is not done** | "Fully accessible" |
 | Works offline (fallback) | Delivered, synthetic only | `build_fallback.py check`: replay mode with the network blocked, case 16, browser spec | An offline package of real data: none has been built |
-| Hosted deployment | **Not delivered** | Dockerfiles and compose written; **never built** (no Docker daemon available), **nothing deployed** | That the app is hosted anywhere |
+| Hosted deployment | **Not delivered** | Images build and the compose stack passes the smoke test **on a local machine**; **nothing is deployed** anywhere | That the app is hosted anywhere |
 
 ## What the product does not claim (keep it that way)
 

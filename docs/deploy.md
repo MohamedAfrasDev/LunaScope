@@ -8,7 +8,7 @@
 | Service installs and imports in a clean environment with only its declared dependencies | Verified (this found that `pyproject.toml` omitted `spiceypy`, `rasterio` and `pyproj`; fixed) |
 | `scripts/smoke.mjs` against the local synthetic stack | Verified, 10 of 10 steps |
 | Offline fallback: build, rehearse with the network blocked, browser spec | Verified on the **synthetic** stack |
-| `deploy/*.Dockerfile` and `deploy/compose.yml` | **Written, never built.** The Docker daemon was not running when they were written. Build them once and run the smoke test before relying on them |
+| `deploy/*.Dockerfile` and `deploy/compose.yml` | **Built and run on one machine (14 Nov, Docker Desktop on Windows).** Both images build; the stack starts healthy; `smoke.mjs` passes 10 of 10 against it; the service runs as a non-root user; the token is enforced (only `/health` is exempt); the store and skylines are written to the volume and a run survives a service restart; the packaged fallback opens in a replay container. **Not yet run on a host or from a clean CI machine** |
 | Anything hosted (Vercel, a container host) | **Not deployed** |
 | A fallback package of **real** data | **Not built** (needs the DEMs, the SPICE kernels, the Horizons contact, and network) |
 
@@ -69,7 +69,7 @@ To start it for real, see `fallback/README.md` (written by `build`). The web app
 
 ## Before relying on any of this
 
-1. Build both images and run the smoke test against them.
+1. ~~Build both images and run the smoke test against them~~ done locally; repeat on the host.
 2. Deploy somewhere reachable and run the smoke test there, signed out.
 3. Build the live fallback package and rehearse it with Wi-Fi off.
 4. Freeze versions and record commit and checksums (`reference_run.py` and `build_fallback.py` write these).
