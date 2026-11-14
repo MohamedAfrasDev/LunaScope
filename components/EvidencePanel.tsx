@@ -127,7 +127,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
   const { p, v, err } = useEvidence(runId);
 
   const back = (
-    <Link href={`/runs/${runId}`} className="text-sm text-accent underline underline-offset-4">
+    <Link href={`/runs/${runId}`} className="tap text-sm text-accent underline underline-offset-4">
       ← Back to the status matrix
     </Link>
   );
@@ -217,7 +217,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
             </p>
           <section aria-label="Identity and pinned resources">
             <Disclosure summary="Identity and pinned resources">
-            <dl className="mt-2 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-[max-content_1fr]">
+            <dl className="kv mt-2 text-sm">
               <dt className="text-muted">Run (hash of request, resources and algorithm)</dt>
               <dd><Hash v={p.run_id} n={24} /></dd>
               <dt className="text-muted">Result (sealed at completion)</dt>
@@ -237,7 +237,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
           {method.length > 0 && (
             <section aria-label="Method and inputs">
               <Disclosure summary="Method and inputs">
-              <dl className="mt-2 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-[max-content_1fr]">
+              <dl className="kv mt-2 text-sm">
                 {method.map(([k, val]) => (
                   <div key={k} className="contents">
                     <dt className="text-muted">{k}</dt>
@@ -288,7 +288,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
                   {s.warnings && s.warnings.length > 0 && (
                     <p className="mt-2 text-xs">
                       {s.warnings.map((w) => (
-                        <span key={w} className="mr-2"><code className="rounded bg-surface-2 px-1">{w}</code> <span className="text-muted">{WARNING_TEXT[w] ?? ""}</span></span>
+                        <span key={w} className="mr-2"><code className="break-all rounded bg-surface-2 px-1">{w}</code> <span className="text-muted">{WARNING_TEXT[w] ?? ""}</span></span>
                       ))}
                     </p>
                   )}
@@ -348,7 +348,7 @@ export function EvidenceLink({ runId }: { runId: string }) {
         </ul>
       )}
       <p className="mt-3">
-        <Link href={`/runs/${runId}/evidence`} className="font-medium text-accent underline underline-offset-4">
+        <Link href={`/runs/${runId}/evidence`} className="tap font-medium text-accent underline underline-offset-4">
           Open the evidence: provenance, validation cards and export
         </Link>
       </p>

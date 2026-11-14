@@ -449,11 +449,67 @@ Done when: no page still uses the old visual language.
 
 ## Phase 13: Motion, responsive and accessibility sweep (M)
 
-- [ ] Motion audit: every animation disabled under `prefers-reduced-motion`.
-- [ ] Responsive pass at 320, 375, 768, 1024, 1440 for every route.
-- [ ] Keyboard pass through the full flow (home to run to each tab).
-- [ ] Contrast re-check on final components in both themes.
-- [ ] Screen-reader spot check of tabs, disclosures, the status pill and the hero SVG.
+Every item was measured in a real browser first (an audit script over all 9 routes at 320, 375, 768, 1024 and 1440 px,
+dark theme), then fixed, then pinned by a test so it cannot regress.
+
+- [x] **Motion.** The only animations are the one-time fade-ins on the home hero and the sky terrain, plus short CSS
+  transitions on hover and open states. **Defect found and fixed:** under reduced motion the hero's lines of sight,
+  Sun and Earth stayed invisible for up to a second. The global reduced-motion rule shortened durations but not
+  delays, and a delayed animation with `fill-mode: both` holds its first frame (opacity 0). The fade-ins now exist
+  only inside `@media (prefers-reduced-motion: no-preference)`, so without a motion preference there is no animation at
+  all and everything is drawn in its final state. The global rule also zeroes delays and iteration counts as a safety
+  net. Sky playback was already off under reduced motion (`reduced` flag). **Second defect:** the Time Machine's
+  `scrollIntoView({ behavior: "smooth" })` ignored the preference; it now uses `auto` when reduced motion is asked for.
+- [x] **Responsive, 320 to 1440 px, every route.** Four defects fixed:
+  1. A page scrolled sideways at 320 px (Timeline): a grid with one implicit column is sized to its widest child's
+     minimum width. Fixed at the root with a base rule giving `.grid` a `minmax(0, 1fr)` column (utilities such as
+     `grid-cols-2` still win), which also covers the same bug class that was found on the hosted site earlier.
+  2. Label/value lists (`dl`) with a `max-content` label column squeezed the value to about 10 px at 320. New `.kv`
+     class: label above value on a phone, two columns from 640 px. Used on Timeline, Sky, Compare, Time Machine, Evidence.
+  3. Long values and warning codes poked out of the screen on Time Machine and Evidence: `.readout` forbids wrapping, which
+     defeated `break-all`; `.readout.break-all` now wraps, and warning codes may break.
+  4. The header took four rows on a phone. It is now three: brand and view switch, the two links, the data status
+     (121 px at 375 px, was about 165 px with the banner). Desktop unchanged (55 px).
+  Result: no sideways scroll, and no element outside a scroll box, on any route at any of the five widths.
+- [x] **Target size (WCAG 2.2 AA, 2.5.8).** About a dozen standalone links, disclosure summaries and the sky slider were
+  16 to 20 px tall at 375 px. New `.tap` / `.tap-block` classes (24 px minimum) on standalone links and text
+  buttons, and a 24 px minimum on `summary` and range inputs. Links inside a sentence are exempt by the standard and
+  unchanged. Only the visually hidden "Skip to content" link remains under 24 px, by design.
+- [x] **Keyboard, home to every tab.** Pinned in a real browser: tab order through the six run tabs with the current one
+  announced (`aria-current`); Enter and Space open and close the disclosures (run page table, Advanced settings);
+  the status pill opens with Enter and closes with Escape with focus returned. **Small defect fixed:** Escape was
+  handled by a document listener that only exists after React re-renders, so pressing Escape the instant the panel
+  opened did nothing; it is now also handled on the pill itself.
+- [x] **Contrast.** Text on every surface and every chip was already above 4.5:1 in both themes, including the labels
+  drawn inside the SVGs (checked by calculation, since axe does not read SVG text well). **Defect found and fixed:** the
+  edge of an input or select was 1.7 to 2.0:1, below the 3:1 that WCAG 1.4.11 asks for when the edge is what identifies
+  a field (axe does not test this). `--border-strong` is now `#5f6b78` (dark) and `#7a8591` (light), at least 3.2:1 on
+  every surface; all controls already used that token. A new unit test (`tests/web/tokens.test.ts`, 26 checks) reads the
+  real stylesheet and guards text, status chips, the primary button and the control edge in both themes.
+- [x] **Screen-reader semantics (tree, not a real reader).** Verified through the accessibility tree: the status pill's
+  accessible name is its state plus "show details", the hero drawing has a name and a long description that says it
+  is not to scale and not from data, the tabs expose `aria-current="page"`, disclosures are native `details`, and
+  every route has exactly one `h1` and no skipped heading level (`h1, h2, h3`...). **Not done:** I could not run NVDA,
+  JAWS or VoiceOver, so real announcement order and verbosity are unverified. Worth one manual pass before launch.
+- [x] **Earlier cosmetic items closed:** a halo behind the Sun, Earth and flat-horizon labels in the sky plot so they stay
+  readable over the track and the hatching; tighter tracking on monospace readouts (`-0.03em`).
+- **Logged, not changed:** the timeline's "unresolved" band is patterned in the warning amber, which is close to the Sun
+  amber. The pattern (dots) and the legend distinguish them, rows are labelled, and they never share a row, so I left
+  the hues alone; revisit if someone mixes them up in testing.
+
+Test changes: `tests/e2e/a11y-sweep.spec.ts` (5 browser tests: layout and target size across 5 widths and 9 routes,
+reduced motion, keyboard disclosures and the pill, tab order, semantics and heading order);
+`tests/web/tokens.test.ts` (contrast guard). One existing unit test, `alternatives.test.tsx`, had a race (its stub
+answered the first poll with a different, completed strip, so whether "Running" was still on screen depended on
+timing); the stub now returns the strip it was seeded with. It was flaky under load before and is stable now (six
+runs in a row).
+
+Environment note: the long-running dev server on port 3000 had stopped recompiling `globals.css` mid-session, so the
+reduced-motion fix did not appear there. The whole e2e suite (all 11 tests, including the new ones) was therefore run
+against a fresh production build on another port and passes; restart `next dev` to see the same locally.
+
+Verification: vitest 243 (26 new in `tokens.test.ts`), tsc, eslint, Playwright e2e 11 on a production build, fallback
+e2e 1 (live stack), `next build`, axe in dark and light on all 9 routes: 0 violations.
 
 Done when: the sweep checklist is ticked and defects are fixed or logged.
 

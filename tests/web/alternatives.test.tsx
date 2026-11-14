@@ -36,7 +36,9 @@ function stub(initial: unknown[], posts: unknown[] = []) {
         objective: "x", status_url: `/api/v1/analyses/${RUN}/searches/${SID}` }, 202);
     }
     if (url.endsWith("/searches")) return json({ run_id: RUN, searches: initial });
-    if (url.includes(`/searches/${SID}`)) return json(strip());
+    // a poll answers with the strip the test seeded (so an unfinished strip stays unfinished and the assertion does not race
+    // the first poll); a search started from the form has nothing seeded and gets the default strip
+    if (url.includes(`/searches/${SID}`)) return json(initial.at(-1) ?? strip());
     return json({ error: { code: "NOT_FOUND", message: url, field: null, retryable: false, correlation_id: null } }, 404);
   }));
 }

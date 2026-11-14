@@ -92,7 +92,8 @@ export function TimeMachineView({ runId }: { runId: string }) {
           onOpenDate={(_days, id) => {
             setChildId(id);
             loadLinks();
-            document.getElementById("time-alignment")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+            document.getElementById("time-alignment")?.scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "start" });
           }}
         />
       )}

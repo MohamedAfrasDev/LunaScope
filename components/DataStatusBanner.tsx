@@ -90,7 +90,17 @@ export function DataStatusPill() {
 
   return (
     <div role="status" className="sm:relative">
-      <details ref={ref} className="group" onToggle={(e) => setOpen(e.currentTarget.open)}>
+      <details
+        ref={ref}
+        className="group"
+        onToggle={(e) => setOpen(e.currentTarget.open)}
+        onKeyDown={(e) => {
+          if (e.key !== "Escape" || !ref.current?.open) return;
+          ref.current.removeAttribute("open");
+          setOpen(false);
+          ref.current.querySelector("summary")?.focus();
+        }}
+      >
         <summary
           className={`flex cursor-pointer list-none items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium [&::-webkit-details-marker]:hidden ${TONE_BOX[tone]}`}
         >

@@ -122,7 +122,7 @@ export function RunView({ runId }: { runId: string }) {
       {run?.matrix && (run.status === "complete" || run.status === "complete_with_warnings") && (
         <>
           <p className="text-sm">
-            <Link href={`/runs/${runId}/time-machine`} className="font-medium text-accent underline underline-offset-4">
+            <Link href={`/runs/${runId}/time-machine`} className="tap font-medium text-accent underline underline-offset-4">
               What if the date slips? Open the Time Machine
             </Link>
           </p>
@@ -133,7 +133,7 @@ export function RunView({ runId }: { runId: string }) {
               <ExcludedSites runId={runId} rows={run.matrix.filter((r) => r.site_status === "UNKNOWN_COVERAGE")} />
               {run.matrix.length >= 2 && (
                 <p className="text-sm">
-                  <Link href={`/runs/${runId}/compare`} className="font-medium text-accent underline underline-offset-4">
+                  <Link href={`/runs/${runId}/compare`} className="tap font-medium text-accent underline underline-offset-4">
                     Compare these sites side by side
                   </Link>
                 </p>

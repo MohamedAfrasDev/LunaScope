@@ -37,20 +37,27 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <header className="sticky top-0 z-40 border-b border-border bg-surface/90 backdrop-blur">
           <nav
             aria-label="Main"
-            className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 gap-y-2 px-4 py-2.5"
+            className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 gap-y-1.5 px-4 py-2 sm:py-2.5"
           >
-            <Link href="/" className="mr-4 flex items-center gap-2 text-base font-semibold tracking-tight">
+            <Link href="/" className="order-1 mr-4 flex items-center gap-2 text-base font-semibold tracking-tight sm:order-none">
               <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none">
                 <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.75" />
                 <path d="M12 3a9 9 0 0 0 0 18 6 6 0 0 1 0-18Z" fill="currentColor" />
               </svg>
               LunaScope
             </Link>
-            <NavLink href="/analyze">New analysis</NavLink>
-            <NavLink href="/why-the-south-pole-is-hard">Why the south pole is hard</NavLink>
-            <span className="ml-auto flex flex-wrap items-center gap-3">
-              <DataStatusPill />
-              <ViewModeToggle />
+            {/* On a phone: brand and view switch on the first row, the two links on the second, the data status on the third. */}
+            <div className="order-3 flex w-full items-center gap-1 sm:order-none sm:w-auto">
+              <NavLink href="/analyze">New analysis</NavLink>
+              <NavLink href="/why-the-south-pole-is-hard">Why the south pole is hard</NavLink>
+            </div>
+            <span className="contents sm:ml-auto sm:flex sm:flex-wrap sm:items-center sm:gap-3">
+              <div className="order-4 sm:order-none">
+                <DataStatusPill />
+              </div>
+              <div className="order-2 ml-auto sm:order-none sm:ml-0">
+                <ViewModeToggle />
+              </div>
             </span>
           </nav>
         </header>

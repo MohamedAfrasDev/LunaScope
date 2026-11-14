@@ -32,13 +32,13 @@ function Marker({ target, x, y }: { target: Target; x: number; y: number }) {
   return target === "sun_center" ? (
     <g>
       <circle cx={x} cy={y} r={6} style={{ fill: HUE[target], stroke: "var(--foreground)" }} strokeWidth={1.2} />
-      <text x={x + 9} y={y - 7} fontSize="10" style={{ fill: "var(--foreground)" }}>Sun</text>
+      <text x={x + 9} y={y - 7} fontSize="10" paintOrder="stroke" strokeWidth={3} strokeLinejoin="round" style={{ fill: "var(--foreground)", stroke: "var(--surface)" }}>Sun</text>
     </g>
   ) : (
     <g>
       <rect x={x - 5} y={y - 5} width={10} height={10} transform={`rotate(45 ${x} ${y})`}
         style={{ fill: "var(--surface)", stroke: HUE[target] }} strokeWidth={2.4} />
-      <text x={x + 9} y={y + 14} fontSize="10" style={{ fill: "var(--foreground)" }}>Earth</text>
+      <text x={x + 9} y={y + 14} fontSize="10" paintOrder="stroke" strokeWidth={3} strokeLinejoin="round" style={{ fill: "var(--foreground)", stroke: "var(--surface)" }}>Earth</text>
     </g>
   );
 }
@@ -155,7 +155,7 @@ export function PolarSky({ profile, tracks, band, title, desc }: {
       )}
       {/* flat 0 degree horizon for comparison */}
       <circle r={flatR} fill="none" strokeWidth={1.2} strokeDasharray="4 3" style={{ stroke: "var(--muted)" }} />
-      <text x={flatR + 2} y={-2} fontSize="6.5" style={{ fill: "var(--muted)" }}>0° flat horizon</text>
+      <text x={flatR + 2} y={-2} fontSize="6.5" paintOrder="stroke" strokeWidth={2} strokeLinejoin="round" style={{ fill: "var(--muted)", stroke: "var(--surface)" }}>0° flat horizon</text>
       {/* compass */}
       {([["N", 0], ["E", 90], ["S", 180], ["W", 270]] as const).map(([l, a]) => {
         const p = polar(a, band.max, band, R + 11);
