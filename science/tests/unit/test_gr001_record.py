@@ -79,3 +79,17 @@ def test_the_run_record_is_what_the_report_script_writes_from_these_bundles(froz
     assert mod.main() == 0
     committed = (ROOT / "docs" / "runs" / "GR-001-run.md").read_bytes().replace(b"\r\n", b"\n")
     assert out.read_bytes().replace(b"\r\n", b"\n") == committed
+
+
+def test_every_frozen_site_has_an_independent_skyline_record_and_the_card_reads_met():
+    """The committed comparison is for exactly the committed skyline and DEM, and the card re-judges it."""
+    import json
+    from pathlib import Path
+
+    from lunascope.cards import _independent_card
+    root = Path(__file__).resolve().parents[3] / "docs" / "runs" / "GR-001"
+    bundles = [json.loads(p.read_text(encoding="utf-8")) for p in sorted(root.glob("*.json")) if p.name != "manifest.json"]
+    assert len(bundles) == 3
+    for b in bundles:
+        card = _independent_card(b, b["observer"]["site_id"])
+        assert card["status"] == "met", (b["observer"]["site_id"], card["facts"])

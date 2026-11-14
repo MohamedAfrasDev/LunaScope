@@ -69,6 +69,8 @@ npm install
 npm run dev -- --port 3000
 ```
 
+In the Claude desktop app, `.claude/launch.json` has one-click entries: `science-synthetic`, `science-live` (needs the data files; uses `LUNASCOPE_CONTACT` from that file) and `science-replay` (serves a throwaway copy of `fallback/`), each paired with `web`. Only one science entry can run at a time (port 8000).
+
 Open <http://localhost:3000>. (In PowerShell set the variable with `$env:LUNASCOPE_STACK="synthetic"` first.)
 
 ### Real data: the live stack
@@ -462,6 +464,7 @@ The frozen version of the same scenario, used as the common reference for tests,
 - **Gate 2:** five named checks over the saved bundles: **geometry** (SPICE and interpolation), **horizon** (digest, summary, every sector certified), **aggregation** (intervals tile the window, bounds follow from the intervals, results re-derive), **event search** (nothing uncertified, every root within tolerance) and **convergence** (all cases ran, none flagged). A check passes only if it ran and held. Passing says the run is sound and converged; **it is not a validation of the science**.
 - **Record:** [`docs/runs/GR-001-run.md`](runs/GR-001-run.md), generated from the bundles in `docs/runs/GR-001/`. It was re-run from a clean commit with no Horizons contact set (so no request could be sent) and reproduced the earlier draft run exactly. Permanent tests guard the freeze.
 - **Real five-day shift:** [`docs/runs/GR-001-plus5d.md`](runs/GR-001-plus5d.md). A variant of GR-001, with a sensitivity flag explained there, and no convergence report.
+- **Independent skyline check:** [`docs/runs/GR-001-independent-skyline.md`](runs/GR-001-independent-skyline.md). Why the terrain-horizon card reads met for GR-001, and how the gates were reached.
 - **Real dates search:** [`docs/runs/GR-001-dates-search.md`](runs/GR-001-dates-search.md). Eight dates of GR-001 on real data; no date passes.
 
 ---
@@ -584,7 +587,7 @@ Up to **6 sites**; at most **60,000 samples** (sites × 2 targets × steps); win
 | `RESOURCE_INTEGRITY_FAILED` | A data file is missing or fails its checksum. | Run `verify_resources.py`, restore the file. The tool blocks rather than substituting. |
 | `UNAUTHORIZED` | The service token is missing or wrong. | Match `LUNASCOPE_API_TOKEN` and `SCIENCE_API_TOKEN`. |
 | Warning `SENSITIVITY_HIGH` | The result is less settled under a finer or alternative setting. | Read the Sensitivity panel; quote the flag beside the number. |
-| A card reads **Not evaluated** | The check has not been run, or cannot be (no independent skyline). | It supports nothing; it is not a failure. |
+| A card reads **Not evaluated** | The check has not been run, or no recorded comparison exists for that exact skyline. | It supports nothing; it is not a failure. |
 
 ---
 
@@ -598,7 +601,7 @@ Up to **6 sites**; at most **60,000 samples** (sites × 2 targets × steps); win
 
 **Not built or not finished (honest list)**
 - **Nothing is validated.** The DEM is not scientifically approved and SDR-001 is unsigned. Every result is `real_data_unverified` or `synthetic_demonstration`.
-- **Terrain-horizon card** reads *not evaluated*: no independent second skyline implementation exists.
+- **Terrain-horizon card** reads *met* for GR-001 only: a second, independent skyline agrees (`docs/runs/GR-001-independent-skyline.md`). It checks the skyline computation, not the DEM. A skyline with no recorded comparison (a custom site, another radius) reads *not evaluated*.
 - **The built-in sites are demonstration points**, not candidate landing sites. A real candidate-site selection would be a new reference.
 - **The dates search** has been run once on real data (eight dates of GR-001; no date passes; see `docs/runs/GR-001-dates-search.md`), and the Time Machine once. Neither is validated.
 - **No near/far DEM merge**, so that convergence case is not applicable.

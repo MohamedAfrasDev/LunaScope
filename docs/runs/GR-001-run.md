@@ -83,10 +83,10 @@ Not applicable: `dem_near_field_on_off` (no multi-resolution near/far merge exis
 | Card | Status | Checks |
 | --- | --- | --- |
 | Sun and Earth geometry | **met** | 12 met, 0 not met, 0 not evaluated |
-| Terrain horizon | **not evaluated** | 6 met, 0 not met, 3 not evaluated |
+| Terrain horizon | **met** | 9 met, 0 not met, 0 not evaluated |
 | Numerical convergence | **met** | 3 met, 0 not met, 0 not evaluated |
 
-The terrain-horizon card cannot read `met` until a **second, independent skyline implementation** exists to compare against: its `independent_terrain_check` is `not evaluated` by design, and one is not built. Convergence and the DEM-release check support the numerical side only; they do not check the DEM itself.
+The independent-skyline check reads `met` at every site: a second, pixel-driven skyline (`science/lunascope/independent_horizon.py`) agrees with the production skyline inside gates declared in advance ([the record](GR-001-independent-skyline.md)). That checks the skyline **computation**, not the DEM, which both methods read; the terrain-horizon card therefore supports the numerical side only.
 
 ## Limits that apply to every number here
 

@@ -16,7 +16,7 @@ Dates are intended work windows, not evidence that a gate will pass.
 | --- | --- | --- | --- | --- |
 | **0. Decision & contract gate** | 13 Nov | Settle science/contract decisions before real data | SDR-001 approved | `[~]` decisions made on evidence (~70 %), none signed off: SDR-001 is unsigned |
 | **1. Validity foundation** | 13 Nov | One real site end to end through the science pipeline | **Gate 1** | `[x]` Gate 1 checklist complete (5 of 5, via RUN-001). Phase not formally closed: SDR-001 unsigned, near/far terrain merge not built |
-| **2. Core experience** | 14 Nov | Three-site reference run, all workspaces, evidence | **Gate 2** | `[~]` GR-001 is **frozen** and passes Gate 2's five checks on a clean-commit, no-network re-run (14 Nov). Not closed: the terrain-horizon validation card reads "not evaluated" (no independent skyline implementation), and SDR-001 is unsigned |
+| **2. Core experience** | 14 Nov | Three-site reference run, all workspaces, evidence | **Gate 2** | `[~]` GR-001 is **frozen** and passes Gate 2's five checks on a clean-commit, no-network re-run (14 Nov). The terrain-horizon card now reads **met** (an independent pixel-driven skyline agrees at all three sites; `docs/runs/GR-001-independent-skyline.md`); not closed: SDR-001 is unsigned |
 | **3. Extras, presentation, reliability** | 15 Nov | Animation, alternatives, fallback, submission | **Gate 3** | `[~]` started 14 Nov: extras and the fallback built; deployment, the live package and the human items are open |
 
 ```
@@ -212,7 +212,7 @@ Priority order: validity → relevance → core experience.
 
 ### Gate 2 checklist
 - [x] `GR-001` passes geometry, horizon, aggregation, event-search and convergence checks, **on the frozen run**: `reference.gate_report` defines the five checks over the saved bundles (a check passes only if it ran and held; `not_evaluated` also keeps the gate shut; each can fail, tested). `scripts/reference_run.py gate docs/runs/GR-001` runs them and `test_gr001_record.py` keeps them true: SPICE within 0.0017 arcsec, every skyline sector certified, results re-derive, no uncertified interval and all 5 events inside the root tolerance, convergence unflagged. Passing says the run is sound and converged, **not** that the science is validated
-- [~] Three validation cards populated: on the live run, **geometry: met** (12 checks), **numerical convergence: met**, **terrain horizon: not evaluated** (6 met, 3 not evaluated) because no second, independent skyline implementation exists to compare against. Building one would let that card read met; until then it honestly cannot. Corrupted-horizon test fails readiness (case 13) **done**: `reference.readiness` recomputes the skyline digest and re-derives events, intervals and metrics from the stored series and skyline
+- [~] Three validation cards populated: on the live run, **geometry: met** (12 checks), **numerical convergence: met**, **terrain horizon: met** (9 met) since the independent skyline check (`independent_horizon.py`, evidence in `data/validation/independent_skyline/`) agrees at all three GR-001 sites within gates declared in the code. It checks the skyline computation, not the DEM; other skylines still read not evaluated until their own comparison is recorded. Corrupted-horizon test fails readiness (case 13) **done**: `reference.readiness` recomputes the skyline digest and re-derives events, intervals and metrics from the stored series and skyline
 - [x] Core flow works by keyboard (Playwright, keyboard only)
 - [x] Time Machine five-day shift verified (case 14): `test_variants.py` (own UTC, events, countdown per run; calendar refusal) and `time-machine.test.tsx` (panels on their own clocks); Playwright spec still pending
 
@@ -307,7 +307,7 @@ Only after Gate 2.
 | 1 | Eligibility: pre-event work without written permission | **Open** — D-12, file the permission |
 | 2 | Wrong observer / frame / north | Mitigated: observer and az/el tested; SPICE agrees with Horizons to 0.0017 arcsec (RUN-001); wrong longitude direction, latitude sign, unit and height are caught by tests (case 12). Conventions are decided but not signed off (D-02) |
 | 3 | Portal mistaken for a pinned DEM; missed ridge | Mitigated: two DEM releases pinned by SHA-256; unknown is never treated as flat; azimuth step studied. The choice of DEM release still moves the skyline (worst site about 2.6 deg) and is reported, not hidden |
-| 4 | Geometry agreement presented as full validation | Mitigated: three cards with narrow scopes; the terrain-horizon card reads "not evaluated" (no independent skyline exists); no scope has closed |
+| 4 | Geometry agreement presented as full validation | Mitigated: three cards with narrow scopes; the terrain-horizon card reads met only for skylines with a recorded independent comparison, and it checks the computation, not the DEM; no scope has closed |
 | 5 | Same-sign samples hide two events | Mitigated: subdivision + certification tested on analytic models |
 | 6 | Baseline and shifted run share one UTC | Mitigated: each run keeps its own UTC; alignment mode is explicit and tested (case 14) |
 | 8 | Mock data mistaken for results | Mitigated: persistent data-status banner, a state frame on every numeric surface, a Replay mode badge, and result states on every export |
@@ -324,5 +324,5 @@ Done since 13 Nov: the DEM downloads, the Horizons provider, interpolation and t
 1. [x] **Live fallback package** built from the frozen GR-001 and rehearsed offline (done 14 Nov). Still to do: rebuild it from a clean commit, keep a copy on the pitch machine and a second copy, and re-run `build_fallback.py check` there with the Wi-Fi off
 2. [ ] Deploy web and service somewhere reachable and run `scripts/smoke.mjs` there, signed out
 3. [ ] File the organizer permission (**D-12**); science owner and product owner sign **SDR-001** (D-01 to D-08, D-10)
-4. [ ] Optional but it changes a card: build a **second, independent skyline implementation** so the terrain-horizon validation card can read `met` instead of `not evaluated`
+4. [x] Second, independent skyline implementation built; the terrain-horizon card reads `met` for GR-001 (record `docs/runs/GR-001-independent-skyline.md`). Remaining: record the comparison for other skylines (for example custom sites) if they should read `met`
 5. [ ] Slides or video; confirm the disclosure and licence wording; manual screen-reader pass

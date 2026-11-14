@@ -109,8 +109,17 @@ def main() -> int:
     for g in cards["groups"]:
         n = g["counts"]
         L.append(f"| {g['title']} | **{g['status'].replace('_', ' ')}** | {n['met']} met, {n['not_met']} not met, {n['not_evaluated']} not evaluated |")
-    L += ["", "The terrain-horizon card cannot read `met` until a **second, independent skyline implementation** exists to compare against: its `independent_terrain_check` is "
-          "`not evaluated` by design, and one is not built. Convergence and the DEM-release check support the numerical side only; they do not check the DEM itself.", "",
+    ind = [c["status"] for c in cards["cards"] if c["id"] == "independent_terrain_check"]
+    if ind and all(x == "met" for x in ind):
+        note = ("The independent-skyline check reads `met` at every site: a second, pixel-driven skyline "
+                "(`science/lunascope/independent_horizon.py`) agrees with the production skyline inside gates declared in advance "
+                "([the record](GR-001-independent-skyline.md)). That checks the skyline **computation**, not the DEM, which both "
+                "methods read; the terrain-horizon card therefore supports the numerical side only.")
+    else:
+        note = ("The terrain-horizon card cannot read `met` until the independent skyline comparison reads `met` at every site "
+                f"(now: {', '.join(sorted(set(ind))) or 'none'}). Convergence and the DEM-release check support the numerical side only; "
+                "they do not check the DEM itself.")
+    L += ["", note, "",
           "## Limits that apply to every number here", "",
           "- Screening and education only: not a landing-safety, power, link-budget or mission-feasibility result.",
           "- Centre-of-disc visibility, no refraction (no atmosphere), a finite 150 km horizon radius.",
