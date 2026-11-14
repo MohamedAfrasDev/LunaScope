@@ -14,7 +14,7 @@ _Word count: about 175. The three points are a reference scenario, not candidate
 | --- | --- | --- | --- |
 | 1 | The problem | The Sun and Earth sit 0 to 7 degrees above the horizon at the pole; a 300 m ridge 5 km away stands about 3.3 degrees. | "A few degrees of sky and the ground around you decide everything." |
 | 2 | Why a flat horizon fails | Table: flat horizon Sun 100% at all three sites; terrain 0%. | "The simple answer is wrong for the one thing the Sun can do here: nothing." |
-| 3 | What LunaScope does | Sun and Earth against the terrain skyline, outages, countdown, requirement outcome. Screenshot of the Local sky page. | Show the hatched skyline and the tracks. |
+| 3 | What LunaScope does | Sun and Earth against the terrain skyline, outages, countdown, requirement outcome. Screenshot of the Local sky page, ideally the 3D view facing the Earth at its predicted rise. | Show the skyline and the tracks; switch to **3D (look around)**, press Next event, then Face the Earth: the marker sits on the ridge line. |
 | 4 | The Time Machine | +5 days: Earth 74.5% and 65.0% become 100%; the Sun at one site goes from 0% to 51.2%, still short of 60%. | "A five-day slip genuinely changes the answer." Say the run carries a sensitivity flag. |
 | 5 | Which dates pass | Eight dates, none pass; the Sun's closest approach is 51% at one site. | "The search says so instead of inventing a best date." |
 | 6 | Why trust it | NASA sources; SPICE agrees to 0.0017 arcsec; a second skyline written independently agrees at all three sites; reproduces with the network off. | "We checked it every way we could, and we say what is not validated." |

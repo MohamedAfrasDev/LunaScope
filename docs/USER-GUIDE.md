@@ -282,6 +282,13 @@ The target tracks over the terrain skyline, with a cursor you can move through t
 
 **View**: **Polar (north up)** shows the sky from above, north at the top; **Unrolled (azimuth across)** lays azimuth along the horizontal axis. Hatched ground is the terrain skyline from the elevation data; the dashed grey circle or line is the flat 0° horizon (grey on purpose: blue always means Earth); elevation rings are 5° apart. The Sun is amber and Earth blue, and each has a different marker shape (a dot and a diamond) and a label, so colour is not the only cue. A line segment is drawn in the style of its state (visible, hidden, unresolved, uncertified, no data). The picture only draws what the service decided: **whether a target is visible is never worked out in the browser.**
 
+**3D (look around)** is a third view of the same data, drawn with three.js (loaded only when you choose it). You stand at the site: the **terrain skyline is a wall** around you with a bright ridge line, the **Sun (orange sphere) and Earth (blue diamond)** sit on the sky beyond it with their paths, and thin rings mark the flat 0° horizon and every 5° above it, with N, E, S and W letters. A target behind the wall is hidden, and a faint copy is drawn through the wall so you can still see where it is. It follows the same time player as the other views.
+
+- **Look around** (default): drag to turn your head, wheel or **+** and **−** to zoom, arrow keys turn the view (Shift for bigger steps). **From outside** orbits above the ring instead. Buttons **Face the Sun**, **Face the Earth** and **N E S W** point the view.
+- **Exaggerate heights ×3** multiplies elevation angles for legibility; it is stated on screen whenever it is on. Markers are drawn larger than the real Sun and Earth.
+- It is **display only**: the geometry is the service's skyline and series, hidden or visible is the service's classification (read aloud below the picture in words), and an unknown skyline sector is left open, never drawn as flat ground.
+- Without WebGL (or on a very old device) it says so and the polar and unrolled views show the same sky. The canvas has a text description, and the readout list under it gives each target's azimuth, elevation and state in words.
+
 **At the cursor** (readout panel): the UTC time and "Day X of Y". For each target: **Azimuth**, **Elevation**, **Skyline there** (or "unknown (no terrain data)"), **State**, and a **countdown**.
 
 **The countdown** is asked from the service at the cursor time. It says what happens next ("Predicted set under this terrain model: in 3 h 12 min") with the model bracket in seconds, or one of:

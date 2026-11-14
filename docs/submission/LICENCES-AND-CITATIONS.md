@@ -16,7 +16,7 @@
 
 ## Software (direct dependencies, licence as declared by the package)
 
-**Web, shipped:** Next.js 16.4.6 (MIT), React 19.3.0 and React DOM (MIT). Font: Geist and Geist Mono via `next/font/google`, published under the SIL Open Font License 1.1 (**confirm against the font's own licence file before listing**).
+**Web, shipped:** Next.js 16.4.6 (MIT), React 19.3.0 and React DOM (MIT), three.js 0.187.0 (MIT, the 3D sky view). Font: Geist and Geist Mono via `next/font/google`, published under the SIL Open Font License 1.1 (**confirm against the font's own licence file before listing**).
 
 **Science service, shipped:** NumPy (BSD-3-Clause and others), SciPy (BSD), FastAPI (MIT), Pydantic (MIT), Uvicorn (BSD-3-Clause), httpx (BSD-3-Clause), rfc8785 (Apache-2.0), SpiceyPy (MIT), rasterio (BSD-3-Clause), pyproj (MIT).
 
