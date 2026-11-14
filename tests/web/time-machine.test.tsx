@@ -187,3 +187,61 @@ describe("TimeMachineView", () => {
     expect(screen.queryByText(/compared in elapsed time/)).toBeNull(); // the old comparison is not left on screen
   });
 });
+
+describe("TimeMachineView steps and summary", () => {
+  it("lays the work out as three steps and shows step 3 only once there is a shifted run to compare", async () => {
+    stub();
+    render(<TimeMachineView runId={BASE} />);
+    await screen.findByLabelText("Shift the start by (days)");
+    expect(screen.getByText("Step 1 of 3")).toBeInTheDocument();
+    expect(screen.getByText("Step 2 of 3")).toBeInTheDocument();
+    expect(screen.queryByText("Step 3 of 3")).toBeNull(); // nothing to compare yet
+    fireEvent.click(screen.getByRole("button", { name: "Shift and recompute" }));
+    expect(await screen.findByText("Step 3 of 3")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Compare a shifted run" })).toBeInTheDocument();
+  });
+
+  it("states how many results change outcome, and which, before any table", async () => {
+    stub({ children: true });
+    render(<TimeMachineView runId={BASE} />);
+    const box = await screen.findByRole("group", { name: "Outcome changes" });
+    expect(within(box).getByText("1 of 2 site and target results change outcome")).toBeInTheDocument();
+    expect(within(box).getByText(/89\.5°S, 0°E, Sun: Fail → Pass/)).toBeInTheDocument();
+    // it is a count of what the service says changed, not a score
+    expect(box.textContent).not.toMatch(/score|rank|winner|best/i);
+  });
+
+  it("keeps the full deltas table one click away, and the per-run panels visible", async () => {
+    stub({ children: true });
+    render(<TimeMachineView runId={BASE} />);
+    const table = await screen.findByRole("table", { name: /Baseline and shifted results/ });
+    const box = table.closest("details")!;
+    expect(box).not.toHaveAttribute("open");
+    expect(within(box).getByText(/Deltas from the baseline \(terrain-aware\)/)).toBeInTheDocument();
+    for (const name of ["Baseline run", "Shifted run"]) {
+      const panel = await screen.findByRole("article", { name });
+      expect(panel.closest("details")).toBeNull(); // the runs on their own clocks are not hidden
+    }
+  });
+
+  it("says plainly when a shift changes no outcome", async () => {
+    stub({ children: true });
+    const real = globalThis.fetch;
+    vi.stubGlobal("fetch", vi.fn(async (u: string, init?: RequestInit) => {
+      const res = await real(u, init);
+      if (!String(u).includes("/comparisons")) return res;
+      const body = await res.json();
+      for (const s of body.sites) for (const t of Object.values(s.targets)) (t as { outcome_change: string | null }).outcome_change = null;
+      return json(body);
+    }));
+    render(<TimeMachineView runId={BASE} />);
+    expect(await screen.findByText("No site or target changes outcome with this shift.")).toBeInTheDocument();
+  });
+
+  it("keeps the held-constant list and its count", async () => {
+    stub({ children: true });
+    render(<TimeMachineView runId={BASE} />);
+    const held = (await screen.findByText("Held constant (1 inputs)")).closest("details")!;
+    expect(held).not.toHaveAttribute("open");
+  });
+});

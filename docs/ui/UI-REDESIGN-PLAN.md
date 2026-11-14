@@ -383,10 +383,34 @@ Done when: the form's first screen has two groups and a Run button, and all erro
 
 Files: `components/TimeMachineView.tsx` (582 lines; split while touching).
 
-- [ ] Split into subcomponents: `ShiftForm`, `DateSearch`, `ShiftedRuns`, `DeltaTable`, `RunComparison`. No behaviour change.
-- [ ] Step layout: 1 Shift, 2 Which dates pass, 3 Compare; the date strip is the centrepiece.
-- [ ] Deltas table and per-run charts in disclosures below.
-- [ ] Preserve result binding and out-of-order protections (existing tests cover them).
+- [x] **Split, no behaviour change.** `TimeMachineView.tsx` went from 577 lines to 108 (an orchestrator), and
+  `AlternativesStrip.tsx` from 227 to 121. New files in `components/time-machine/`, each under 125 lines:
+  `ShiftForm` (step 1, owns the days input, validation and submit), `ShiftedRuns` (the list of runs to pick from),
+  `AlignmentChoice` (the elapsed/calendar radios), `RunComparison` (loading, failed and running states, then the
+  comparison), `useComparison` (all fetching, with every reply bound to the run ids and the alignment it was asked
+  for), `ComparisonSummary`, `DeltaTable`, `RunPanels`, `ChangedSpans`, `DateStrip` (the date-search tiles and
+  table) and `format.ts`. The result-binding and out-of-order protections moved with the code and their existing
+  tests pass unchanged.
+- [x] **Three steps, one question each**: "Step 1 of 3" (shift the start), "Step 2 of 3" ("Which dates pass?", the date
+  strip as the centrepiece), "Step 3 of 3" ("Compare a shifted run"). Step 3 appears only once there is a shifted run
+  to compare, so a first visit shows two questions, not a wall.
+- [x] **New at-a-glance summary** (`role="group"` "Outcome changes") directly under the comparison heading: "1 of 6
+  site and target results change outcome" and which ones ("89.5°S, 0°E, Sun: Fail → Excluded"), or "No site or
+  target changes outcome with this shift." It only counts the outcome changes the service already reports; it is
+  not a score, and a test checks it names no winner or rank.
+- [x] The full **deltas table** is now a closed `Disclosure` ("Deltas from the baseline (terrain-aware): the full
+  table"), with its "no date is ranked or scored" note inside. "Held constant (N inputs)" and the date-search table
+  use the same `Disclosure`. Other restyling: `readout` for measured values, the Sun/Earth key under the charts,
+  consistent input borders.
+- Deliberately **not** collapsed: the "Each run on its own clock" panels. The e2e flow checks that each panel shows
+  its own "Starts ..." UTC (case 14), and the two timelines are the visual comparison, so they stay visible; only
+  their interval tables fold, as before. This is the one departure from the original bullet.
+
+Verification: vitest 211 (5 new in `tests/web/time-machine.test.tsx`: three steps and when step 3 appears, the
+outcome-change count and list, no-change wording, deltas table closed and panels not hidden, held-constant count),
+tsc, eslint, Playwright e2e 6 (includes the Time Machine keyboard flow and the arrow-key alignment radios),
+fallback e2e 1 (live stack, packaged shift), `next build`, axe in dark and light on all 9 routes: 0 violations.
+Reviewed at 1280 (dark, light) and 375px; no sideways scroll. No existing test needed changing.
 
 Done when: the file is split below ~200 lines per component, existing Time Machine tests pass, and the first screen shows one question at a time.
 
