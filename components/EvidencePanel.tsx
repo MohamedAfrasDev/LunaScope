@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import { describeError, getJson } from "@/lib/api/client";
-import type { ProvenanceResponse, ValidationCard, ValidationGroup, ValidationResponse } from "@/lib/api/types";
+import type { DiskEdge, ProvenanceResponse, Target, ValidationCard, ValidationGroup, ValidationResponse } from "@/lib/api/types";
 import { fieldLabel, fieldValue } from "@/lib/facts";
-import { shortId, siteLabel, targetLabel, utc } from "@/lib/format";
-import { CARD_STATUS, WARNING_TEXT } from "@/lib/status";
+import { duration, pctRange, shortId, siteLabel, targetLabel, utc } from "@/lib/format";
+import { CARD_STATUS, OUTCOME, WARNING_TEXT } from "@/lib/status";
 import { ResultStateFrame } from "./ResultStateFrame";
 import { StatusChip } from "./StatusChip";
 
@@ -61,6 +61,61 @@ function GroupCard({ g, cards }: { g: ValidationGroup; cards: ValidationCard[] }
         </ul>
       </details>
     </article>
+  );
+}
+
+const READINGS = [
+  { key: "upper_limb", label: "Upper limb", help: "Visible as soon as any part of the disc clears the skyline (most optimistic)" },
+  { key: "centre", label: "Centre (used)", help: "The reading every result in LunaScope uses" },
+  { key: "whole_disk", label: "Whole disc", help: "Visible only when all of the disc clears the skyline (most conservative)" },
+] as const;
+
+/** Centre versus disc edge (S-2): does treating the Sun and Earth as points change the answer here? */
+function DiskEdgeTable({ siteId, d }: { siteId: string; d: DiskEdge }) {
+  return (
+    <div className="mt-2">
+      <p className="text-sm">
+        <strong>{siteLabel(siteId)}:</strong>{" "}
+        {d.matters ? (
+          <span className="font-medium text-warn"><span aria-hidden="true">! </span>treating the disc as a point changes an outcome here.</span>
+        ) : (
+          <span><span aria-hidden="true">✓ </span>no outcome changes between the upper limb, the centre and the whole disc.</span>
+        )}
+      </p>
+      <div className="mt-1 overflow-x-auto">
+        <table className="w-full min-w-[40rem] text-left text-sm">
+          <caption className="sr-only">{siteLabel(siteId)}: availability and outcome by disc reading</caption>
+          <thead>
+            <tr className="border-b border-border">
+              <th scope="col" className="py-1 pr-3">Target</th>
+              {READINGS.map((r) => <th key={r.key} scope="col" className="py-1 pr-3" title={r.help}>{r.label}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {(Object.entries(d.targets) as [Target, NonNullable<DiskEdge["targets"][Target]>][]).map(([t, b]) => (
+              <tr key={t} className="border-b border-border/50 align-top">
+                <th scope="row" className="py-1 pr-3 font-medium">
+                  {targetLabel(t)}
+                  <span className="block text-xs font-normal text-muted">radius {b.angular_radius_deg.toFixed(2)}°</span>
+                </th>
+                {READINGS.map((r) => {
+                  const c = b[r.key];
+                  const changed = r.key !== "centre" && b.outcome_changes[r.key];
+                  return (
+                    <td key={r.key} className="py-1 pr-3 tabular-nums">
+                      <StatusChip p={OUTCOME[c.outcome]} />
+                      {changed && <span className="ml-1 text-xs font-medium text-warn">changed</span>}
+                      <span className="block">{pctRange(c.availability_lower, c.availability_upper, 1)}</span>
+                      <span className="block text-xs text-muted">longest hidden {duration(c.longest_known_hidden_s)}</span>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 
@@ -215,6 +270,25 @@ export function EvidencePanel({ runId }: { runId: string }) {
             <p className="mt-2 text-xs text-muted">
               Geometry agreement checks the Sun and Earth directions only. It does not validate the terrain horizon.
             </p>
+          </section>
+
+          <section aria-labelledby={`${uid}-disc`}>
+            <h2 id={`${uid}-disc`} className="text-lg font-semibold">Disc size: centre or edge?</h2>
+            <p className="mt-1 max-w-3xl text-sm text-muted">
+              Every result treats the Sun and Earth as a single point, their centre. Earth is about 1.9° across and the
+              Sun about 0.5°, so near the skyline that can matter. The table brackets it: the same sky and terrain with
+              the edge of the disc used instead.
+            </p>
+            {p.sites.some((s) => s.disk_edge) ? (
+              p.sites.map((s) => (s.disk_edge
+                ? <DiskEdgeTable key={s.site_id} siteId={s.site_id} d={s.disk_edge} />
+                : <p key={s.site_id} className="mt-2 text-sm text-muted">{siteLabel(s.site_id)}: not computed for this result.</p>))
+            ) : (
+              <p className="mt-2 text-sm text-muted">Not computed for this analysis: it was made before this check existed. Run it again to get it.</p>
+            )}
+            {p.sites.find((s) => s.disk_edge)?.disk_edge && (
+              <p className="mt-2 text-xs text-muted">{p.sites.find((s) => s.disk_edge)?.disk_edge?.note}</p>
+            )}
           </section>
 
           <section aria-labelledby={`${uid}-limits`}>

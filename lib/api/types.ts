@@ -209,6 +209,32 @@ export type ValidationCard = components["schemas"]["ValidationCardResponse"];
 export type CardStatus = ValidationCard["status"];
 export type ValidationResponse = components["schemas"]["ValidationResponse"];
 
+/** Disk-edge sensitivity (S-2): the centre-only assumption bracketed by the upper limb and the whole disc. */
+export interface DiskEdgeCase {
+  margin_deg: number;
+  outcome: Outcome;
+  availability_lower: number;
+  availability_upper: number;
+  longest_known_hidden_s: number;
+  events: number;
+}
+
+export interface DiskEdgeTarget {
+  angular_radius_deg: number;
+  centre: { outcome: Outcome; availability_lower: number; availability_upper: number; longest_known_hidden_s: number };
+  upper_limb: DiskEdgeCase;
+  whole_disk: DiskEdgeCase;
+  outcome_changes: { upper_limb: boolean; whole_disk: boolean };
+  matters: boolean;
+}
+
+export interface DiskEdge {
+  schema: string;
+  note: string;
+  matters: boolean;
+  targets: Partial<Record<Target, DiskEdgeTarget>>;
+}
+
 export type ValidationGroup = components["schemas"]["ValidationGroup"];
 
 export interface ProvenanceGeometry {
@@ -245,6 +271,7 @@ export interface ProvenanceResponse {
       skyline_min_deg: number | null; skyline_max_deg: number | null };
     geometry: Record<string, ProvenanceGeometry>;
     warnings?: string[];
+    disk_edge?: DiskEdge | null; // absent on results made before the check existed
     caveats: string[];
   }[];
 }

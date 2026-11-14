@@ -431,6 +431,7 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
                             if k not in ("azimuth_deg", "horizon_el_deg", "argmax_distance_km", "sector_state")},
                 "geometry": {t: {k: v for k, v in g.items() if k not in ("series",)}
                              for t, g in s["geometry"].items()},
+                "disk_edge": s.get("disk_edge"),  # absent on results written before S-2
                 "warnings": s["warnings"], "caveats": s["caveats"]} for s in a["sites"]]}
 
     @app.post("/api/v1/comparisons")

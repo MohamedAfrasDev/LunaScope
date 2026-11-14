@@ -1,12 +1,12 @@
 # LunaScope — Phase Plan and To-Do Tracker
 
 **Companion to:** [Implementation Specification v1.1](LunaScope-Implementation-Spec.md) · [SDR-001 (draft)](sdr/SDR-001.md)
-**Last updated:** 13 Nov 2026 · **Code state:** commit `a974125` (73 science tests passing, ruff clean, web lint and build passing)
+**Last updated:** 14 Nov 2026 · **Code state:** `main` at `417f0bc` plus the uncommitted Phase 2 completion work (366 science tests, 146 web tests, ruff, typecheck, lint and `next build` passing; 5 Playwright tests and 1 offline-fallback spec passing locally; no CI service exists, so `npm run verify` and the commands in the README are the gate)
 
 Legend: `[x]` done and verified in this repo · `[~]` partly done (the note says what is missing) · `[ ]` not started.
 Dates are intended work windows, not evidence that a gate will pass.
 
-> **Honest status:** everything computed so far uses **synthetic** terrain and **analytic test functions**. No real lunar data (Horizons, SPICE, DEM) has been used. Nothing in the repository is a validated result.
+> **Honest status:** every result is labelled `synthetic_demonstration` or `real_data_unverified`. One real-data run exists: [RUN-001](runs/RUN-001-first-real-run.md) (three rule-chosen sites, seven days, live Horizons + LOLA 20 m + SPICE). The golden reference run `GR-001` has **not** been run on live data and its sites are placeholders. Nothing in the repository is a validated result.
 
 ---
 
@@ -14,14 +14,16 @@ Dates are intended work windows, not evidence that a gate will pass.
 
 | Phase | Window | Goal | Gate | Status |
 | --- | --- | --- | --- | --- |
-| **0. Decision & contract gate** | 13 Nov | Settle science/contract decisions before real data | SDR-001 approved | `[~]` draft written, not approved |
-| **1. Validity foundation** | 13 Nov | One real site end to end through the science pipeline | **Gate 1** | `[~]` synthetic slice done (~45 %) |
-| **2. Core experience** | 14 Nov | Three-site reference run, all workspaces, evidence | **Gate 2** | `[~]` all buildable items done 13 Nov; Gate 2 waits on GR-001 sites (D-09) and its live run |
+| **0. Decision & contract gate** | 13 Nov | Settle science/contract decisions before real data | SDR-001 approved | `[~]` decisions made on evidence (~70 %), none signed off: SDR-001 is unsigned |
+| **1. Validity foundation** | 13 Nov | One real site end to end through the science pipeline | **Gate 1** | `[x]` Gate 1 checklist complete (5 of 5, via RUN-001). Phase not formally closed: SDR-001 unsigned, near/far terrain merge not built |
+| **2. Core experience** | 14 Nov | Three-site reference run, all workspaces, evidence | **Gate 2** | `[~]` everything that needs no outside decision is done (20 of 26 checklist items; the 6 left all trace to D-09 or D-11). Gate 2 waits on the GR-001 sites (D-09) and its live run, which needs the Horizons contact (D-11) |
 | **3. Extras, presentation, reliability** | 15 Nov | Animation, alternatives, fallback, submission | **Gate 3** | `[~]` started 14 Nov: extras and the fallback built; deployment, the live package and the human items are open |
 
 ```
-Phase 0 ████████░░ 80 %   Phase 1 ████░░░░░░ 40 %   Phase 2 ███████░░░ 75 %   Phase 3 █████░░░░░ 50 %
+Phase 0 ███████░░░ 70 %   Phase 1 █████████▌ 95 %   Phase 2 ████████░░ 80 %   Phase 3 █████░░░░░ 50 %
 ```
+
+Percentages are the share of each phase's own checklist that is done (a partly done item counts as half, checked 14 Nov). They are not effort or gate readiness. **Gate 1's checklist is complete; Gates 2 and 3 are not passed**: Gate 2 waits on the live `GR-001` run, which waits on the Horizons contact (D-11) and the site choice (D-09).
 
 **Done so far (summary)**
 
@@ -31,7 +33,10 @@ Phase 0 ████████░░ 80 %   Phase 1 ████░░░░�
 - [x] Science package scaffold with venv, pytest, ruff
 - [x] Synthetic numerical slice: canonical hashing, observer, az/el, event engine, metrics, requirement outcomes
 - [x] Synthetic terrain horizon engine with nodata/coverage handling
-- [x] Two commits: `774dc41`, `a974125`
+- [x] Phase 1: Horizons and SPICE geometry, LOLA terrain horizon, certified events, run lifecycle, thin UI, and the first real run (RUN-001)
+- [x] Phase 2: Time Machine, Evidence workspace and export, caching, reference-run tooling (readiness, convergence, freeze rule), Playwright keyboard and axe tests
+- [x] Phase 3: alternatives search, guided mode, explainer, sensitivity panel, share link, offline fallback (synthetic), container images built and run locally, submission drafts
+- [x] Pull requests #1 to #4 merged to `main`
 
 ---
 
@@ -181,9 +186,9 @@ Priority order: validity → relevance → core experience.
 - [ ] Choose three verified candidate sites with coordinate and terrain provenance (D-09). **Blocks freezing GR-001.** The draft definition [`data/reference/GR-001.json`](../data/reference/GR-001.json) uses the RUN-001 rule points, labelled `PLACEHOLDER`
 - [~] Freeze the request, window, DEM identity, settings (D-08): draft written with a recorded selection reason per field (start 2027-01-10, 7 days, ADJ DEM, 150 km, 0.1 deg); not frozen until D-09
 - [~] Run and cache; record commit, build, algorithm version, checksums: `science/scripts/reference_run.py run GR-001` writes bundles plus a manifest (commit, dirty flag, algorithm version, definition SHA-256, resource pins, per-site bundle/horizon/geometry hashes, readiness). Built and tested on the synthetic stack; not yet run live
-- [~] Convergence report: `reference.convergence_report` runs step 60 s, azimuth 0.5/0.25 deg, radius 100/200 km one change at a time against the base (0.1 deg, 150 km, 600 s); base-equal cases are skipped and listed; DEM near-field on/off recorded as not applicable (no multi-resolution merge). Tested on synthetic; real numbers pending the live run
+- [~] Convergence report: `reference.convergence_report` runs step 60 s, azimuth 0.5/0.25 deg, radius 100/200 km one change at a time against the base (0.1 deg, 150 km, 600 s); base-equal cases are skipped and listed; DEM near-field on/off recorded as not applicable (no multi-resolution merge). **Real numbers for part of it** ([record](runs/RUN-001-convergence.md), `scripts/convergence_study.py`, on the RUN-001 sites with cached Horizons responses, no network): the azimuth 0.5 and 0.25 deg cases ran at all three sites and none is flagged `SENSITIVITY_HIGH` (Earth events move by at most 119 s at the coarsest step). **The 1 minute step and both radius cases are blocked** (`CONFIGURATION_MISSING`: they need Horizons requests that are not cached, and the client refuses to send any without the project contact, D-11). Note: the Horizons cache key includes the DEM window, so changing the radius needs new requests even though the response would be identical; keying on the observer's physical identity would avoid that
 - [x] Mark unstable cases `SENSITIVITY_HIGH` (`apply_convergence`; tested: a 1 km radius cutting off a 5 km ridge is flagged)
-- [ ] Disk-edge sensitivity for Earth (S-2, OQ-06)
+- [x] Disk-edge sensitivity (S-2, OQ-06): every run now carries a bracket for the Sun and Earth (`disk_edge.py`): the upper limb (visible when any part of the disc clears the skyline), the centre (used everywhere), and the whole disc, recomputed with the same geometry, skyline and event search by moving the clearance margin by the angular radius (Sun 0.27 deg, Earth 0.95 deg; Earth's 0.90 to 1.03 variation is stated, not modelled). Tested against hand-derived rise times. Shown on the Evidence page ("Disc size: centre or edge?") and in `GET .../provenance`; it is outside the hashed result, so run and result ids do not change. **On the real RUN-001 sites** ([record](runs/RUN-001-disk-edge.md), computed offline from the stored bundles): no outcome changes at any site; Earth's availability moves by roughly 10 percentage points either way, and at `S89.5-E240` Earth still passes on the whole-disc reading with only 3.8 points to spare; the Sun fails at every site even on the upper limb
 - [x] Apply the implementation freeze rule: a frozen definition pins its run_id; `check_freeze` raises "create GR-002" when any scientific input changes (tested by changing the radius)
 
 ### 2.2 Workspaces
@@ -198,7 +203,7 @@ Priority order: validity → relevance → core experience.
 - [x] Home: one button submits GR-001 exactly as `GET /references/GR-001` serves it, so the demo and the reference run share one run id (tested); says GR-001 is a draft with demonstration sites
 
 ### 2.3 Cross-cutting
-- [~] Countdown rules: the Local Sky countdown is asked from the service at the cursor time (`GET /countdown`), covering at-event, mission-end, no-event, unknown and decision-band cases; the terrain-variant range (sensitivity) is not shown yet
+- [x] Countdown rules: the Local Sky countdown is asked from the service at the cursor time (`GET /countdown`), covering at-event, mission-end, no-event, unknown and decision-band cases. Under a predicted event it now says by how much that time moves across the terrain variants (finer azimuth step, other DEM release) from the service's own `max_event_shift_s`, warns if a variant finds a different number of events, and says plainly when no sensitivity check was run
 - [x] Alignment modes: the service names them `elapsed` and `calendar` with an explanatory note and refuses non-overlapping calendar windows; the Time Machine has the labelled control and shows the shared window
 - [x] Evidence bundle export (JSON) with frozen validation snapshot (`export.validation_snapshot` with the cards, groups and their hash), the analysis artifact hash, `designation: investigative`, deterministic bytes; verified designation refused (409) until a scope closes
 - [x] Keyboard-complete core flow, checked by Playwright pressing Tab/Enter/arrow keys only (Home → reference mission → matrix → Time Machine → alignment → Evidence → download); chart text alternatives and table views; icon+word on every state; focus rings, skip link, reduced-motion rule. axe found the faded flat-horizon column below AA contrast; fixed (dashed rule instead of opacity). A manual screen-reader pass is still not done (AC-15)
@@ -286,12 +291,12 @@ Only after Gate 2.
 | Item | In the spec | In the code |
 | --- | --- | --- |
 | I-01 Uncertainty / requirement policy | `[x]` | `[x]` outcomes and site summary |
-| I-02 Event certification | `[x]` | `[~]` per-level certification done on test models; real Lipschitz bound pending |
-| I-03 Interpolation and Horizons parsing | `[x]` | `[ ]` |
-| I-04 Missing terrain | `[x]` | `[x]` synthetic; real DEM pending |
-| I-05 Admission and identity | `[x]` | `[~]` hashing done; admission/sealing pending |
-| I-06 Horizons concurrency | `[x]` | `[ ]` |
-| I-07 Timeout, publication, recovery | `[x]` | `[ ]` |
+| I-02 Event certification | `[x]` | `[x]` per-level certification and the whole-interval Lipschitz bound from the Hermite coefficients and skyline bins |
+| I-03 Interpolation and Horizons parsing | `[x]` | `[x]` Hermite interpolation with rigorous bounds; Horizons parser with error, signature and grid checks |
+| I-04 Missing terrain | `[x]` | `[x]` unknown unless a recorded bound covers it; on the real DEMs (`DemTerrain`, coverage report) |
+| I-05 Admission and identity | `[x]` | `[x]` atomic admit-or-attach on `run_id`; `result_id` sealed at completion |
+| I-06 Horizons concurrency | `[x]` | `[x]` one request in flight, backoff and `Retry-After` (tested with 8 threads) |
+| I-07 Timeout, publication, recovery | `[x]` | `[x]` killable worker processes, conditional commit, start-up reconciliation |
 
 ---
 
@@ -300,23 +305,26 @@ Only after Gate 2.
 | # | Risk | Standing |
 | --- | --- | --- |
 | 1 | Eligibility: pre-event work without written permission | **Open** — D-12, file the permission |
-| 2 | Wrong observer / frame / north | Partly mitigated: observer and az/el tested; Horizons/SPICE cross-check pending |
-| 3 | Portal mistaken for a pinned DEM; missed ridge | Mitigated in code for nodata; real DEM and refinement pending |
-| 4 | Geometry agreement presented as full validation | Pending validation service (three cards) |
+| 2 | Wrong observer / frame / north | Mitigated: observer and az/el tested; SPICE agrees with Horizons to 0.0017 arcsec (RUN-001); wrong longitude direction, latitude sign, unit and height are caught by tests (case 12). Conventions are decided but not signed off (D-02) |
+| 3 | Portal mistaken for a pinned DEM; missed ridge | Mitigated: two DEM releases pinned by SHA-256; unknown is never treated as flat; azimuth step studied. The choice of DEM release still moves the skyline (worst site about 2.6 deg) and is reported, not hidden |
+| 4 | Geometry agreement presented as full validation | Mitigated: three cards with narrow scopes; the terrain-horizon card reads "not evaluated" (no independent skyline exists); no scope has closed |
 | 5 | Same-sign samples hide two events | Mitigated: subdivision + certification tested on analytic models |
 | 6 | Baseline and shifted run share one UTC | Mitigated: each run keeps its own UTC; alignment mode is explicit and tested (case 14) |
-| 8 | Mock data mistaken for results | Partly: health reports synthetic; UI labels pending |
-| 9 | Scope too large for a solo build | Cut order above; keep one real site first |
-| 10 | Horizons/hosting/network failure at the pitch | Pending cache + fallback |
+| 8 | Mock data mistaken for results | Mitigated: persistent data-status banner, a state frame on every numeric surface, a Replay mode badge, and result states on every export |
+| 9 | Scope too large for a solo build | Largely met: the buildable scope is done; what remains is human decisions and real-data runs |
+| 10 | Horizons/hosting/network failure at the pitch | Partly mitigated: Horizons responses cached verbatim; replay-mode fallback built and rehearsed offline on a **synthetic** package; images built and run locally. Nothing deployed; no live fallback package |
 | 11 | DEM / convention / sites not approved in time | **Open** — D-01 … D-09 |
 
 ---
 
 ## 9. Immediate next actions
 
-1. [ ] Science owner signs off D-01 (recommendation ready) and decides D-02, D-04: **blocks all real-data work**
-2. [ ] Approve the 2.7 GB download of `LDEM_80S_20MPP_ADJ.TIF` (optionally also the 1.85 GB PDS file) to compute SHA-256
-3. [ ] Write the Horizons provider against recorded responses (parser, error checks, limiter, cache) — can start before the decisions
-4. [ ] Build the Hermite interpolation + whole-interval bound so the horizon connects to the event engine
-5. [ ] Pydantic request models, error envelope, SQLite `RunRepository`
-6. [ ] File the organizer permission (D-12)
+The items from 13 Nov (approve the DEM downloads, the Horizons provider, interpolation and the whole-interval bound, request models and the run store) are done. What remains:
+
+1. [ ] Settle **D-11**: a team email or URL for the Horizons User-Agent. The live stack refuses to call Horizons without it
+2. [ ] Choose the three `GR-001` sites with coordinate and terrain provenance (**D-09**)
+3. [ ] Run `GR-001` live, review the convergence report, mark unstable cases, freeze it
+4. [ ] Build the live fallback package and rehearse it with the network off
+5. [ ] Deploy web and service somewhere reachable and run `scripts/smoke.mjs` there, signed out
+6. [ ] File the organizer permission (**D-12**); science owner and product owner sign **SDR-001**
+7. [ ] Slides or video; confirm the disclosure and licence wording; manual screen-reader pass; Earth disk-edge sensitivity (S-2)

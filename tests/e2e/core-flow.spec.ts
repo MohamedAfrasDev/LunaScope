@@ -70,6 +70,9 @@ test("core flow is keyboard-complete and every page passes axe", async ({ page }
   await expect(page.getByRole("heading", { name: "Validation cards" })).toBeVisible();
   for (const name of ["Sun and Earth geometry", "Terrain horizon", "Numerical convergence"])
     await expect(page.getByRole("heading", { name, level: 3 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Disc size: centre or edge?" })).toBeVisible();
+  await expect(page.getByRole("columnheader", { name: "Upper limb" }).first()).toBeVisible();
+  await expect(page.getByRole("columnheader", { name: "Whole disc" }).first()).toBeVisible();
   const dl = page.getByRole("link", { name: /Download investigative bundle/ });
   await tabTo(page, dl);
   const [download] = await Promise.all([page.waitForEvent("download"), page.keyboard.press("Enter")]);
