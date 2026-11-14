@@ -96,13 +96,26 @@ axe was also run by hand in **dark and light** on all 9 routes: 0 violations (WC
 
 Done when: every existing page renders correctly in both themes with no component edits, and contrast ratios are recorded.
 
-## Phase 2: Type and numeric treatment (S)
+## Phase 2: Type and numeric treatment (S): DONE
 
-Files: `app/globals.css`.
+Files: `app/globals.css` only. The classes are opt-in and unused so far, so no page changes yet; later phases adopt them.
 
-- [ ] Define a small type scale (display, title, section, body, caption, readout) as classes/tokens.
-- [ ] Add a `.readout` style: mono-flavoured tabular numerals for percentages, angles, times, coordinates.
-- [ ] Define the label style (small caps eyebrow) used for section headings.
+- [x] Type scale classes (computed sizes at 1280px, in brackets at 320px where they differ):
+
+| Class | Use | Size / weight |
+|---|---|---|
+| `type-display` | home hero headline, once | 44px / 600 (32px) |
+| `type-title` | page title (h1) | 28px / 600 (24px) |
+| `type-section` | section heading (h2) | 18px / 600 |
+| `type-body` | running text | 16px, line-height 1.65 |
+| `type-caption` | helper text, legends, footnotes | 13px, muted |
+
+- [x] `readout`: Geist Mono, tabular numerals, ligatures off, no mid-value wrapping. For percentages, angles, times
+  and coordinates. `readout-lg` (24px / 500) is a size modifier to combine with `readout` (`class="readout readout-lg"`);
+  `readout-unit` styles a smaller muted unit next to the number.
+- [x] `eyebrow` (small uppercase label) kept as the label style for group headings.
+
+Verification: computed styles checked in the browser at 1280 and 320px; vitest 149, tsc and eslint clean.
 
 Done when: scale and readout classes exist and are documented; no layout change yet.
 
