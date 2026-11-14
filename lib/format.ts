@@ -1,3 +1,5 @@
+import catalog from "../data/sites/catalog.json";
+
 /** Display formatting only. Values arrive already decided by the service. */
 
 export function pct(x: number, digits = 1): string {
@@ -42,9 +44,15 @@ export function shortId(id: string): string {
   return id.slice(0, 12);
 }
 
+/** Short names of the named places in the committed site catalog (the one source of truth for their coordinates). */
+const NAMED: Record<string, string> = Object.fromEntries(
+  (catalog.sites as { site_id: string; name?: string }[]).filter((s) => s.name).map((s) => [s.site_id, s.name as string]),
+);
+
 export function siteLabel(id: string): string {
   const m = id.match(/^rule-(\d+(?:\.\d+)?)S-E(\d+)$/);
-  return m ? `${m[1]}°S, ${m[2]}°E` : id;
+  if (m) return `${m[1]}°S, ${m[2]}°E`;
+  return NAMED[id] ?? id;
 }
 
 export function targetLabel(t: string): string {

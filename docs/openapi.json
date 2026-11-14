@@ -11,6 +11,50 @@
      "dem_coverage_150km": {
       "$ref": "#/components/schemas/DemCoverage"
      },
+     "diameter_km": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Diameter Km"
+     },
+     "feature_type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Feature Type"
+     },
+     "group": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Group"
+     },
+     "iau_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Iau Url"
+     },
      "kind": {
       "title": "Kind",
       "type": "string"
@@ -26,6 +70,17 @@
      "lon_east_deg": {
       "title": "Lon East Deg",
       "type": "number"
+     },
+     "name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name"
      },
      "precision_m": {
       "title": "Precision M",
@@ -1425,6 +1480,14 @@
    "SitesResponse": {
     "additionalProperties": false,
     "properties": {
+     "groups": {
+      "additionalProperties": {
+       "type": "string"
+      },
+      "default": {},
+      "title": "Groups",
+      "type": "object"
+     },
      "note": {
       "title": "Note",
       "type": "string"

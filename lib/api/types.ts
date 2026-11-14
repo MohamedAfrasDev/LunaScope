@@ -335,6 +335,8 @@ export interface ReferenceDefinition {
   status: "draft" | "frozen" | string;
   frozen: { run_id: string } | null;
   sites_status: string | null;
+  title?: string | null;
+  purpose?: string | null;
   request: AnalysisRequestBody;
 }
 

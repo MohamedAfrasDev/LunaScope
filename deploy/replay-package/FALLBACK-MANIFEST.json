@@ -1,12 +1,16 @@
 {
  "algorithm_version": "0.2.0-phase1",
- "built_utc": "2026-11-14T07:53:34Z",
- "commit": "60e0fcc7e8f488ddc7cd4f37034d8cc71c6d38df",
- "dirty": false,
+ "built_utc": "2026-11-14T17:18:02Z",
+ "commit": "1a31b7c1ef4f456360e637a37cc23340cc809515",
+ "dirty": true,
+ "extra_references": [
+  "GR-002",
+  "GR-003"
+ ],
  "horizons_responses": {
-  "in_package": 246,
+  "in_package": 342,
   "newly_fetched": 0,
-  "seeded_from_cache": 246
+  "seeded_from_cache": 342
  },
  "reference_definition_sha256": "0be977245ec9407e324a8b9bc4bcffdb8188b53818e18c4ba1a56268890be7d0",
  "reference_status": "frozen",
@@ -15,7 +19,7 @@
  ],
  "runs": [
   {
-   "analysis_artifact_sha256": "ba9f9efee29ee58bdea264b2ffb9496263532428a44046338ccaec39c3d861d6",
+   "analysis_artifact_sha256": "2bb44468cd57c60683146776b345c2071d44e91fb2721fcfcab56c8814e78b76",
    "kind": "reference",
    "name": "GR-001",
    "result_id": "00044a07694a567b4a47ce659398b95cccdcd4eac8da6f7ee7a360d732d6572b",
@@ -24,7 +28,7 @@
    "status": "complete_with_warnings"
   },
   {
-   "analysis_artifact_sha256": "ef9e2bad7afb3049b1121ea7e36d87cb8681ab54f408f2467efed020158f2bc4",
+   "analysis_artifact_sha256": "89991fa2c18b359a55df04311121e0fb5a8d86ebd8ca7f106c55003a403ae860",
    "kind": "date_shift",
    "name": "GR-001 +5 d",
    "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
@@ -34,7 +38,27 @@
    "status": "complete_with_warnings"
   },
   {
-   "analysis_artifact_sha256": "052e955e01fecd288b8604d2b1bc732e7f639d65b0abc77b3babca2eb235ee63",
+   "analysis_artifact_sha256": "a6a721263bceaca841a22f8f741b0cf321ae48ee1aa8e4da55ebe175bd4b37ec",
+   "kind": "reference_extra",
+   "name": "GR-002",
+   "reference_id": "GR-002",
+   "result_id": "0e3b444ec5b51cbcab169521cf2699396b4df68d22586fd4bb4d3dcf2e262f61",
+   "result_state": "real_data_unverified",
+   "run_id": "47709fb639c46c9d88b3a1724e65a03c334fe116ed4de7fe86a35cc98be418d3",
+   "status": "complete_with_warnings"
+  },
+  {
+   "analysis_artifact_sha256": "21c211546ea4d7ff1c441622e30cfa3db61cab0fee6660d246eda5826f68c774",
+   "kind": "reference_extra",
+   "name": "GR-003",
+   "reference_id": "GR-003",
+   "result_id": "50c9a06ae2694fb0fc32974e4468752731c1d73db990b4ec4f9e41f413c669d4",
+   "result_state": "real_data_unverified",
+   "run_id": "29fecaeba7bd2a89247eb37f7856f2e33d958d3a6472c1133e4f8b523a44edf9",
+   "status": "complete_with_warnings"
+  },
+  {
+   "analysis_artifact_sha256": "e896e35a40515978c767b539d21ca971e3d7f55665f4208e15baee16711fa289",
    "kind": "search_date",
    "name": "GR-001 +1 d (search)",
    "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
@@ -44,7 +68,7 @@
    "status": "complete_with_warnings"
   },
   {
-   "analysis_artifact_sha256": "77dba5b5e47df89e8728db76a5f5c14375bf94f4092d58b4325175b87077797f",
+   "analysis_artifact_sha256": "04ae987f759cc23d5c35dae24e6e978825482028ede6158a40411652820cf562",
    "kind": "search_date",
    "name": "GR-001 +2 d (search)",
    "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
@@ -54,7 +78,7 @@
    "status": "complete_with_warnings"
   },
   {
-   "analysis_artifact_sha256": "dafb535ff5344911a1bacb1f86b01e5aaf122a88d1d0d4bc601b326eeab8d3f2",
+   "analysis_artifact_sha256": "531c07386c4ab34d1d8bd57db1f7ff3f92abbb846813cbd5f34408b1339d9087",
    "kind": "search_date",
    "name": "GR-001 +3 d (search)",
    "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
@@ -64,7 +88,7 @@
    "status": "complete_with_warnings"
   },
   {
-   "analysis_artifact_sha256": "b459dcce2bde0a3ab33e5f4a96db807dd86284d7cdfa93fcf5ef7f6e65fb69f3",
+   "analysis_artifact_sha256": "c14f576015b845539c6f790987a8e2a6437f3e58158ab0230c098f08589c601d",
    "kind": "search_date",
    "name": "GR-001 +4 d (search)",
    "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
@@ -74,7 +98,7 @@
    "status": "complete_with_warnings"
   },
   {
-   "analysis_artifact_sha256": "3ab7e7b73fbba951812568e0fe339764ac6202efc56255afb7541b6101856fb3",
+   "analysis_artifact_sha256": "5d11cafb32bcf241cffc4175f3a954082e1d6930ec55aa8bb04b0f4d42733d8b",
    "kind": "search_date",
    "name": "GR-001 +6 d (search)",
    "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
@@ -84,7 +108,7 @@
    "status": "complete_with_warnings"
   },
   {
-   "analysis_artifact_sha256": "77652b42f8dee979edac68d6a8348bcecefad4e66f88d751bc59405a9f9d28cf",
+   "analysis_artifact_sha256": "c0aa626118e4fe48d51513db5f0d8c9a9fa77b38e115add2d3e5f9a2ab27ca3a",
    "kind": "search_date",
    "name": "GR-001 +7 d (search)",
    "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",

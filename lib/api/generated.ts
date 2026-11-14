@@ -324,6 +324,14 @@ export interface components {
             /** Convention */
             convention: string;
             dem_coverage_150km: components["schemas"]["DemCoverage"];
+            /** Diameter Km */
+            diameter_km?: number | null;
+            /** Feature Type */
+            feature_type?: string | null;
+            /** Group */
+            group?: string | null;
+            /** Iau Url */
+            iau_url?: string | null;
             /** Kind */
             kind: string;
             /** Label */
@@ -332,6 +340,8 @@ export interface components {
             lat_deg: number;
             /** Lon East Deg */
             lon_east_deg: number;
+            /** Name */
+            name?: string | null;
             /** Precision M */
             precision_m: number;
             /** Site Id */
@@ -781,6 +791,13 @@ export interface components {
         };
         /** SitesResponse */
         SitesResponse: {
+            /**
+             * Groups
+             * @default {}
+             */
+            groups: {
+                [key: string]: string;
+            };
             /** Note */
             note: string;
             /** Sites */

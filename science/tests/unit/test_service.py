@@ -125,7 +125,10 @@ def test_the_same_request_gives_the_same_run_id_in_a_different_deployment(svc, t
 def test_sites_resources_and_custom_site_endpoints(svc):
     c, _, _ = svc
     s = c.get("/api/v1/sites").json()
-    assert len(s["sites"]) == 3 and "NOT candidate" in s["note"] and s["sites"][0]["dem_coverage_150km"]["fully_covered"]
+    kinds = [x["kind"] for x in s["sites"]]
+    assert kinds.count("demonstration_rule") == 3 and kinds.count("named_feature_iau") == 12 and len(kinds) == 15
+    assert "not candidate sites" in s["note"] and "none of these is a landing recommendation" in s["note"]
+    assert s["sites"][0]["dem_coverage_150km"]["fully_covered"] and set(s["groups"]) == {"artemis_iii_regions", "shadowed_craters"}
     res = c.get("/api/v1/resources").json()["resources"]
     ids = {r["resource_id"]: r for r in res}
     assert ids["dem-lola-80s-20mpp-adj"]["readiness"] == "integrity_verified"

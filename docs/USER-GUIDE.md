@@ -162,6 +162,7 @@ Pages are reached through the header (**LunaScope** home, **New analysis**, **Wh
 
 - The question and why a flat horizon can mislead, beside a small **sketch**: a low site, a ridge, a flat horizon, a Sun that is above that horizon but hidden, and an Earth with a clear line of sight. Under it: "Illustration only: not to scale, and not taken from any data." It is a picture of the idea, not a result.
 - **Start the reference mission**: submits **GR-001**, the frozen reference scenario, exactly as the service stores it, then opens its run page. The sentence beneath it states the scenario read from the service (days, start date, requirements, number of sites, whether sensitivity checks are on) and says **GR-001 is frozen: its inputs and settings cannot change, and any change would be a new reference version. Its three sites are rule-chosen points, not candidate landing sites.**
+- **Compare notable south-polar places**: two cards, **Artemis III candidate-region features** (GR-002) and **Well-known south-polar craters** (GR-003), each listing its six places and opening a saved comparison over the same week and requirements as the reference mission. The places are named features at the IAU's official centre points (not NASA's 15 km landing areas, and not recommendations); a crater centre is its floor, not its rim.
 - Links: **Or set up your own analysis** and **Why the south pole is hard**.
 - A strip with the three rules (above) and **What it is not**: not a landing-safety, power, link-budget or feasibility assessment; sunlight percentage is geometric illumination; Earth visibility is a line of sight, not a communications guarantee.
 
@@ -201,7 +202,8 @@ A note under them: "Sunlight and Earth are judged separately. There is no combin
 
 **Sites** (up to six in total)
 
-- **Preset sites** are checkboxes. Each shows its **source**, **precision** (in metres) and whether the 150 km terrain footprint is **fully covered** or **partly outside the data**. The built-in presets are three demonstration points at latitude −89.5° and 0°, 120° and 240° east. The note above them says they are **not candidate landing sites**.
+- **Preset sites** are checkboxes, grouped: the three demonstration points, then **Artemis III candidate-region features** (Haworth, Mons Malapert, Mons Mouton, Nobile, de Gerlache, Slater) and **Well-known south-polar craters** (Shackleton, Shoemaker, Faustini, Cabeus, Amundsen, Sverdrup). A named place shows its feature type, size, coordinates and a link to its **IAU entry**. Choose up to six in any mix, with custom points.
+- Every preset shows its **source**, **precision** (in metres) and whether the 150 km terrain footprint is **fully covered** or **partly outside the data**. The presets are three demonstration points at latitude −89.5° and 0°, 120° and 240° east, and the twelve named places above. The note above them says they are **not candidate landing sites**.
 - **Add a custom point** opens a block of fields: **Latitude** (−90 to −80, because the terrain data covers 80°S to the pole), **Longitude** (−360 to 360), **Longitude direction** (east positive or west positive), **Source note** (a short citation, up to 200 characters, not a link or path), and **Precision (m)** (0 to 10,000). **Remove** deletes the point.
 - **Check terrain coverage for point N** asks the service about that one point. It shows the **analysis point** after conversion (planetocentric, east-positive), says your **source point is kept separately**, and reports how much of the footprint is inside the data and how many azimuth sectors would be unknown. If you edit the point afterwards, the shown result disappears rather than describing different inputs.
 
@@ -481,6 +483,7 @@ The frozen version of the same scenario, used as the common reference for tests,
 - **Real five-day shift:** [`docs/runs/GR-001-plus5d.md`](runs/GR-001-plus5d.md). A variant of GR-001, with a sensitivity flag explained there, and no convergence report.
 - **Independent skyline check:** [`docs/runs/GR-001-independent-skyline.md`](runs/GR-001-independent-skyline.md). Why the terrain-horizon card reads met for GR-001, and how the gates were reached.
 - **Real dates search:** [`docs/runs/GR-001-dates-search.md`](runs/GR-001-dates-search.md). Eight dates of GR-001 on real data; no date passes.
+- **Named places (GR-002 and GR-003):** twelve IAU-named south-polar places in two draft references (`data/reference/GR-002.json`, `GR-003.json`). Coordinates are the official centre points from the IAU Gazetteer of Planetary Nomenclature (USGS), recorded with their source file hash in `data/sites/iau_extract.json`. Drafts: not frozen, no convergence report. Results and limits: [`docs/runs/GR-002-GR-003-notable-places.md`](runs/GR-002-GR-003-notable-places.md).
 
 ---
 
