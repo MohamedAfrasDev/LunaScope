@@ -7,6 +7,8 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 RUN npm run build
+# public/ holds no files today (git does not track an empty folder); keep the COPY below valid either way
+RUN mkdir -p public
 
 FROM node:22-slim
 WORKDIR /app
