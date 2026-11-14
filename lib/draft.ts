@@ -43,6 +43,15 @@ export const emptyCustom = (): CustomDraft => ({
   precision: "100",
 });
 
+/**
+ * "Start from now": the current UTC hour as the window start. Rounded DOWN to the hour so that two
+ * people pressing it in the same hour describe the same request and share one run, not two.
+ */
+export function nowStart(now: Date = new Date()): { startDate: string; startTime: string } {
+  const iso = new Date(Math.floor(now.getTime() / 3_600_000) * 3_600_000).toISOString();
+  return { startDate: iso.slice(0, 10), startTime: `${iso.slice(11, 13)}:00` };
+}
+
 /** The reference mission: 7 days, 60% Sun, 50% Earth, terrain on, the three rule-chosen points. */
 export function referenceDraft(siteIds: string[]): Draft {
   return {

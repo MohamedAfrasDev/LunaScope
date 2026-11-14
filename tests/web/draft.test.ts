@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { emptyCustom, fieldKeyFromService, referenceDraft, sampleCount, toRequest, validateDraft } from "@/lib/draft";
+import { nowStart, emptyCustom, fieldKeyFromService, referenceDraft, sampleCount, toRequest, validateDraft } from "@/lib/draft";
 import { degrees, duration, pct, pctRange, siteLabel, utc } from "@/lib/format";
 
 const ref = () => referenceDraft(["rule-89.5S-E0", "rule-89.5S-E120", "rule-89.5S-E240"]);
@@ -104,5 +104,18 @@ describe("formatting", () => {
   it("labels catalog sites readably and leaves other ids alone", () => {
     expect(siteLabel("rule-89.5S-E120")).toBe("89.5°S, 120°E");
     expect(siteLabel("custom-88p00000S_330p00000E")).toBe("custom-88p00000S_330p00000E");
+  });
+});
+
+describe("start from now", () => {
+  it("uses the current UTC hour, rounded down, and is a valid window start", () => {
+    expect(nowStart(new Date("2026-11-14T13:47:59Z"))).toEqual({ startDate: "2026-11-14", startTime: "13:00" });
+    expect(nowStart(new Date("2026-12-31T23:59:59Z"))).toEqual({ startDate: "2026-12-31", startTime: "23:00" });
+    expect(validateDraft({ ...ref(), ...nowStart(new Date("2026-11-14T00:00:00Z")) })).toEqual({});
+  });
+  it("gives one request to everyone pressing it in the same hour", () => {
+    const a = toRequest({ ...ref(), ...nowStart(new Date("2026-11-14T13:01:00Z")) });
+    const b = toRequest({ ...ref(), ...nowStart(new Date("2026-11-14T13:59:00Z")) });
+    expect(a).toEqual(b);
   });
 });

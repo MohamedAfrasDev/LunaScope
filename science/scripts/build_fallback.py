@@ -1,6 +1,6 @@
 """Build and check the offline fallback package (phase plan 3.2, spec 15.3, test case 16).
 
-  python scripts/build_fallback.py build [--stack synthetic|live] [--out ../fallback] [--shift-days 5] [--timeout 3600] [--seed-from ../var]
+  python scripts/build_fallback.py build [--stack synthetic|live] [--out ../fallback] [--shift-days 5] [--search-days 7] [--timeout 3600] [--seed-from ../var]
   python scripts/build_fallback.py check <fallback-dir> [--stack synthetic|live]
 
 `build` runs GR-001 (exactly what Home submits) and its date-shift variant through the real service
@@ -79,7 +79,8 @@ def wait_done(c: TestClient, run_id: str, timeout: float) -> dict:
         time.sleep(1.0)
 
 
-def build(stack: str, out: Path, shift_days: int, timeout: float, seed_from: Path | None = None) -> int:
+def build(stack: str, out: Path, shift_days: int, timeout: float, seed_from: Path | None = None,
+          search_days: int = 0) -> int:
     out = out.resolve()
     if out.exists():
         shutil.rmtree(out)
@@ -91,7 +92,7 @@ def build(stack: str, out: Path, shift_days: int, timeout: float, seed_from: Pat
             if (seed_from / name).is_dir():
                 shutil.copytree(seed_from / name, work / name, dirs_exist_ok=True)
         seeded = len(list((work / "horizons_cache").glob("*.json"))) // 2 if (work / "horizons_cache").is_dir() else 0
-    cfg = ServiceConfig(data_dir=work, stack_kind=stack)
+    cfg = ServiceConfig(data_dir=work, stack_kind=stack, max_running=1)  # one DEM in memory at a time
     defn = load_definition("GR-001")
     runs: list[dict] = []
     with TestClient(create_app(cfg)) as c:
@@ -109,6 +110,32 @@ def build(stack: str, out: Path, shift_days: int, timeout: float, seed_from: Pat
             wait_done(c, v.json()["run_id"], timeout)
             runs.append({"name": f"GR-001 {shift_days:+d} d", "run_id": v.json()["run_id"],
                          "kind": "date_shift", "parent_run_id": base_id})
+        search_info = None
+        if search_days:  # the dates search over 1..N days after the baseline: every date is an ordinary run
+            sv = c.post(f"/api/v1/analyses/{base_id}/variants", content=json.dumps(
+                {"variant_type": "alternatives_search",
+                 "changes": {"from_days": 1, "to_days": search_days, "step_days": 1}}))
+            if sv.status_code not in (200, 202):
+                raise SystemExit(f"the dates search was refused: {sv.status_code} {sv.text[:300]}")
+            sid = sv.json()["search_id"]
+            t0 = time.time()
+            while True:
+                strip = c.get(f"/api/v1/analyses/{base_id}/searches/{sid}").json()
+                if strip["complete"]:
+                    break
+                if time.time() - t0 > timeout:
+                    raise SystemExit("the dates search did not finish in time")
+                time.sleep(5)
+            if strip["counts"]["failed_runs"]:
+                raise SystemExit(f"{strip['counts']['failed_runs']} date(s) of the search failed")
+            known = {r["run_id"] for r in runs}
+            for d in strip["dates"]:
+                if d["run_id"] and d["run_id"] not in known:
+                    known.add(d["run_id"])
+                    runs.append({"name": f"GR-001 {d['offset_days']:+.0f} d (search)", "run_id": d["run_id"],
+                                 "kind": "search_date", "parent_run_id": base_id})
+            search_info = {"search_id": sid, "parent_run_id": base_id, "from_days": 1, "to_days": search_days,
+                           "step_days": 1}
         store = c.app.state.store
         entries = []
         for r in runs:
@@ -135,7 +162,7 @@ def build(stack: str, out: Path, shift_days: int, timeout: float, seed_from: Pat
         "stack": stack, "algorithm_version": ALGORITHM_VERSION, "commit": git("rev-parse", "HEAD"),
         "dirty": bool(git("status", "--porcelain")), "result_states": sorted(states),
         "reference_definition_sha256": sha256_hex((REPO / "data" / "reference" / "GR-001.json").read_bytes()),
-        "reference_status": defn["status"], "runs": entries,
+        "reference_status": defn["status"], "runs": entries, "search": search_info,
         "horizons_responses": {"seeded_from_cache": seeded, "in_package": fetched, "newly_fetched": max(fetched - seeded, 0)}}
     (out / "FALLBACK-MANIFEST.json").write_text(json.dumps(manifest, indent=1, sort_keys=True) + "\n",
                                                 encoding="utf-8")
@@ -231,8 +258,22 @@ def check(package: Path, stack: str | None) -> int:
                         v = c.post(f"/api/v1/analyses/{e['parent_run_id']}/variants", content=json.dumps(
                             {"variant_type": "date_shift", "changes": {"start_offset_s": 5 * 86400}}))
                         need(v.status_code == 200 and v.json()["run_id"] == rid, f"{name}: the Time Machine shift is served")
+                srch = manifest.get("search")
+                if srch:
+                    sv = c.post(f"/api/v1/analyses/{srch['parent_run_id']}/variants", content=json.dumps(
+                        {"variant_type": "alternatives_search", "changes": {
+                            "from_days": srch["from_days"], "to_days": srch["to_days"], "step_days": srch["step_days"]}}))
+                    need(sv.status_code in (200, 202) and sv.json().get("search_id") == srch["search_id"],
+                         "the dates search resolves to the packaged search")
+                    strip = c.get(f"/api/v1/analyses/{srch['parent_run_id']}/searches/{srch['search_id']}").json()
+                    need(strip.get("complete") is True and strip["counts"]["tested"] == strip["counts"]["planned"],
+                         "the packaged dates search is complete: every planned date is tested")
+                    odd = c.post(f"/api/v1/analyses/{srch['parent_run_id']}/variants", content=json.dumps(
+                        {"variant_type": "alternatives_search", "changes": {"from_days": 1, "to_days": 3, "step_days": 2}}))
+                    need(odd.status_code == 409 and odd.json()["error"]["code"] == "REPLAY_ONLY",
+                         "an unpackaged search is refused as REPLAY_ONLY, not computed")
                 other = c.post(f"/api/v1/analyses/{manifest['runs'][0]['run_id']}/variants", content=json.dumps(
-                    {"variant_type": "date_shift", "changes": {"start_offset_s": 3 * 86400}}))
+                    {"variant_type": "date_shift", "changes": {"start_offset_s": 20 * 86400}}))
                 need(other.status_code == 409 and other.json()["error"]["code"] == "REPLAY_ONLY",
                      "an unpackaged shift is refused as REPLAY_ONLY, not computed")
             need(not net.calls, f"no network access was attempted ({len(net.calls)} attempts: {net.calls[:3]})")
@@ -249,13 +290,14 @@ def main() -> int:
     b.add_argument("--stack", choices=("synthetic", "live"), default="synthetic")
     b.add_argument("--out", default=str(REPO / "fallback"))
     b.add_argument("--shift-days", type=int, default=5)
+    b.add_argument("--search-days", type=int, default=0, help="also run and package a dates search over 1..N days after the baseline")
     b.add_argument("--timeout", type=float, default=3600.0)
     b.add_argument("--seed-from", default=None, help="a data dir (for example var) whose recorded Horizons responses and skylines are reused")
     c = sub.add_parser("check")
     c.add_argument("package")
     c.add_argument("--stack", choices=("synthetic", "live"), default=None)
     a = ap.parse_args()
-    return build(a.stack, Path(a.out), a.shift_days, a.timeout, Path(a.seed_from) if a.seed_from else None) if a.cmd == "build" else check(Path(a.package), a.stack)
+    return build(a.stack, Path(a.out), a.shift_days, a.timeout, Path(a.seed_from) if a.seed_from else None, a.search_days) if a.cmd == "build" else check(Path(a.package), a.stack)
 
 
 if __name__ == "__main__":

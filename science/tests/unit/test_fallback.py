@@ -54,3 +54,18 @@ def test_check_rejects_a_package_whose_artifact_was_altered(tmp_path):
     (pkg / "FALLBACK-MANIFEST.json").write_text(json.dumps({"stack": "synthetic", "runs": [
         {"name": "GR-001", "run_id": "a" * 64, "kind": "reference", "analysis_artifact_sha256": "b" * 64}]}))
     assert fb.check(pkg, None) == 1  # the run is not in the store: not ready
+
+
+def test_a_package_can_hold_a_dates_search_and_check_serves_it_offline(tmp_path):
+    out = tmp_path / "pkg"
+    assert fb.build("synthetic", out, 5, 600.0, None, 2) == 0
+    man = json.loads((out / "FALLBACK-MANIFEST.json").read_text(encoding="utf-8"))
+    assert man["search"]["to_days"] == 2
+    kinds = [r["kind"] for r in man["runs"]]
+    assert kinds.count("search_date") >= 1 and "date_shift" in kinds  # +5 d is shared, never duplicated
+    assert len({r["run_id"] for r in man["runs"]}) == len(man["runs"])
+    assert fb.check(out, None) == 0
+    # a check must be able to fail: a manifest pointing at a search the package never held is not ready
+    man["search"]["search_id"] = "0" * 32
+    (out / "FALLBACK-MANIFEST.json").write_text(json.dumps(man), encoding="utf-8")
+    assert fb.check(out, None) == 1

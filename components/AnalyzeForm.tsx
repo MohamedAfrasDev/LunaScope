@@ -16,6 +16,7 @@ import {
   encodeShare,
   fieldKeyFromService,
   loadDraft,
+  nowStart,
   referenceDraft,
   saveDraft,
   SHARE_PARAM,
@@ -177,6 +178,20 @@ export function AnalyzeForm() {
 
       <fieldset className={fieldset}>
         <legend className={legend}>Mission window (UTC)</legend>
+        <p className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted">
+          <button type="button" className="rounded border border-border bg-surface px-3 py-1.5 text-sm font-medium"
+            onClick={() => {
+              const n = nowStart();
+              const next = { ...d, ...n };
+              setD(next);
+              saveDraft(next);
+              setErrors({});
+              setNotice(`Start set to ${n.startDate} ${n.startTime} UTC, the current hour. With the duration below this is “now to +${d.durationDays} days”. Nothing has been run yet.`);
+            }}>
+            Start from now
+          </button>
+          <span>Sets the start to the current UTC hour. A window that is not already saved asks JPL Horizons for fresh positions, so it needs live mode and can take minutes.</span>
+        </p>
         <div className="mt-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Field id={fid("date")} label="Start date" error={errors["mission.start_date"]} hint="YYYY-MM-DD">
             <input {...f("mission.start_date", "date")} className={input} value={d.startDate}
