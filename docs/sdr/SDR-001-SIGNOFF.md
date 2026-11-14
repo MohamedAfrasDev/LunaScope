@@ -23,10 +23,14 @@ What signing means: *the signer has read the evidence and accepts this value for
 
 `docs/sdr/SDR-001.md` still shows D-09 and D-11 as open in its summary table; the entries above reflect the decisions recorded since.
 
+## Comparison with a NASA product (new evidence, partly met)
+
+[GR-001-illumination-vs-map.md](../runs/GR-001-illumination-vs-map.md): our long-term sunlit and Earth-visible fractions against NASA's LOLA illumination maps (Mazarico et al. 2011). **Ten sites: correlation 0.97 for Sun and Earth, mean difference 1.6 and 2.2 points: gate met. Three GR-001 sites: one declared gate (Sun site order) not met**, traced to a single outlier pixel in the map; which is right is not established. The science owner decides whether this evidence closes any scope.
+
 ## What the evidence is, and is not
 
-- **Is:** a reproducible real-data run (GR-001, frozen), geometry agreeing with NASA's independent SPICE, a second independently written skyline agreeing with the production one, convergence and DEM-release sensitivity studies, and tests that are shown to fail when the thing they guard is broken.
-- **Is not:** an independent check of the DEM itself (both skyline methods read the same elevation data), a comparison with any ground-truth lunar measurement of illumination or Earth visibility, or any check of the 150 km radius choice at other sites. A real validation of those needs evidence from outside this repository, for example comparison with published illumination maps or an independent team's skyline from other data.
+- **Is:** agreement with a published NASA illumination product at ten sites (see above), a reproducible real-data run (GR-001, frozen), geometry agreeing with NASA's independent SPICE, a second independently written skyline agreeing with the production one, convergence and DEM-release sensitivity studies, and tests that are shown to fail when the thing they guard is broken.
+- **Is not:** an independent check of the DEM itself (both skyline methods read the same elevation data), an independent check of the terrain data (the NASA maps come from related LOLA topography), a comparison with direct lunar measurements, or any check of the 150 km radius choice at other sites. A real validation of those needs evidence from outside this repository, for example comparison with published illumination maps or an independent team's skyline from other data.
 
 ## Signatures
 

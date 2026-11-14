@@ -10,6 +10,7 @@
 | `LDEM_80S_20M.IMG` (PDS) | Cross-check terrain model | PDS Geosciences FAQ: archived data sets are public domain; cite the data set | NASA Planetary Data System, Geosciences Node (LOLA LDEM) |
 | JPL Horizons API | Sun and Earth directions | Public service with a fair-use policy: identify the client with contact details and send requests one at a time. **The contact value is still missing (D-11), so the client refuses to run live.** | NASA/JPL Solar System Dynamics, Horizons |
 | NAIF SPICE kernels (de440s and frame kernels) | Independent geometry check | NAIF generic kernels are public; cite NAIF. **Manifest says: confirm exact wording before publication.** | NASA NAIF / JPL |
+| `AVGVISIB_85S_060M_201608.TIF` and `..._EARTH.TIF` (NASA GSFC PGDA, Lunar Polar Illumination) | A reference to compare our results against (not an input) | The page states no licence and asks only for citation; not committed to this repository (downloaded to `data/raw/`, git-ignored). **Confirm wording before publication.** | Mazarico, E. et al. (2011), Illumination conditions of the lunar polar regions using LOLA topography, Icarus 211, 1066-1081, doi:10.1016/j.icarus.2010.10.030 |
 | LROC QuickMap, NASA Moon Trek | Looking at terrain only | Not numerical inputs; visual references | As each portal asks |
 
 ## Software (direct dependencies, licence as declared by the package)
