@@ -251,3 +251,12 @@ button.bg-accent:not(:disabled):hover {
     transition-duration: 0.001ms !important;
   }
 }
+
+/*
+ * A grid item defaults to min-width:auto, so a section holding a wide table (inside its own scroll box)
+ * still grew to the table's minimum width and widened the whole page on phones. Let grid items shrink;
+ * the table then scrolls inside its box. See tests/e2e/mobile-layout.spec.ts.
+ */
+main .grid > * {
+  min-width: 0;
+}
