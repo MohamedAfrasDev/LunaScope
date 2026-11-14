@@ -26,7 +26,7 @@ test("the fallback opens the demo and says it is a replay", async ({ page }) => 
   await expect(page.getByText(/Shifted by \+5 d, compared in elapsed time/)).toBeVisible({ timeout: 30_000 });
 
   // an unpackaged shift is refused in plain words, not computed
-  await page.getByLabel("Shift the start by (days)").fill("3");
+  await page.getByLabel("Shift the start by (days)").fill("20");
   await page.getByRole("button", { name: "Shift and recompute" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "offline copy" })).toBeVisible();
 
