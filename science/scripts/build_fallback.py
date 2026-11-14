@@ -1,6 +1,6 @@
 """Build and check the offline fallback package (phase plan 3.2, spec 15.3, test case 16).
 
-  python scripts/build_fallback.py build [--stack synthetic|live] [--out ../fallback] [--shift-days 5] [--timeout 3600]
+  python scripts/build_fallback.py build [--stack synthetic|live] [--out ../fallback] [--shift-days 5] [--timeout 3600] [--seed-from ../var]
   python scripts/build_fallback.py check <fallback-dir> [--stack synthetic|live]
 
 `build` runs GR-001 (exactly what Home submits) and its date-shift variant through the real service
@@ -79,12 +79,18 @@ def wait_done(c: TestClient, run_id: str, timeout: float) -> dict:
         time.sleep(1.0)
 
 
-def build(stack: str, out: Path, shift_days: int, timeout: float) -> int:
+def build(stack: str, out: Path, shift_days: int, timeout: float, seed_from: Path | None = None) -> int:
     out = out.resolve()
     if out.exists():
         shutil.rmtree(out)
     data = out / "data"
     work = out / "_work"
+    seeded = 0
+    if seed_from is not None:  # reuse recorded provider responses and verified skylines instead of asking again
+        for name in ("horizons_cache", "horizons"):
+            if (seed_from / name).is_dir():
+                shutil.copytree(seed_from / name, work / name, dirs_exist_ok=True)
+        seeded = len(list((work / "horizons_cache").glob("*.json"))) // 2 if (work / "horizons_cache").is_dir() else 0
     cfg = ServiceConfig(data_dir=work, stack_kind=stack)
     defn = load_definition("GR-001")
     runs: list[dict] = []
@@ -121,6 +127,7 @@ def build(stack: str, out: Path, shift_days: int, timeout: float) -> int:
         shutil.copytree(work / "horizons_cache", data / "horizons_cache")
     shutil.rmtree(work)
 
+    fetched = len(list((data / "horizons_cache").glob("*.meta.json"))) if (data / "horizons_cache").is_dir() else 0
     states = {e["result_state"] for e in entries}
     synthetic = "synthetic_demonstration" in states
     manifest = {
@@ -128,13 +135,15 @@ def build(stack: str, out: Path, shift_days: int, timeout: float) -> int:
         "stack": stack, "algorithm_version": ALGORITHM_VERSION, "commit": git("rev-parse", "HEAD"),
         "dirty": bool(git("status", "--porcelain")), "result_states": sorted(states),
         "reference_definition_sha256": sha256_hex((REPO / "data" / "reference" / "GR-001.json").read_bytes()),
-        "reference_status": defn["status"], "runs": entries}
+        "reference_status": defn["status"], "runs": entries,
+        "horizons_responses": {"seeded_from_cache": seeded, "in_package": fetched, "newly_fetched": max(fetched - seeded, 0)}}
     (out / "FALLBACK-MANIFEST.json").write_text(json.dumps(manifest, indent=1, sort_keys=True) + "\n",
                                                 encoding="utf-8")
     label = ("**This package holds SYNTHETIC DEMONSTRATION data, not lunar results.** Build it with "
              "`--stack live` for real data." if synthetic else
-             "Real data, unverified: no validation gate has closed. GR-001 is a "
-             f"{defn['status']}: its sites are demonstration points until verified sites are chosen.")
+             "Real data, unverified: no validation gate has closed. GR-001 is "
+             f"{'frozen' if defn['status'] == 'frozen' else 'a ' + defn['status']}. Its three sites are rule-chosen "
+             "points, not candidate landing sites.")
     (out / "README.md").write_text(START_PACKAGE.format(
         built=manifest["built_utc"], commit=manifest["commit"][:12], dirty=" (uncommitted changes)" if manifest["dirty"] else "",
         algorithm=ALGORITHM_VERSION, stack=stack, label=label), encoding="utf-8")
@@ -241,11 +250,12 @@ def main() -> int:
     b.add_argument("--out", default=str(REPO / "fallback"))
     b.add_argument("--shift-days", type=int, default=5)
     b.add_argument("--timeout", type=float, default=3600.0)
+    b.add_argument("--seed-from", default=None, help="a data dir (for example var) whose recorded Horizons responses and skylines are reused")
     c = sub.add_parser("check")
     c.add_argument("package")
     c.add_argument("--stack", choices=("synthetic", "live"), default=None)
     a = ap.parse_args()
-    return build(a.stack, Path(a.out), a.shift_days, a.timeout) if a.cmd == "build" else check(Path(a.package), a.stack)
+    return build(a.stack, Path(a.out), a.shift_days, a.timeout, Path(a.seed_from) if a.seed_from else None) if a.cmd == "build" else check(Path(a.package), a.stack)
 
 
 if __name__ == "__main__":

@@ -15,9 +15,9 @@ _Word count: 156. Re-read it against `CLAIMS-AUDIT.md` before use._
 | 0:00 to 0:35 | The problem: a few degrees of sky and the ground decide | `/why-the-south-pole-is-hard` (schematic) | Yes |
 | 0:35 to 1:05 | The reference mission | Home: "Start the reference mission" (GR-001) | Yes; its three sites are rule-chosen points, not candidate sites |
 | 1:05 to 2:05 | Baseline: matrix, animated sky, countdown, flat versus terrain | `/runs/{id}`, `/sky/{site}`, `/timeline/{site}` | Yes; numbers from the frozen GR-001 record (the Sun fails everywhere, Earth passes at two of three sites) |
-| 2:05 to 3:05 | Time Machine: shift five days, see the deltas | `/runs/{id}/time-machine` | Yes on synthetic; **not yet run on real data** |
+| 2:05 to 3:05 | Time Machine: shift five days, see the deltas | `/runs/{id}/time-machine` | Yes, on real data: [GR-001 +5 d](../runs/GR-001-plus5d.md) (Earth 74.5% and 65.0% become 100%; the Sun at one site goes from 0% to 51.2%, still short of 60%). Say that run carries a sensitivity flag |
 | 3:05 to 3:45 | Evidence: Horizons request, SPICE residual, pinned DEM, three cards | `/runs/{id}/evidence` | Yes; the terrain-horizon card honestly reads "not evaluated" |
-| 3:45 to 4:25 | Alternatives: the tested-dates strip and the trade-off | Time Machine, "Which dates pass?" | Yes on synthetic |
+| 3:45 to 4:25 | Alternatives: the tested-dates strip and the trade-off | Time Machine, "Which dates pass?" | Yes on synthetic; **not yet run on real data** (each date needs new Horizons requests and a run) |
 | 4:25 to 5:00 | Impact, limits, close | `CLAIMS-AUDIT.md`, the footer wording | Yes |
 
 If the real data shows no dramatic change, show the real stability or trade-off. Do not force a reversal.
