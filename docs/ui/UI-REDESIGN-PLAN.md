@@ -353,10 +353,29 @@ Done when: the plot is the visual anchor of the page, and keyboard and table fal
 
 Files: `components/AnalyzeForm.tsx`, `app/analyze/page.tsx`.
 
-- [ ] Default view: mission window and sites. Requirements, terrain and sensitivity under "Advanced settings" (`Disclosure`, closed by default).
-- [ ] If any advanced field has a validation error, the section opens automatically and focus goes to the error summary.
-- [ ] Live summary beside Run ("3 sites, 7 days, N samples, limit M") kept as is.
-- [ ] No change to validation, draft saving, share-link or submit behaviour.
+- [x] **Order and grouping**: Mission window, then Sites, then a closed "Advanced settings" section, then the actions.
+  Requirements, Terrain and the sensitivity option moved inside it (same fields, labels, hints and validation).
+  The "Base step" select stays with the window, where it already sat.
+- [x] **Values stay visible while closed**: the summary line reads "Sunlight at least 60%, Earth visibility at least
+  50%, terrain 150 km, sensitivity off" and updates as you edit, so the scenario values are never hidden.
+- [x] **Auto-open and focus**: a validation error in an advanced field (requirements, terrain, options), from the
+  form or from the service (`terrain.radius_km` and the like), opens the section. Every failed submit moves focus to
+  the error summary ("Fix N field(s) before submitting"), whether or not the error is in Advanced. Typing alone never
+  opens it, and it stays open while you fix the field. The open state is controlled and follows the user's own
+  toggling, so it never collapses under you.
+- [x] **Run bar**: the sample count ("6,054 samples (3 site(s) x 2 targets), limit 60,000") stays beside "Run analysis"
+  in a bar that is now sticky at every width (it was phone-only), so the primary action is reachable without
+  scrolling: its bottom edge is at y=787 in an 800px viewport (it was 931 below the fold). "Reset to the reference
+  mission" and "Copy a link to these inputs" moved to a row just below it, not sticky. On a phone that takes the
+  sticky bar from about 190px to 102px of an 812px screen.
+- [x] No change to validation, draft saving, share links or submit behaviour. The existing form tests (label lookups
+  such as "Horizon radius", the "Sites" group, reset, custom-site checks) pass unchanged.
+
+Verification: vitest 206 (7 new in `tests/web/analyze-advanced.test.tsx`: closed by default and what is inside,
+order, summary values, open-on-error plus focus, closed for a non-advanced error with focus still moved, open on a
+service-rejected field, stays open while fixing), tsc, eslint, Playwright e2e 6, fallback e2e 1 (live stack),
+`next build`. Axe in dark and light on all 9 routes plus the form open and in its error state: 0 violations.
+Checked in a real browser at 1280 and 375px: closed before submit, open after, focus on the alert.
 
 Done when: the form's first screen has two groups and a Run button, and all error paths still surface.
 
