@@ -9,6 +9,7 @@ LunaScope is a **screening and education tool**. It is not a certification of la
 ## Documents
 
 - [**User guide**: how it works and how to use every page and control](docs/USER-GUIDE.md)
+- [UI redesign record: the design language, components, accessibility rules and before/after screenshots](docs/ui/UI-REDESIGN.md)
 - [**Explained from scratch**: what was built, the science behind it, and why it matters](docs/EXPLAINED-FROM-SCRATCH.md)
 - [Product and Technical Specification v2.1](<LunaScope Product and Technical Specification v2.1.md>)
 - [Implementation Specification (v1.1)](docs/LunaScope-Implementation-Spec.md)
