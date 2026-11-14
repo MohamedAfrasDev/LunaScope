@@ -1,14 +1,20 @@
 {
   "reference_id": "GR-001",
-  "status": "draft",
-  "frozen": null,
+  "status": "frozen",
+  "frozen": {
+    "run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+    "frozen_utc": "2026-11-14T03:14:29Z",
+    "stack": "live",
+    "decision": "Frozen on the project owner's go-ahead, 14 Nov 2026, after the live draft run passed the five Gate 2 checks (docs/runs/GR-001-run.md). Science-owner sign-off on SDR-001 is still pending. The pin is the run id on the LIVE stack, which includes the DEM and SPICE kernel hashes: any change to the request, settings, DEM identity, kernel set or algorithm version changes it, and check_freeze then refuses to run: create GR-002, never edit this file."
+  },
   "purpose": "The common scientific reference for integration tests, performance figures, screenshots, the live demo and exported evidence (product spec 6, implementation spec 14.2).",
-  "sites_status": "PLACEHOLDER. These are the RUN-001 rule points, not verified candidate sites. GR-001 cannot be frozen until the science owner chooses three sites with coordinate and terrain provenance (SDR-001 D-09).",
+  "sites_status": "DECLARED REFERENCE SCENARIO. The three sites are rule-chosen points (latitude -89.5 deg at 0, 120 and 240 deg east, fixed by a symmetric rule before any terrain or illumination result was seen). They are NOT candidate landing sites and carry no mission provenance. Decided for GR-001 by the project owner on 14 Nov 2026 (SDR-001 D-09); science-owner sign-off is still pending. Real candidate sites would need their own coordinate and terrain provenance and a new reference version (GR-002).",
   "selection_reasons": {
     "mission.start_utc": "2027-01-10 00:00 UTC, the round date already used by the recorded fixtures and RUN-001, inside the kernel, Horizons and DEM coverage; fixed before looking at any result (S-11, D-08). Not chosen to contain or avoid an outage.",
     "mission.duration_s": "seven days, the scenario length used throughout",
     "requirements": "scenario values (Sun 60 %, Earth 50 %), not mission rules",
-    "terrain": "primary DEM release recommended in D-01, 150 km radius, 0.1 deg azimuth step (D-05), 2 m mast"
+    "terrain": "primary DEM release recommended in D-01, 150 km radius, 0.1 deg azimuth step (D-05), 2 m mast",
+    "sites": "latitude -89.5 deg at 0, 120 and 240 deg east: an equal-spacing rule chosen before looking at any result (RUN-001 selection rule, S-11, D-09). Chosen so that no site can be said to be cherry-picked. Not candidate sites."
   },
   "request": {
     "schema_version": "1",
