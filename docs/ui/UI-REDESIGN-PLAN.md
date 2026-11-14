@@ -218,11 +218,29 @@ Done when: every run page shows the same tab bar with the correct active tab, an
 
 Files: `app/page.tsx`, new `components/HeroSkyline.tsx`, `components/ReferenceMissionButton.tsx`.
 
-- [ ] Design the SVG: skyline silhouette, low Sun above a dashed flat horizon, ridge blocking the line of sight, Earth marker. Uses `--sun` and `--earth` tokens, has `role="img"`, a title and a description, and is marked not-to-scale (same honesty rule as the explainer schematic).
-- [ ] Optional drift animation of the Sun marker; static under reduced motion.
-- [ ] Layout: hero (headline, short lede, primary CTA) beside the SVG; secondary actions below.
-- [ ] Result preview strip using the saved reference run only if it can be read without new backend work; otherwise omit and note it as a follow-up. It must carry its result-state label.
-- [ ] Condense "three rules" and "what it is not" into a quieter strip below the hero.
+- [x] `components/HeroSkyline.tsx`: a custom SVG (viewBox 480x320): low site, ridge skyline, dashed flat 0° horizon,
+  a Sun just above it with its line of sight blocked (red, labelled "blocked"), and a clear line to Earth. It uses
+  only design tokens (`--sun`, `--earth`, `--fail`, neutrals; a unit test asserts no hard-coded hex colours), so it
+  follows both themes. It is `role="img"` with a title and a long description, and labels are 14 to 15px so they
+  stay legible on a phone.
+- [x] Honesty: the visible caption and the description both say "Illustration only: not to scale, and not taken from
+  any data". It is worded differently from the explainer's schematic on purpose: the home page stays mounted
+  (hidden) after navigating away under Cache Components, so identical text made the explainer's text selector
+  ambiguous (caught by the e2e suite).
+- [x] Motion: the three lines of sight fade in once, in order (finite, 0.7s each). No looping animation. The global
+  reduced-motion rule collapses it to the final state. A looping Sun drift was left out as unnecessary.
+- [x] Layout: headline (`type-display`), short lede, the reference-mission card, then links, beside the sketch (stacked
+  on phones, sketch after the CTA). The lede was split, not edited: the last sentence moved under the sketch. All
+  original home text is kept, including the "Start the reference mission" and "Reference GR-001" wording the tests use.
+- [x] Rules: "Three rules this tool does not break" is now a three-column strip (stacked on phones) with "Rule 1/2/3"
+  labels, and "What it is not" sits under it. `role="list"` keeps list semantics despite `list-none`.
+- Not done: the **result preview** on home. The reference run's numbers only exist after a run has been started
+  (live mode) or are packaged (replay), so showing them needs a backend or data-loading change. Recorded as a
+  follow-up; the hero is explicitly a sketch, so nothing on home looks like a result.
+
+Verification: vitest 178 (3 new in `tests/web/hero.test.tsx`), tsc, eslint, Playwright e2e 6, fallback e2e 1 (live
+stack), `next build`, axe in dark and light on all 9 routes: 0 violations. Checked at 1280, 768, 375 and 320px in
+both themes: no sideways scroll, labels clear of each other.
 
 Done when: home tells the Sun-above-ridge story at a glance, the CTA is unambiguous, and nothing is shown as a result that is not labelled.
 
