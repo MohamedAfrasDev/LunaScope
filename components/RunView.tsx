@@ -63,7 +63,7 @@ export function RunView({ runId }: { runId: string }) {
 
   if (notFound)
     return (
-      <div role="alert" className="rounded border border-border bg-surface p-4">
+      <div role="alert" className="surface-card p-4">
         <h1 className="text-xl font-semibold">Run not found</h1>
         <p className="mt-2 text-sm text-muted">
           No run with this id exists on this service. <Link className="text-accent underline" href="/analyze">Start a new analysis</Link>.
@@ -83,12 +83,12 @@ export function RunView({ runId }: { runId: string }) {
       <div aria-live="polite" className="text-sm">
         {!run && !error && <p className="text-muted">Loading…</p>}
         {error && (
-          <p role="alert" className="rounded border border-warn/50 bg-warn-soft px-3 py-2 text-warn">
+          <p role="alert" className="rounded-md border border-warn/50 bg-warn-soft px-3 py-2 text-warn">
             {error} Retrying…
           </p>
         )}
         {run && (run.status === "queued" || run.status === "running") && (
-          <div className="rounded-lg border border-border bg-surface p-4">
+          <div className="surface-card p-4">
             <p className="font-medium">
               {run.status === "queued" ? "Queued" : "Running"}
               {run.stage && run.status === "running" ? `: ${run.stage}` : ""}

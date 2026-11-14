@@ -58,14 +58,14 @@ export function useViewMode(): ViewMode {
 export function ViewModeToggle() {
   const mode = useViewMode();
   return (
-    <div role="group" aria-label="Explanation style" className="flex items-center gap-1 text-xs">
+    <div role="group" aria-label="Explanation style" className="flex items-center gap-0.5 rounded-lg border border-border bg-surface-2 p-0.5 text-xs">
       {(["guided", "technical"] as const).map((m) => (
         <button
           key={m}
           type="button"
           aria-pressed={mode === m}
           onClick={() => setViewMode(m)}
-          className={`rounded border px-2 py-1 ${mode === m ? "border-accent bg-surface-2 font-semibold" : "border-border text-muted"}`}
+          className={`rounded-md border px-2.5 py-1 ${mode === m ? "border-border bg-surface font-semibold text-foreground shadow-sm" : "border-transparent text-muted"}`}
         >
           {m === "guided" ? "Guided" : "Technical"}
         </button>

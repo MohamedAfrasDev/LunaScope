@@ -115,7 +115,7 @@ export function AlternativesStrip({ runId, onOpenDate }: { runId: string; onOpen
 
   const input = "mt-1 w-24 rounded border border-border bg-background px-2 py-1.5 tabular-nums";
   return (
-    <section aria-labelledby={`${uid}-h`} className="rounded-lg border border-border bg-surface p-4">
+    <section aria-labelledby={`${uid}-h`} className="surface-card p-4">
       <h2 id={`${uid}-h`} className="text-lg font-semibold">Which dates pass?</h2>
       <p className="mt-1 max-w-3xl text-sm text-muted">
         Test a range of start dates against the same sites, requirements and terrain. Each date is a separate run

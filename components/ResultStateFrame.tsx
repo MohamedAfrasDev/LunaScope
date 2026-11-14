@@ -17,8 +17,8 @@ const BORDER = {
 export function ResultStateFrame({ state, children }: { state: ResultState; children: ReactNode }) {
   const s = RESULT_STATE[state];
   return (
-    <section aria-label={`Result state: ${s.label}`} className={`rounded-lg border-2 ${BORDER[s.tone]} bg-surface`}>
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-border px-4 py-2 text-sm">
+    <section aria-label={`Result state: ${s.label}`} className={`rounded-lg border-2 ${BORDER[s.tone]} bg-surface shadow-sm`}>
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-border bg-surface-2 px-4 py-2.5 text-sm">
         <strong>
           <span aria-hidden="true">{s.icon} </span>
           {s.label}

@@ -77,7 +77,7 @@ export function CompareView({ runId }: { runId: string }) {
     return (
       <div className="grid gap-3">
         <Link href={`/runs/${runId}`} className="text-sm text-accent underline underline-offset-4">← Back to the status matrix</Link>
-        <p role="alert" className="rounded border border-fail/40 bg-fail-soft px-3 py-2 text-fail">{err}</p>
+        <p role="alert" className="rounded-md border border-fail/40 bg-fail-soft px-3 py-2 text-fail">{err}</p>
       </div>
     );
   if (!results || !allSites || !selected) return <p className="text-muted">Loading the comparison…</p>;
@@ -95,7 +95,7 @@ export function CompareView({ runId }: { runId: string }) {
         </p>
       </div>
 
-      <fieldset className="rounded-lg border border-border bg-surface p-4" aria-describedby={selected.length < 2 ? `${uid}-n` : undefined}>
+      <fieldset className="surface-card p-4" aria-describedby={selected.length < 2 ? `${uid}-n` : undefined}>
         <legend className="px-1 text-base font-semibold">Sites to compare</legend>
         <div className="flex flex-wrap gap-x-6 gap-y-2">
           {allSites.map((id) => (
@@ -112,7 +112,7 @@ export function CompareView({ runId }: { runId: string }) {
         )}
       </fieldset>
 
-      {cmpErr && <p role="alert" className="rounded border border-fail/40 bg-fail-soft px-3 py-2 text-fail">{cmpErr}</p>}
+      {cmpErr && <p role="alert" className="rounded-md border border-fail/40 bg-fail-soft px-3 py-2 text-fail">{cmpErr}</p>}
 
       {cmp && selected.length >= 2 && (
         <ResultStateFrame state={cmp.result_state}>

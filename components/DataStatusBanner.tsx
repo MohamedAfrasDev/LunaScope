@@ -44,7 +44,7 @@ export function DataStatusBanner() {
   const replay = s.kind === "ok" && s.h.mode === "replay";
 
   return (
-    <div role="status" className={`border-b px-4 py-2 text-center text-sm ${tone}`}>
+    <div role="status" className={`border-b px-4 py-2 text-center text-xs leading-5 sm:text-sm ${tone}`}>
       {replay && (
         <span className="mr-2 rounded border border-current px-2 py-0.5 text-xs font-semibold uppercase tracking-wide">
           Replay mode
