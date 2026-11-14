@@ -8,6 +8,9 @@ import { degrees, duration, pctRange, siteLabel, targetLabel, utc } from "@/lib/
 import { OUTCOME, SITE_STATUS, WARNING_TEXT } from "@/lib/status";
 import { ResultStateFrame } from "./ResultStateFrame";
 import { StatusChip } from "./StatusChip";
+import { Button } from "./ui/Button";
+import { Disclosure } from "./ui/Disclosure";
+import { WarningItem } from "./ui/WarningItem";
 import { plainFact } from "@/lib/guided";
 import { SensitivityPanel } from "./SensitivityPanel";
 import { useViewMode } from "./ViewMode";
@@ -106,6 +109,48 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
 
       <ResultStateFrame state={site.result_state}>
         <div className="grid gap-6">
+          <ul aria-label="Verdict by requirement" className="grid gap-3 sm:grid-cols-2">
+            {TARGETS.map((t) => {
+              const r = site.target_metrics[t]?.terrain;
+              const f = site.target_metrics[t]?.flat;
+              if (!r || !f) return null;
+              const m = r.metrics;
+              const o = OUTCOME[m.outcome];
+              return (
+                <li key={t} className="rounded-md border border-border p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span aria-hidden="true" className={t === "sun_center" ? "text-sun" : "text-earth"}>
+                      {t === "sun_center" ? "●" : "◆"}
+                    </span>
+                    <span className="font-medium">{targetLabel(t)}</span>
+                    <StatusChip p={o} title={o.help} />
+                  </div>
+                  <p className="mt-1.5 text-sm">
+                    <span className="readout">{pctRange(m.availability_lower, m.availability_upper, 2)}</span>{" "}
+                    <span className="type-caption">
+                      needs at least {Math.round(m.threshold * 100)}%. Flat horizon would give{" "}
+                      <span className="readout">{pctRange(f.metrics.availability_lower, f.metrics.availability_upper, 2)}</span>.
+                    </span>
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+
+          <div>
+            <TimelineChart bands={bands} title={`Visibility timeline for ${siteLabel(siteId)}`} />
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+              <Legend />
+              <Button onClick={download}>Download intervals (CSV)</Button>
+            </div>
+            <p className="mt-2 text-xs text-muted">
+              Black ticks are predicted rise or set times under this terrain model. The bracket above a
+              terrain-aware band marks its longest known outage. Times are UTC. The
+              unresolved band around each crossing is the numerical decision band, not an outage.
+            </p>
+          </div>
+
+
           <div className="grid gap-4 sm:grid-cols-2">
             {TARGETS.map((t) => {
               const r = site.target_metrics[t]?.terrain;
@@ -153,33 +198,18 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
             })}
           </div>
 
-          <div>
-            <TimelineChart bands={bands} title={`Visibility timeline for ${siteLabel(siteId)}`} />
-            <div className="mt-2"><Legend /></div>
-            <p className="mt-2 text-xs text-muted">
-              Black ticks are predicted rise or set times under this terrain model. The bracket above a
-              terrain-aware band marks its longest known outage. Times are UTC. The
-              unresolved band around each crossing is the numerical decision band, not an outage.
-            </p>
-          </div>
 
           <div className="grid gap-2">
             {bands.map((b) => <IntervalTable key={`${b.target}-${b.horizon}`} band={b} />)}
-            <div>
-              <button type="button" onClick={download} className="rounded border border-border px-3 py-2 text-sm font-medium">
-                Download intervals (CSV)
-              </button>
-            </div>
           </div>
 
           {bands.some((b) => b.events.length > 0) && (
-            <div>
-              <h2 className="text-base font-semibold">Predicted events</h2>
-              <ul className="mt-1 space-y-1 text-sm">
+            <Disclosure summary={`Predicted events (${bands.filter((b) => b.horizon === "terrain").reduce((n, b) => n + b.events.length, 0)})`}>
+              <ul className="space-y-1 text-sm">
                 {bands.filter((b) => b.horizon === "terrain").flatMap((b) =>
                   b.events.map((e) => (
                     <li key={`${b.target}-${e.t_s}`}>
-                      {targetLabel(b.target)} {e.type}: <span className="tabular-nums">{utc(e.t_utc)}</span>{" "}
+                      {targetLabel(b.target)} {e.type}: <span className="readout">{utc(e.t_utc)}</span>{" "}
                       <span className="text-muted">
                         (solver bracket {e.solver_bracket_s} s
                         {e.geometry_timing_bound_s != null ? `, geometry timing bound ${e.geometry_timing_bound_s.toExponential(1)} s` : ", no timing bound claimed"})
@@ -188,17 +218,19 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
                   )),
                 )}
               </ul>
-            </div>
+            </Disclosure>
           )}
 
           <SensitivityPanel variants={site.sensitivity ?? []} />
 
           {site.warnings.length > 0 && (
-            <ul className="space-y-1 text-sm">
-              {site.warnings.map((w) => (
-                <li key={w}><code className="rounded bg-surface-2 px-1 text-xs">{w}</code> <span className="text-muted">{WARNING_TEXT[w] ?? ""}</span></li>
-              ))}
-            </ul>
+            <Disclosure summary={`Warnings carried with these results (${site.warnings.length})`}>
+              <ul className="space-y-1 text-sm">
+                {site.warnings.map((w) => (
+                  <WarningItem key={w} code={w} text={WARNING_TEXT[w]} />
+                ))}
+              </ul>
+            </Disclosure>
           )}
         </div>
       </ResultStateFrame>

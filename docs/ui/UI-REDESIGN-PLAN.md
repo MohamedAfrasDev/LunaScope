@@ -293,10 +293,30 @@ Done when: the answer is readable in under five seconds, the full table is one c
 
 Files: `components/TimelineView.tsx`, `TimelineChart.tsx`, `SensitivityPanel.tsx`.
 
-- [ ] One-line verdict per target at the top (Sun / Earth chip plus the key sentence).
-- [ ] Move the "in plain words" bullets and key-value table below the chart, collapsible in Technical mode only if wording is unchanged.
-- [ ] Chart gets Sun amber and Earth blue row accents and a compact legend.
-- [ ] Sensitivity and events become disclosures; downloads stay visible.
+- [x] **Verdict row** (`ul` "Verdict by requirement") at the top of the result frame: per requirement, the Sun dot or
+  Earth diamond, the word, the terrain-aware outcome chip, the bound as a readout, "needs at least X%" and "Flat
+  horizon would give Y". Built only from the metrics already shown below; the service's own explanation sentences
+  are not reused or paraphrased here.
+- [x] **Chart next**, then the **per-requirement detail sections** (unchanged content, now below the chart). The "In
+  plain words" / "Facts from the service" text, the key-value table and the availability bar stay visible and keep
+  their region names ("Sun summary", "Earth summary"), because the guided/technical e2e and unit tests pin them and
+  they are the product's explanation. They were moved, not collapsed.
+- [x] Chart rows get the Sun amber dot / Earth blue diamond (target rows only; the per-site rows on Compare keep
+  plain labels). Decorative and `aria-hidden`; the word still names each row. The legend now sits on one line with
+  "Download intervals (CSV)" beside it, so the download stays visible.
+- [x] Collapsed into `Disclosure`s: "Predicted events (n)", "Warnings carried with these results (n)", and, inside
+  each Sensitivity variant, "Differences from the base run". The Sensitivity region, its variant headings and the
+  "Within tolerance" / "Result changes beyond tolerance" chips stay visible (e2e pins them, and a flagged variant must
+  not be hidden). The four interval tables were already collapsed and are unchanged.
+- [x] Event times use the `readout` style.
+
+Measured: at 1280x800 the chart spans y=423 to 633, so it is above the fold. The page above the chart is the
+header, the tab bar, the site switcher, the title and the verdict row.
+
+Verification: vitest 195 (5 new in `tests/web/timeline-hierarchy.test.tsx`: verdict content, chart before detail,
+pinned regions kept, disclosures and counts, chart markers), tsc, eslint, Playwright e2e 6, fallback e2e 1 (live
+stack), `next build`, axe in dark and light on all 9 routes: 0 violations. Reviewed at 1280 (dark, light) and 375px;
+no sideways scroll. No existing test needed changing.
 
 Done when: chart is above the fold on a 1280x800 screen and every existing fact is still reachable.
 

@@ -87,9 +87,17 @@ export function TimelineChart({ bands, title }: { bands: Band[]; title: string }
         const y = TOP + row * (BAND + GAP);
         return (
           <g key={`${b.label ?? ""}-${b.target}-${b.horizon}`}>
-            <text x={0} y={y + BAND / 2 + 4} fontSize="13" style={{ fill: "var(--foreground)" }}>
+            {/* Sun is an amber dot and Earth a blue diamond, here as everywhere; the word still names the row */}
+            {!b.label && b.target === "sun_center" && (
+              <circle cx={6} cy={y + BAND / 2} r={5} aria-hidden="true" style={{ fill: "var(--sun)" }} />
+            )}
+            {!b.label && b.target === "earth_center" && (
+              <path d={`M6 ${y + BAND / 2 - 6}L12 ${y + BAND / 2}L6 ${y + BAND / 2 + 6}L0 ${y + BAND / 2}Z`} aria-hidden="true"
+                style={{ fill: "var(--earth)" }} />
+            )}
+            <text x={b.label ? 0 : 20} y={y + BAND / 2 + 4} fontSize="13" style={{ fill: "var(--foreground)" }}>
               {b.label ?? targetLabel(b.target)}
-              <tspan x={0} dy="14" fontSize="11" style={{ fill: "var(--muted)" }}>
+              <tspan x={b.label ? 0 : 20} dy="14" fontSize="11" style={{ fill: "var(--muted)" }}>
                 {b.sub ?? (b.horizon === "terrain" ? "terrain-aware" : "flat horizon")}
               </tspan>
             </text>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { SensitivityVariant } from "@/lib/api/types";
 import { duration, targetLabel } from "@/lib/format";
 import { OUTCOME } from "@/lib/status";
+import { Disclosure } from "./ui/Disclosure";
 
 const NAMES: Record<string, { label: string; what: string }> = {
   azimuth_step_halved: {
@@ -54,7 +55,8 @@ export function SensitivityPanel({ variants }: { variants: SensitivityVariant[] 
               )}
             </h3>
             {meta.what && <p className="mt-1 text-muted">{meta.what}</p>}
-            <div className="mt-2 overflow-x-auto">
+            <Disclosure summary="Differences from the base run" className="mt-2">
+            <div className="overflow-x-auto">
               <table className="w-full min-w-[34rem] text-left">
                 <caption className="sr-only">{meta.label}: differences from the base run</caption>
                 <thead>
@@ -85,6 +87,7 @@ export function SensitivityPanel({ variants }: { variants: SensitivityVariant[] 
                 </tbody>
               </table>
             </div>
+            </Disclosure>
             <p className="mt-1 text-xs text-muted">
               Flagged if an outcome changes, the number of events changes, or availability moves by more than{" "}
               {(v.tolerance_availability * 100).toFixed(0)} percentage point.
