@@ -2,33 +2,11 @@
 
 import { useCallback, useEffect, useId, useState } from "react";
 import { describeError, getJson, postJson } from "@/lib/api/client";
-import type { SearchAdmission, SearchStrip, StripDate } from "@/lib/api/types";
-import { pct, siteLabel, utc } from "@/lib/format";
-import type { Presentation } from "@/lib/status";
-import { StatusChip } from "./StatusChip";
+import type { SearchAdmission, SearchStrip } from "@/lib/api/types";
+import { DateStrip } from "./time-machine/DateStrip";
 import { Button } from "./ui/Button";
 
 const MAX_DATES = 15;
-
-const VERDICT: Record<"pass" | "fail" | "unknown", Presentation> = {
-  pass: { label: "Passes", icon: "✓", tone: "ok", help: "At least one site passes both requirements on this date." },
-  fail: { label: "Fails", icon: "✗", tone: "fail", help: "No site passes on this date." },
-  unknown: { label: "Unknown", icon: "?", tone: "warn", help: "No site passes and at least one cannot be decided." },
-};
-const PENDING: Presentation = { label: "Not run yet", icon: "…", tone: "muted", help: "Waiting for its turn; not counted as a pass or a fail." };
-const QUEUED: Presentation = { label: "Queued", icon: "…", tone: "muted", help: "Admitted and waiting for a worker; not counted yet." };
-const RUNNING: Presentation = { label: "Running", icon: "…", tone: "info", help: "Being computed; not counted yet." };
-const BROKEN: Presentation = { label: "Run failed", icon: "!", tone: "fail", help: "The run did not complete; not counted as a pass or a fail." };
-
-function present(d: StripDate): Presentation {
-  if (d.verdict) return VERDICT[d.verdict];
-  if (d.state === "failed") return BROKEN;
-  return d.state === "pending" ? PENDING : d.state === "queued" ? QUEUED : RUNNING;
-}
-
-function dayLabel(d: StripDate): string {
-  return d.offset_days === 0 ? "baseline" : `${d.offset_days > 0 ? "+" : "−"}${Math.abs(d.offset_days)} d`;
-}
 
 /**
  * Alternatives search (FR-11): which dates pass? The dates are tested as ordinary runs in bounded
@@ -114,10 +92,11 @@ export function AlternativesStrip({ runId, onOpenDate }: { runId: string; onOpen
     }
   }
 
-  const input = "mt-1 w-24 rounded border border-border bg-background px-2 py-1.5 tabular-nums";
+  const input = "mt-1 w-24 rounded-md border border-border-strong bg-background px-2 py-1.5 tabular-nums";
   return (
     <section aria-labelledby={`${uid}-h`} className="surface-card p-4">
-      <h2 id={`${uid}-h`} className="text-lg font-semibold">Which dates pass?</h2>
+      <p className="eyebrow mb-1">Step 2 of 3</p>
+      <h2 id={`${uid}-h`} className="type-section">Which dates pass?</h2>
       <p className="mt-1 max-w-3xl text-sm text-muted">
         Test a range of start dates against the same sites, requirements and terrain. Each date is a separate run
         computed a couple at a time, so a wide range takes a while.
@@ -136,92 +115,7 @@ export function AlternativesStrip({ runId, onOpenDate }: { runId: string; onOpen
       </form>
       {formErr && <p id={`${uid}-err`} className="mt-2 text-sm font-medium text-fail"><span aria-hidden="true">✗ </span>{formErr}</p>}
       {err && <p role="alert" className="mt-2 text-sm text-fail">{err}</p>}
-      {strip && <Strip strip={strip} onOpenDate={onOpenDate} />}
+      {strip && <DateStrip strip={strip} onOpenDate={onOpenDate} />}
     </section>
-  );
-}
-
-function Strip({ strip, onOpenDate }: { strip: SearchStrip; onOpenDate: (offsetDays: number, runId: string) => void }) {
-  const n = strip.counts;
-  const siteIds = Array.from(new Set(strip.dates.flatMap((d) => d.sites.map((s) => s.site_id))));
-  return (
-    <div className="mt-4 grid gap-3" aria-live="polite">
-      <p className="text-sm">
-        <strong>{n.tested} of {n.planned}</strong> dates tested:{" "}
-        {n.passing} pass, {n.failing} fail, {n.unknown} unknown
-        {n.pending > 0 && <>, {n.pending} not finished yet</>}
-        {n.failed_runs > 0 && <>, {n.failed_runs} run(s) failed</>}.
-        {!strip.complete && " Updating…"}
-      </p>
-      <ol aria-label="Tested dates" className="flex flex-wrap gap-2">
-        {strip.dates.map((d) => {
-          const p = present(d);
-          return (
-            <li key={d.offset_s}>
-              <div className="flex min-w-[6.5rem] flex-col items-start gap-1 rounded-md border border-border p-2 text-xs">
-                <span className="font-medium tabular-nums">{dayLabel(d)}</span>
-                <StatusChip p={p} title={p.help} />
-                <span className="text-muted tabular-nums">{utc(d.start_utc).slice(5, 10)}</span>
-              </div>
-            </li>
-          );
-        })}
-      </ol>
-      <details className="rounded border border-border">
-        <summary className="cursor-pointer px-3 py-2 text-sm font-medium">View the tested dates as a table</summary>
-        <div className="overflow-x-auto px-3 pb-3">
-          <table className="w-full min-w-[40rem] text-left text-sm">
-            <caption className="sr-only">Each tested start date and the result for every site</caption>
-            <thead>
-              <tr className="border-b border-border">
-                <th scope="col" className="py-1 pr-3">Date</th>
-                <th scope="col" className="py-1 pr-3">Starts (UTC)</th>
-                <th scope="col" className="py-1 pr-3">Result</th>
-                {siteIds.map((s) => <th key={s} scope="col" className="py-1 pr-3">{siteLabel(s)}</th>)}
-                <th scope="col" className="py-1 pr-3"><span className="sr-only">Open</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              {strip.dates.map((d) => {
-                const p = present(d);
-                return (
-                  <tr key={d.offset_s} className="border-b border-border/50 align-top">
-                    <th scope="row" className="py-1 pr-3 font-medium">{dayLabel(d)}</th>
-                    <td className="py-1 pr-3 tabular-nums">{utc(d.start_utc)}</td>
-                    <td className="py-1 pr-3"><StatusChip p={p} /></td>
-                    {siteIds.map((id) => {
-                      const c = d.sites.find((x) => x.site_id === id);
-                      return (
-                        <td key={id} className="py-1 pr-3 tabular-nums">
-                          {c ? <>{c.site_status.replace("_", ": ").toLowerCase()}<span className="block text-xs text-muted">margin {c.objective_margin >= 0 ? "+" : "−"}{pct(Math.abs(c.objective_margin))}</span></> : "—"}
-                        </td>
-                      );
-                    })}
-                    <td className="py-1 pr-3">
-                      {d.run_id && d.state !== "baseline" && (d.verdict !== null) && (
-                        <button type="button" onClick={() => onOpenDate(d.offset_days, d.run_id as string)} className="text-accent underline underline-offset-4">
-                          Compare
-                        </button>
-                      )}
-                      {d.state === "baseline" && <span className="text-muted">baseline</span>}
-                      {d.state === "failed" && d.error && <span className="text-xs text-fail">{d.error.code}</span>}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </details>
-      <div className="text-xs text-muted">
-        <p><span className="font-medium">Objective, stated:</span> {strip.objective}</p>
-        {Object.entries(strip.largest_margin_among_passing).map(([site, off]) => (
-          <p key={site}>
-            {siteLabel(site)}: {off === null ? "no passing date, so no date is named" : `largest margin among passing dates is ${off === 0 ? "the baseline" : `${off > 0 ? "+" : "−"}${Math.abs(off) / 86400} d`}`}.
-          </p>
-        ))}
-        <p>{strip.note}</p>
-      </div>
-    </div>
   );
 }
