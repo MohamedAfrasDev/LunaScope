@@ -16,6 +16,7 @@ import { classAt, elevationBand, eventTimes, interpAzEl, nextEvent, prevEvent, s
 import { INTERVAL, SITE_STATUS } from "@/lib/status";
 import { ResultStateFrame } from "./ResultStateFrame";
 import { PolarSky, SkyLegend, UnrolledSky, type Track } from "./SkyPlots";
+import dynamic from "next/dynamic";
 import { StatusChip } from "./StatusChip";
 import { Button } from "./ui/Button";
 import { Disclosure } from "./ui/Disclosure";
@@ -115,6 +116,12 @@ function TerrainRange({ range }: { range: VariantRange | null }) {
   );
 }
 
+// three.js is only fetched when the 3D view is chosen
+const Sky3D = dynamic(() => import("./Sky3D").then((m) => m.Sky3D), {
+  ssr: false,
+  loading: () => <p className="text-sm text-muted">Loading the 3D view…</p>,
+});
+
 export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
   const uid = useId();
   const [data, setData] = useState<Loaded | null>(null);
@@ -122,7 +129,7 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
   const [t, setT] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(SPEEDS[1].v);
-  const [view, setView] = useState<"polar" | "unrolled">("polar");
+  const [view, setView] = useState<"polar" | "unrolled" | "3d">("polar");
   const reduced = useReducedMotion();
   const raf = useRef<number | null>(null);
 
@@ -253,13 +260,13 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
                 <fieldset className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2 text-sm">
                   <legend className="sr-only">Sky view</legend>
                   <span className="eyebrow mr-1">View</span>
-                  {(["polar", "unrolled"] as const).map((v) => (
+                  {(["polar", "unrolled", "3d"] as const).map((v) => (
                     <label
                       key={v}
                       className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-2.5 py-1 transition-colors hover:border-border-strong has-[:checked]:border-accent has-[:checked]:bg-surface-2 has-[:checked]:font-medium"
                     >
                       <input type="radio" name={`${uid}-view`} checked={view === v} onChange={() => setView(v)} />
-                      {v === "polar" ? "Polar (north up)" : "Unrolled (azimuth across)"}
+                      {v === "polar" ? "Polar (north up)" : v === "unrolled" ? "Unrolled (azimuth across)" : "3D (look around)"}
                     </label>
                   ))}
                 </fieldset>
@@ -267,8 +274,10 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
                 <div className="p-3 sm:p-4">
                   {view === "polar" ? (
                     <PolarSky profile={data.profile} tracks={cursors} band={band} title={title} desc={desc} />
-                  ) : (
+                  ) : view === "unrolled" ? (
                     <UnrolledSky profile={data.profile} tracks={cursors} band={band} title={title} desc={desc} />
+                  ) : (
+                    <Sky3D profile={data.profile} tracks={tracks} t={t} siteName={siteLabel(siteId)} clock={clock(t)} />
                   )}
                 </div>
 
