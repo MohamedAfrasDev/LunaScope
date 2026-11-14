@@ -372,7 +372,7 @@ The work ran in phases, each with a gate:
 | --- | --- | --- |
 | **0. Decisions** | A record of the science decisions (which terrain release, which coordinate convention, tolerances, ...) with evidence for each. | Decided on evidence, **not signed off** (about 70%) |
 | **1. Foundation** | The service, real data providers, the skyline and event engine, the run store, the first pages, and the first real run (RUN-001). | Essentially complete (about 95%) |
-| **2. Core experience** | Every page, the Time Machine, the Evidence page and export, accessibility, and the frozen reference run GR-001 with its five checks. | 25 of 26 items (about 95%); the independent skyline check is the one open item |
+| **2. Core experience** | Every page, the Time Machine, the Evidence page and export, accessibility, and the frozen reference run GR-001 with its five checks. | all but a few items (about 98%); the independent skyline check is now built and reads met for GR-001 |
 | **3. Extras and delivery** | Dates search, guided mode, explainer, sensitivity views, the share link, the offline package, container images and the submission drafts. | About 50%: deployment, the pitch materials and human sign-offs remain |
 
 **Where things are**
@@ -391,7 +391,7 @@ The work ran in phases, each with a gate:
 | `docs/USER-GUIDE.md` | the page-by-page manual |
 | `docs/LunaScope-Phase-Plan.md` | the live status of everything |
 
-**What is still genuinely open** (each is a human decision or a build step, not a bug): organizer permission for pre-event work (a real eligibility risk), the science owner's sign-off, a public deployment, rebuilding the offline package from the final commit and copying it to the pitch machine, an independent second skyline implementation (which would let the terrain card read "met"), and the slides or video.
+**What is still genuinely open** (each is a human decision or a build step, not a bug): organizer permission for pre-event work (a real eligibility risk), the science owner's sign-off, a public deployment, rebuilding the offline package from the final commit and copying it to the pitch machine, and the slides or video. (The independent second skyline implementation has since been built: the terrain card reads "met" for GR-001, as a check of the computation, not of the DEM.)
 
 ---
 

@@ -4,14 +4,62 @@
     {
       "name": "web",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--port", "3000"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "3000"
+      ],
       "port": 3000
     },
     {
       "name": "science-synthetic",
       "runtimeExecutable": "science/.venv/Scripts/python.exe",
-      "runtimeArgs": ["-m", "uvicorn", "lunascope.main:create_app", "--factory", "--host", "127.0.0.1", "--port", "8000"],
-      "env": { "LUNASCOPE_STACK": "synthetic", "LUNASCOPE_DATA_DIR": "var/ui-synthetic" },
+      "runtimeArgs": [
+        "-m",
+        "uvicorn",
+        "lunascope.main:create_app",
+        "--factory",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8000"
+      ],
+      "env": {
+        "LUNASCOPE_STACK": "synthetic",
+        "LUNASCOPE_DATA_DIR": "var/ui-synthetic"
+      },
+      "port": 8000
+    },
+    {
+      "name": "science-live",
+      "runtimeExecutable": "science/.venv/Scripts/python.exe",
+      "runtimeArgs": [
+        "-m",
+        "uvicorn",
+        "lunascope.main:create_app",
+        "--factory",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8000"
+      ],
+      "env": {
+        "LUNASCOPE_STACK": "live",
+        "LUNASCOPE_DATA_DIR": "var",
+        "LUNASCOPE_CONTACT": "https://github.com/MohamedAfrasDev"
+      },
+      "port": 8000
+    },
+    {
+      "name": "science-replay",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "scripts/serve-fallback.mjs",
+        "science/.venv/Scripts/python.exe",
+        "live"
+      ],
       "port": 8000
     }
   ]

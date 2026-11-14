@@ -70,3 +70,43 @@ def test_three_groups_roll_up_without_ever_promoting_an_unrun_check():
 def test_run_001_groups_are_never_all_met(run001):
     groups = run_cards(run001)["groups"]
     assert {x["id"]: x["status"] for x in groups}["terrain_horizon"] != "met"  # no independent skyline yet
+
+
+# ------------------------------------------------------------- independent skyline evidence
+from lunascope.cards import _independent_card, load_independent_evidence
+
+GOOD = {"sectors_compared": 3500, "sectors_total": 3600, "near_field_sectors": 100, "near_field_fraction": 100 / 3600,
+        "ray_above_inclusive_deg": 0.0002, "within_tolerance_fraction": 0.999, "max_tolerance_ratio": 1.2,
+        "best_shift_sectors": 0}
+
+
+def _site(digest="a" * 64, dem="d" * 64):
+    return {"horizon": {"payload_sha256": digest, "terrain_identity": {"sha256": dem}}}
+
+
+def _write(tmp_path, metrics, digest="a" * 64, dem="d" * 64, recorded_met=True):
+    ev = {"subject": {"payload_sha256": digest}, "dem": {"sha256": dem}, "metrics": metrics,
+          "independent": {"near_field_km": 0.1}, "verdict_when_recorded": {"met": recorded_met}}
+    (tmp_path / f"{digest}.json").write_text(json.dumps(ev), encoding="utf-8")
+
+
+def test_independent_card_is_not_evaluated_without_evidence_for_that_exact_skyline(tmp_path):
+    assert _independent_card(_site(), "s", tmp_path)["status"] == "not_evaluated"
+    assert load_independent_evidence("../../etc/passwd", tmp_path) is None  # a digest, never a path
+    assert load_independent_evidence(None, tmp_path) is None
+
+
+def test_independent_card_is_met_only_when_the_declared_gates_hold_and_the_file_is_for_this_skyline(tmp_path):
+    _write(tmp_path, GOOD)
+    assert _independent_card(_site(), "s", tmp_path)["status"] == "met"
+    # a check must be able to fail: the recorded verdict is NOT trusted, the metrics are re-judged
+    _write(tmp_path, {**GOOD, "within_tolerance_fraction": 0.5}, recorded_met=True)
+    assert _independent_card(_site(), "s", tmp_path)["status"] == "not_met"
+    _write(tmp_path, {**GOOD, "ray_above_inclusive_deg": 0.3})
+    assert _independent_card(_site(), "s", tmp_path)["status"] == "not_met"
+    _write(tmp_path, GOOD)
+    # evidence for a different DEM file is not evidence for this run
+    assert _independent_card(_site(dem="e" * 64), "s", tmp_path)["status"] == "not_evaluated"
+    # a malformed file is never read as a pass
+    (tmp_path / f"{'a' * 64}.json").write_text("{}", encoding="utf-8")
+    assert _independent_card(_site(), "s", tmp_path)["status"] == "not_evaluated"

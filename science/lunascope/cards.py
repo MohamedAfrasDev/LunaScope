@@ -6,11 +6,61 @@ for one narrow claim (its ``scope``), and ``scopes_closed`` stays empty until a 
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
+from .independent_horizon import evaluate
+
+EVIDENCE_DIR = Path(__file__).resolve().parents[2] / "data" / "validation" / "independent_skyline"
+
 
 def _card(cid: str, title: str, status: str, facts: list[str], scope: str, site: str | None = None,
           target: str | None = None) -> dict:
     return {"id": cid, "title": title, "status": status, "site_id": site, "target": target,
             "facts": facts, "scope": scope}
+
+
+def load_independent_evidence(payload_sha256: str | None, directory: Path | None = None) -> dict | None:
+    """The recorded independent-skyline comparison for this exact skyline (by its payload digest), or None."""
+    if not payload_sha256 or len(payload_sha256) != 64 or not all(c in "0123456789abcdef" for c in payload_sha256):
+        return None
+    p = (directory or EVIDENCE_DIR) / f"{payload_sha256}.json"
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
+def _independent_card(s: dict, sid: str, directory: Path | None = None) -> dict:
+    cid, title = "independent_terrain_check", "Skyline vs an independent implementation"
+    scope = "the skyline computation (traversal, sampling, geometry), not the DEM"
+    h = s["horizon"]
+    digest = h.get("payload_sha256")
+    ev = load_independent_evidence(digest, directory)
+    if ev is None:
+        return _card(cid, title, "not_evaluated",
+                     ["no independent comparison is on file for this exact skyline"], scope, sid)
+    try:
+        mismatch = (ev["subject"]["payload_sha256"] != digest
+                    or ev["dem"]["sha256"] != h["terrain_identity"].get("sha256"))
+        m = ev["metrics"]
+        verdict = evaluate(m)  # re-derived from the metrics and the thresholds in code, never read from the file
+    except (KeyError, TypeError):
+        mismatch, verdict, m = True, None, {}
+    if mismatch or verdict is None:
+        return _card(cid, title, "not_evaluated",
+                     ["the recorded comparison does not match this skyline or its DEM, so it is not used"], scope, sid)
+    failed = [k for k, ok in verdict["checks"].items() if not ok]
+    facts = [(f"{m['within_tolerance_fraction']:.1%} of {m['sectors_compared']} compared sectors within the physical "
+              f"tolerance; worst is {m['max_tolerance_ratio']:.2f} x its tolerance"),
+             (f"the ray skyline never exceeds the independent neighbour-inclusive skyline by more than "
+              f"{m['ray_above_inclusive_deg']:.4f} deg; best alignment at {m['best_shift_sectors']} sectors of shift"),
+             (f"{m['near_field_sectors']} of {m['sectors_total']} sectors are set within {ev['independent']['near_field_km']} km "
+              "and are counted, not compared"),
+             "same DEM bytes and stated grid; a check of the computation, not of the DEM"]
+    if failed:
+        facts.insert(0, "not met: " + ", ".join(failed))
+    return _card(cid, title, "met" if verdict["met"] else "not_met", facts, scope, sid)
 
 
 def site_cards(s: dict) -> list[dict]:
@@ -58,9 +108,7 @@ def site_cards(s: dict) -> list[dict]:
         out.append(_card(cid, title, "met" if ok else "not_met",
                          [("no outcome changed" if not flips else f"outcome changed for {', '.join(flips)}"),
                           f"largest event shift {shift:.0f} s"], scope, sid))
-    out.append(_card("independent_terrain_check", "Skyline vs an independent implementation", "not_evaluated",
-                     ["no second horizon implementation or independent skyline exists yet"],
-                     "the terrain horizon itself", sid))
+    out.append(_independent_card(s, sid))
     return out
 
 
