@@ -49,6 +49,7 @@ class JobRunner:
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
         self.reconciled: dict = {}
+        self.on_tick: Callable[[], object] | None = None  # e.g. the alternatives-search pump
 
     # ------------------------------------------------------------------ lifecycle
     def start(self) -> None:
@@ -94,6 +95,8 @@ class JobRunner:
                 break
             if not self._launch(nxt):
                 continue
+        if self.on_tick is not None:
+            self.on_tick()
 
     # ------------------------------------------------------------------ launching
     def _launch(self, run_id: str) -> bool:

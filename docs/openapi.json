@@ -1227,6 +1227,134 @@
     "title": "RunSummaryResponse",
     "type": "object"
    },
+   "SearchAdmissionResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "attached": {
+      "title": "Attached",
+      "type": "boolean"
+     },
+     "objective": {
+      "title": "Objective",
+      "type": "string"
+     },
+     "parent_run_id": {
+      "title": "Parent Run Id",
+      "type": "string"
+     },
+     "planned": {
+      "title": "Planned",
+      "type": "integer"
+     },
+     "search_id": {
+      "title": "Search Id",
+      "type": "string"
+     },
+     "status_url": {
+      "title": "Status Url",
+      "type": "string"
+     },
+     "variant_type": {
+      "const": "alternatives_search",
+      "title": "Variant Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "search_id",
+     "parent_run_id",
+     "variant_type",
+     "planned",
+     "attached",
+     "objective",
+     "status_url"
+    ],
+    "title": "SearchAdmissionResponse",
+    "type": "object"
+   },
+   "SearchListResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "run_id": {
+      "title": "Run Id",
+      "type": "string"
+     },
+     "searches": {
+      "items": {
+       "$ref": "#/components/schemas/SearchStripResponse"
+      },
+      "title": "Searches",
+      "type": "array"
+     }
+    },
+    "required": [
+     "run_id",
+     "searches"
+    ],
+    "title": "SearchListResponse",
+    "type": "object"
+   },
+   "SearchStripResponse": {
+    "additionalProperties": false,
+    "properties": {
+     "complete": {
+      "title": "Complete",
+      "type": "boolean"
+     },
+     "counts": {
+      "$ref": "#/components/schemas/StripCounts"
+     },
+     "dates": {
+      "items": {
+       "$ref": "#/components/schemas/StripDate"
+      },
+      "title": "Dates",
+      "type": "array"
+     },
+     "largest_margin_among_passing": {
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "title": "Largest Margin Among Passing",
+      "type": "object"
+     },
+     "note": {
+      "title": "Note",
+      "type": "string"
+     },
+     "objective": {
+      "title": "Objective",
+      "type": "string"
+     },
+     "parent_run_id": {
+      "title": "Parent Run Id",
+      "type": "string"
+     },
+     "search_id": {
+      "title": "Search Id",
+      "type": "string"
+     }
+    },
+    "required": [
+     "search_id",
+     "parent_run_id",
+     "objective",
+     "complete",
+     "counts",
+     "dates",
+     "largest_margin_among_passing",
+     "note"
+    ],
+    "title": "SearchStripResponse",
+    "type": "object"
+   },
    "SiteResultsResponse": {
     "additionalProperties": false,
     "properties": {
@@ -1358,6 +1486,233 @@
      "el_deg"
     ],
     "title": "SkySeries",
+    "type": "object"
+   },
+   "StripCounts": {
+    "additionalProperties": false,
+    "properties": {
+     "failed_runs": {
+      "title": "Failed Runs",
+      "type": "integer"
+     },
+     "failing": {
+      "title": "Failing",
+      "type": "integer"
+     },
+     "passing": {
+      "title": "Passing",
+      "type": "integer"
+     },
+     "pending": {
+      "title": "Pending",
+      "type": "integer"
+     },
+     "planned": {
+      "title": "Planned",
+      "type": "integer"
+     },
+     "tested": {
+      "title": "Tested",
+      "type": "integer"
+     },
+     "unknown": {
+      "title": "Unknown",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "planned",
+     "tested",
+     "passing",
+     "failing",
+     "unknown",
+     "pending",
+     "failed_runs"
+    ],
+    "title": "StripCounts",
+    "type": "object"
+   },
+   "StripDate": {
+    "additionalProperties": false,
+    "properties": {
+     "error": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/StripError"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "offset_days": {
+      "title": "Offset Days",
+      "type": "number"
+     },
+     "offset_s": {
+      "title": "Offset S",
+      "type": "integer"
+     },
+     "run_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Run Id"
+     },
+     "sites": {
+      "items": {
+       "$ref": "#/components/schemas/StripSite"
+      },
+      "title": "Sites",
+      "type": "array"
+     },
+     "start_utc": {
+      "title": "Start Utc",
+      "type": "string"
+     },
+     "state": {
+      "enum": [
+       "baseline",
+       "pending",
+       "queued",
+       "running",
+       "complete",
+       "complete_with_warnings",
+       "failed"
+      ],
+      "title": "State",
+      "type": "string"
+     },
+     "verdict": {
+      "anyOf": [
+       {
+        "enum": [
+         "pass",
+         "fail",
+         "unknown"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Verdict"
+     }
+    },
+    "required": [
+     "offset_s",
+     "offset_days",
+     "run_id",
+     "state",
+     "start_utc",
+     "verdict",
+     "sites",
+     "error"
+    ],
+    "title": "StripDate",
+    "type": "object"
+   },
+   "StripError": {
+    "additionalProperties": false,
+    "properties": {
+     "code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Code"
+     },
+     "message": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Message"
+     }
+    },
+    "required": [
+     "code",
+     "message"
+    ],
+    "title": "StripError",
+    "type": "object"
+   },
+   "StripSite": {
+    "additionalProperties": false,
+    "properties": {
+     "earth_margin": {
+      "title": "Earth Margin",
+      "type": "number"
+     },
+     "earth_outcome": {
+      "enum": [
+       "PASS",
+       "FAIL",
+       "INDETERMINATE",
+       "EXCLUDED"
+      ],
+      "title": "Earth Outcome",
+      "type": "string"
+     },
+     "objective_margin": {
+      "title": "Objective Margin",
+      "type": "number"
+     },
+     "site_id": {
+      "title": "Site Id",
+      "type": "string"
+     },
+     "site_status": {
+      "enum": [
+       "PASS",
+       "FAIL_SUN",
+       "FAIL_EARTH",
+       "FAIL_BOTH",
+       "INDETERMINATE",
+       "UNKNOWN_COVERAGE"
+      ],
+      "title": "Site Status",
+      "type": "string"
+     },
+     "sun_margin": {
+      "title": "Sun Margin",
+      "type": "number"
+     },
+     "sun_outcome": {
+      "enum": [
+       "PASS",
+       "FAIL",
+       "INDETERMINATE",
+       "EXCLUDED"
+      ],
+      "title": "Sun Outcome",
+      "type": "string"
+     }
+    },
+    "required": [
+     "site_id",
+     "site_status",
+     "sun_outcome",
+     "earth_outcome",
+     "sun_margin",
+     "earth_margin",
+     "objective_margin"
+    ],
+    "title": "StripSite",
     "type": "object"
    },
    "TargetHorizonResult": {
@@ -2368,6 +2723,113 @@
     "summary": "Results"
    }
   },
+  "/api/v1/analyses/{run_id}/searches": {
+   "get": {
+    "operationId": "list_searches_api_v1_analyses__run_id__searches_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SearchListResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "List Searches"
+   }
+  },
+  "/api/v1/analyses/{run_id}/searches/{search_id}": {
+   "get": {
+    "operationId": "get_search_api_v1_analyses__run_id__searches__search_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "run_id",
+      "required": true,
+      "schema": {
+       "title": "Run Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "path",
+      "name": "search_id",
+      "required": true,
+      "schema": {
+       "title": "Search Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SearchStripResponse"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "404": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ErrorEnvelope"
+        }
+       }
+      },
+      "description": "Not Found"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Get Search"
+   }
+  },
   "/api/v1/analyses/{run_id}/validation": {
    "get": {
     "description": "Validation metadata is tagged separately from the result: its tag is the hash of the\ncards, and it is always revalidated, because a scope can close after the result is sealed.",
@@ -2477,7 +2939,7 @@
     "summary": "List Variants"
    },
    "post": {
-    "description": "Time Machine (FR-10, spec 8.4): copy the parent's canonical request, change only the\nstart, admit it as an ordinary run and link it. Same inputs as a fresh request = same run.",
+    "description": "Time Machine (FR-10) and alternatives search (FR-11), spec 8.4. A date shift copies the\nparent's canonical request, changes only the start, admits it as an ordinary run and links it.\nA search plans several shifted dates and admits them in bounded batches.",
     "operationId": "create_variant_api_v1_analyses__run_id__variants_post",
     "parameters": [
      {
@@ -2495,7 +2957,15 @@
       "content": {
        "application/json": {
         "schema": {
-         "$ref": "#/components/schemas/VariantAdmissionResponse"
+         "anyOf": [
+          {
+           "$ref": "#/components/schemas/VariantAdmissionResponse"
+          },
+          {
+           "$ref": "#/components/schemas/SearchAdmissionResponse"
+          }
+         ],
+         "title": "Response 200 Create Variant Api V1 Analyses  Run Id  Variants Post"
         }
        }
       },
@@ -2505,7 +2975,15 @@
       "content": {
        "application/json": {
         "schema": {
-         "$ref": "#/components/schemas/VariantAdmissionResponse"
+         "anyOf": [
+          {
+           "$ref": "#/components/schemas/VariantAdmissionResponse"
+          },
+          {
+           "$ref": "#/components/schemas/SearchAdmissionResponse"
+          }
+         ],
+         "title": "Response Create Variant Api V1 Analyses  Run Id  Variants Post"
         }
        }
       },

@@ -22,6 +22,8 @@ from fastapi.responses import JSONResponse, Response
 from pydantic import ValidationError
 
 from . import ALGORITHM_VERSION
+from .alternatives import OBJECTIVE, admit_shift, plan_search, tested_dates
+from .alternatives import pump as alt_pump
 from .api_models import (
     MAX_BODY_BYTES,
     CustomSite,
@@ -53,6 +55,9 @@ from .responses import (
     HorizonResponse,
     ResultsResponse,
     RunSummaryResponse,
+    SearchAdmissionResponse,
+    SearchListResponse,
+    SearchStripResponse,
     SitesResponse,
     ValidationResponse,
     VariantAdmissionResponse,
@@ -114,6 +119,8 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
         yield
         if cfg.mode != "replay":
             runner.stop()
+
+    runner.on_tick = lambda: alt_pump(store, cfg, runner.notify)  # alternatives searches: bounded batches
 
     app = FastAPI(title="LunaScope science service", version=ALGORITHM_VERSION, lifespan=lifespan)
     app.state.cfg, app.state.store, app.state.runner = cfg, store, runner
@@ -265,33 +272,33 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
                 "status_url": f"/api/v1/analyses/{ident.run_id}"}
         return JSONResponse(body, status_code=202 if adm.created else 200)
 
-    @app.post("/api/v1/analyses/{run_id}/variants", response_model=VariantAdmissionResponse, status_code=202,
-              responses={200: {"model": VariantAdmissionResponse}, 404: {"model": ErrorEnvelope},
-                         422: {"model": ErrorEnvelope}, 503: {"model": ErrorEnvelope}})
+    @app.post("/api/v1/analyses/{run_id}/variants",
+              response_model=VariantAdmissionResponse | SearchAdmissionResponse, status_code=202,
+              responses={200: {"model": VariantAdmissionResponse | SearchAdmissionResponse},
+                         404: {"model": ErrorEnvelope}, 422: {"model": ErrorEnvelope},
+                         503: {"model": ErrorEnvelope}})
     async def create_variant(run_id: str, request: Request) -> Response:
-        """Time Machine (FR-10, spec 8.4): copy the parent's canonical request, change only the
-        start, admit it as an ordinary run and link it. Same inputs as a fresh request = same run."""
+        """Time Machine (FR-10) and alternatives search (FR-11), spec 8.4. A date shift copies the
+        parent's canonical request, changes only the start, admits it as an ordinary run and links it.
+        A search plans several shifted dates and admits them in bounded batches."""
         parent = store.require(_run_id(run_id))
         v = parse_variant(await request.body())
         parent_canon = json.loads(parent["request_json"])
-        child_canon = shifted_request(parent_canon, v.changes.start_offset_s)
-        ident = identity_from_canonical(child_canon, cfg)
+        if v.variant_type == "alternatives_search":
+            return _create_search(run_id, v.changes, request)
+        offset_s = v.changes.start_offset_s
         changed = ["mission.start_utc"]
         if cfg.mode == "replay":
+            ident = identity_from_canonical(shifted_request(parent_canon, offset_s), cfg)
             row = store.get(ident.run_id)
             if row is None:
                 raise LunaScopeError(REPLAY_ONLY, "this packaged service replays packaged variants only")
+            store.link(child_run_id=ident.run_id, parent_run_id=run_id, variant_type=v.variant_type,
+                       changed_fields=changed)
             adm_run, created = row, False
         else:
-            adm = store.admit(
-                run_id=ident.run_id, request_hash=ident.request_hash, resource_digest=ident.resource_digest,
-                algorithm_id=ident.algorithm_id, request_json=ident.request_json(),
-                effective_json=json.dumps({"effective": ident.effective_settings,
-                                           "resources": ident.resources}, sort_keys=True),
-                stack_kind=cfg.stack_kind, result_state=ident.result_state)
+            ident, adm, _ = admit_shift(store, cfg, run_id, parent_canon, offset_s)
             adm_run, created = adm.run, adm.created
-        store.link(child_run_id=ident.run_id, parent_run_id=run_id, variant_type=v.variant_type,
-                   changed_fields=changed)
         log_event("variant_admitted", run_id=ident.run_id, parent_run_id=run_id,
                   outcome="created" if created else "attached", cid=request.state.cid)
         if created:
@@ -299,9 +306,41 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
         body = {**_summary(adm_run), "attached": not created,
                 "status_url": f"/api/v1/analyses/{ident.run_id}", "parent_run_id": run_id,
                 "variant_type": v.variant_type, "changed_fields": changed,
-                "start_utc": child_canon["mission"]["start_utc"],
+                "start_utc": shifted_request(parent_canon, offset_s)["mission"]["start_utc"],
                 "parent_start_utc": parent_canon["mission"]["start_utc"]}
         return JSONResponse(body, status_code=202 if created else 200)
+
+    def _create_search(run_id: str, rng, request: Request) -> Response:
+        _ready(run_id)  # a search compares dates against a finished baseline
+        search_id, offsets = plan_search(run_id, rng)
+        existing = store.get_search(search_id)
+        if existing is None and cfg.mode == "replay":
+            raise LunaScopeError(REPLAY_ONLY, "this packaged service holds packaged searches only")
+        created = store.create_search(search_id=search_id, parent_run_id=run_id, objective=OBJECTIVE,
+                                      offsets_s=offsets) if existing is None else False
+        if created:
+            log_event("search_planned", run_id=run_id, outcome="created", cid=request.state.cid)
+            if cfg.mode != "replay":
+                alt_pump(store, cfg, runner.notify)  # first batch now; the runner loop admits the rest
+        body = {"search_id": search_id, "parent_run_id": run_id, "variant_type": "alternatives_search",
+                "planned": len([o for o in offsets if o != 0]), "attached": not created, "objective": OBJECTIVE,
+                "status_url": f"/api/v1/analyses/{run_id}/searches/{search_id}"}
+        return JSONResponse(body, status_code=202 if created else 200)
+
+    @app.get("/api/v1/analyses/{run_id}/searches", response_model=SearchListResponse,
+             responses={404: {"model": ErrorEnvelope}})
+    def list_searches(run_id: str) -> dict:
+        store.require(_run_id(run_id))
+        return {"run_id": run_id, "searches": [tested_dates(store, sid) for sid in store.searches_of(run_id)]}
+
+    @app.get("/api/v1/analyses/{run_id}/searches/{search_id}", response_model=SearchStripResponse,
+             responses={404: {"model": ErrorEnvelope}})
+    def get_search(run_id: str, search_id: str) -> dict:
+        store.require(_run_id(run_id))
+        s = store.get_search(search_id) if re.fullmatch(r"[0-9a-f]{32}", search_id) else None
+        if s is None or s["parent_run_id"] != run_id:
+            raise LunaScopeError(NOT_FOUND, "no such search for this run")
+        return tested_dates(store, search_id)
 
     @app.get("/api/v1/analyses/{run_id}/variants", response_model=VariantsResponse,
              responses={404: {"model": ErrorEnvelope}})

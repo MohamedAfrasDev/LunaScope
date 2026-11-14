@@ -23,6 +23,16 @@ def _write(path: Path, obj) -> None:
     tmp.replace(path)
 
 
+def write_progress(stage_dir: Path, stage: str, frac: float) -> None:
+    """Progress is advisory. The supervisor reads progress.json while the run is going, and on Windows
+    replacing a file another process has open is refused (WinError 5): that must never fail the run.
+    The next update simply overwrites it."""
+    try:
+        _write(stage_dir / "progress.json", {"stage": stage, "progress": frac})
+    except OSError:
+        pass
+
+
 def run_analysis(job: dict, progress) -> dict:
     from .canonical import hash_of, make_result_id
     from .pipeline import run_site, run_with_sensitivity
@@ -64,7 +74,7 @@ def main(stage_dir: str) -> int:
         job = json.loads((d / "job.json").read_text(encoding="utf-8"))
 
         def progress(stage: str, frac: float) -> None:
-            _write(d / "progress.json", {"stage": stage, "progress": frac})
+            write_progress(d, stage, frac)
 
         result = run_analysis(job, progress)
         _write(d / "result.json", result)

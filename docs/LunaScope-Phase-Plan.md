@@ -17,10 +17,10 @@ Dates are intended work windows, not evidence that a gate will pass.
 | **0. Decision & contract gate** | 13 Nov | Settle science/contract decisions before real data | SDR-001 approved | `[~]` draft written, not approved |
 | **1. Validity foundation** | 13 Nov | One real site end to end through the science pipeline | **Gate 1** | `[~]` synthetic slice done (~45 %) |
 | **2. Core experience** | 14 Nov | Three-site reference run, all workspaces, evidence | **Gate 2** | `[~]` all buildable items done 13 Nov; Gate 2 waits on GR-001 sites (D-09) and its live run |
-| **3. Extras, presentation, reliability** | 15 Nov | Animation, alternatives, fallback, submission | **Gate 3** | `[ ]` |
+| **3. Extras, presentation, reliability** | 15 Nov | Animation, alternatives, fallback, submission | **Gate 3** | `[~]` started 14 Nov: extras and the fallback built; deployment, the live package and the human items are open |
 
 ```
-Phase 0 ████████░░ 80 %   Phase 1 ████░░░░░░ 40 %   Phase 2 ███████░░░ 75 %   Phase 3 ░░░░░░░░░░ 0 %
+Phase 0 ████████░░ 80 %   Phase 1 ████░░░░░░ 40 %   Phase 2 ███████░░░ 75 %   Phase 3 █████░░░░░ 50 %
 ```
 
 **Done so far (summary)**
@@ -219,27 +219,27 @@ Only after Gate 2.
 
 ### 3.1 Extras (cut in this order if time runs out: share link → sensitivity UI → alternatives strip → animation → guided mode)
 - [x] Animated local sky (FR-18): play/pause, speed, scrub, jump to previous/next event, `prefers-reduced-motion` turns playback off; SVG driven by requestAnimationFrame, measured advancing 0.57 d in 2.5 s at 6 h/s; no canvas layer was needed
-- [ ] Alternatives search with tested-dates strip, bounded batches (FR-11)
-- [ ] Guided mode from fixed templates (FR-14)
-- [ ] "Why the south pole is hard" explainer, one click from the main flow (FR-19)
-- [ ] Sensitivity variants UI (FR-12) — the numerical checks stay mandatory
-- [ ] Shareable link (FR-15, P2)
+- [x] Alternatives search with tested-dates strip (FR-11): `POST /analyses/{id}/variants` with `alternatives_search` plans up to 15 dates up front and returns `202`; a pump in the runner loop admits them at most two at a time and pauses when the queue is full. The search holds no CPU slot and is idempotent (same parent and dates, same search). `GET .../searches/{id}` gives one row per date and site, with counts in which a pending or failed date is never a pass or a fail; the stated objective names only the passing date with the largest margin (no score or ranking). UI under "Which dates pass?" in the Time Machine. Tested on synthetic (`test_alternatives.py`, `alternatives.test.tsx`, Playwright). **Not run on real data**
+- [x] Guided mode from fixed templates (FR-14): a Guided/Technical toggle in the header (remembered per browser, works with storage blocked). Guided sentences are keyed on the service's fact codes and filled from their parameters, falling back to the service's own wording for an unknown code; a test fails if the service gains a fact code without a template. Shown on the Timeline (the explanation facts were not displayed anywhere before). Technical mode shows the service's own wording
+- [x] "Why the south pole is hard" explainer (FR-19): `/why-the-south-pole-is-hard`, one click from Home and the header; well-established facts and one worked arithmetic example, a diagram labelled as a schematic, and a "what this page is not" note; passes axe
+- [x] Sensitivity variants UI (FR-12): Timeline panel for the azimuth-step and DEM-release variants, with every figure and the high-sensitivity flag taken from the service (availability change, outcome change, event count and shift), flagged in words. The numerical checks stay mandatory; the full convergence report still needs the live GR-001 run
+- [x] Shareable link (FR-15, P2): carries the form inputs only (strictly decoded: bounded, whitelisted, versioned); opening it fills the form and runs nothing; a hostile or unreadable link is ignored and says so
 
 ### 3.2 Reliability
-- [ ] Deploy web (Vercel-compatible) and containerised service with persistent volume and `/health`
-- [ ] Smoke-test deployment early (not only at the end)
-- [ ] Offline fallback package: build, `MODE=replay`, labelled "Replay mode"
-- [ ] Rehearse with the network off (case 16)
+- [~] Deploy web (Vercel-compatible) and containerised service with persistent volume and `/health`: `deploy/service.Dockerfile`, `deploy/web.Dockerfile`, `deploy/compose.yml` and `docs/deploy.md` are written, with health checks and a non-root service user. **Never built (the Docker daemon was not running) and nothing deployed.** Fixed on the way: `pyproject.toml` omitted `spiceypy`, `rasterio` and `pyproj`; the service now installs and imports in a clean environment
+- [~] Smoke-test deployment early: `scripts/smoke.mjs` (health, GR-001, run, label and 304, export hash, three pages) passes 10 of 10 against the local synthetic stack; it has not run against anything deployed
+- [x] Offline fallback package: `build_fallback.py build` runs GR-001 and its five-day shift through the real service and packages the store with a manifest (commit, algorithm version, artifact hashes) and a README. Replay mode shows a **Replay mode** badge and says so in plain words; an unpackaged request reads "offline copy", not a raw code. **Only a synthetic package has been built**: a live one needs the data files, the Horizons contact and network
+- [x] Rehearse with the network off (case 16), on the synthetic package: `build_fallback.py check` blocks every non-loopback socket and DNS lookup (the guard is itself tested to block) and confirms each run is served and hash-matched, the Home request and the five-day shift resolve to packaged runs, an unpackaged shift is refused, and zero network attempts happened. `npm run test:e2e:fallback` opens the demo in a browser and checks no request leaves for another host. Repeat on the live package before the pitch
 - [ ] Test on the event network; signed-out link test (AC-16)
 - [ ] Freeze versions; submit early
 
 ### 3.3 Presentation and submission
-- [ ] Seven slides or 30-second subtitled video (OQ-11)
+- [ ] Seven slides or 30-second subtitled video (OQ-11): not written. `docs/submission/SUBMISSION-DRAFT.md` has the project summary (156 words, no results in it) and a pitch outline mapped to the pages; slide or video content needs people and the locked run
 - [ ] Rehearse the five-minute pitch and five-minute Q&A
 - [ ] Project page with 50–200 word summary
-- [ ] Cite NASA resources; record dataset/library/image licences
-- [ ] AI and software-tool use disclosed; no NASA logos generated or altered
-- [ ] Claims audit: nothing undelivered described as delivered
+- [~] Cite NASA resources; record dataset/library/image licences: `docs/submission/LICENCES-AND-CITATIONS.md` (data terms from the manifests; direct dependency licences read from the installed packages; **transitive dependencies not listed**; the LOLA ADJ terms are not confirmed in writing; the SPICE terms wording and the Geist font licence are marked to confirm). The five unused scaffold images were removed
+- [~] AI and software-tool use disclosed: `docs/submission/DISCLOSURES.md` is a **draft for the team to confirm** against the event's rules; no NASA logo is used, generated or altered
+- [x] Claims audit: `docs/submission/CLAIMS-AUDIT.md` lists each claim with its status and what must not be said. Not delivered: GR-001 passing the gates, any hosted deployment, a live fallback package. Re-run it against the final submission text
 - [ ] No voice or picture of anyone under 18
 
 ### Gate 3 checklist
@@ -263,11 +263,11 @@ Only after Gate 2.
 | 9 | Two crossings; tangent = contact | `[~]` double crossing and tangent→uncertified done; contact reporting pending | `test_events.py` |
 | 10 | Cursor at event / mission end | `[x]` | `test_countdown.py` |
 | 11 | Equal availability, different longest outage | `[~]` metric difference done; explanation text pending | `test_requirements.py` |
-| 12 | Wrong unit/direction/height fails | `[~]` checked by hand-mutation; no committed test yet | — |
+| 12 | Wrong unit/direction/height fails | `[x]` | `test_wrong_inputs.py` (hand-derived ridge angles at the engine's sampling; unit, height and mirror mistakes shown to land far outside tolerance), `test_spice.py` (longitude direction, latitude sign), `test_observer.py` |
 | 13 | Corrupted horizon fails readiness | `[x]` | `test_reference.py` |
 | 14 | 5-day shift, own UTC per panel | `[x]` API + component; Playwright spec pending | `test_variants.py`, `tests/web/time-machine.test.tsx` |
-| 15 | Out-of-order responses don't overwrite | `[~]` Time Machine alignment race tested; not yet across all pages | `tests/web/time-machine.test.tsx` |
-| 16 | Network off → fallback opens demo | `[ ]` | — |
+| 15 | Out-of-order responses don't overwrite | `[x]` run page, compare, sky countdown, Time Machine; fetches ignore the abort signal and the older reply arrives last. The sky countdown test was shown to fail without its guard (a real bug, now fixed) | `tests/web/out-of-order.test.tsx`, `tests/web/time-machine.test.tsx` |
+| 16 | Network off, fallback opens demo | `[x]` on the synthetic package; repeat on the live one | `test_fallback.py`, `build_fallback.py check`, `tests/e2e-fallback/offline.spec.ts` |
 
 **Review adversarial cases (from the plan review)**
 

@@ -153,7 +153,38 @@ export interface TargetHorizonResult {
   events?: EventRow[];
 }
 
-export type SiteTargetMetrics = Partial<Record<HorizonKind, TargetHorizonResult>> & { series?: SkySeries };
+export interface ExplanationFact {
+  code: string;
+  text: string;
+  params: Record<string, unknown>;
+}
+
+export type SiteTargetMetrics = Partial<Record<HorizonKind, TargetHorizonResult>> & {
+  series?: SkySeries;
+  explanations?: ExplanationFact[] | null;
+};
+
+/** One sensitivity variant of a site (azimuth step halved, other DEM release): the service's numbers. */
+export interface SensitivityVariant {
+  variant: string;
+  sensitivity_high: boolean;
+  tolerance_availability: number;
+  variant_run_id?: string;
+  targets: Record<
+    string,
+    {
+      delta_lower: number;
+      delta_upper: number;
+      outcome_base: Outcome;
+      outcome_variant: Outcome;
+      outcome_changed: boolean;
+      event_count_base: number;
+      event_count_variant: number;
+      max_event_shift_s: number;
+      longest_hidden_delta_s: number;
+    }
+  >;
+}
 
 export interface SiteResults {
   site_id: string;
@@ -162,6 +193,7 @@ export interface SiteResults {
   result_state: ResultState;
   target_metrics: Partial<Record<Target, SiteTargetMetrics>>;
   warnings: string[];
+  sensitivity?: SensitivityVariant[];
 }
 
 export interface ResultsResponse {
@@ -221,6 +253,10 @@ export interface ProvenanceResponse {
 export type VariantAdmission = components["schemas"]["VariantAdmissionResponse"];
 export type VariantLink = components["schemas"]["VariantLink"];
 export type VariantsResponse = components["schemas"]["VariantsResponse"];
+/** Alternatives search (FR-11): the tested-dates strip. */
+export type SearchAdmission = components["schemas"]["SearchAdmissionResponse"];
+export type SearchStrip = components["schemas"]["SearchStripResponse"];
+export type StripDate = components["schemas"]["StripDate"];
 export type Alignment = "elapsed" | "calendar";
 
 export interface RunCompareRow extends CompareRow {

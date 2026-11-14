@@ -62,6 +62,18 @@ CREATE TABLE IF NOT EXISTS attempts (
   staging_dir TEXT NOT NULL,
   PRIMARY KEY (run_id, attempt)
 );
+CREATE TABLE IF NOT EXISTS searches (
+  search_id     TEXT PRIMARY KEY,
+  parent_run_id TEXT NOT NULL REFERENCES runs(run_id),
+  objective     TEXT NOT NULL,
+  created_utc   TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS search_items (
+  search_id TEXT NOT NULL REFERENCES searches(search_id),
+  offset_s  INTEGER NOT NULL,
+  run_id    TEXT REFERENCES runs(run_id),  -- NULL until the child is admitted (bounded batches)
+  PRIMARY KEY (search_id, offset_s)
+);
 CREATE TABLE IF NOT EXISTS run_links (
   child_run_id  TEXT NOT NULL REFERENCES runs(run_id),
   parent_run_id TEXT NOT NULL REFERENCES runs(run_id),
@@ -187,6 +199,50 @@ class RunStore:
     def parents(self, child_run_id: str) -> list[dict]:
         """Runs this one is a variant of (status and start time are the parent's)."""
         return self._links("child_run_id", child_run_id)
+
+    # ------------------------------------------------------------------ alternatives searches
+    def create_search(self, *, search_id: str, parent_run_id: str, objective: str, offsets_s: list[int]) -> bool:
+        """Record a search and every date it will test. Idempotent: the id is derived from the parent
+        and the dates, so the same search submitted twice is one search. Returns True if created."""
+        with self._conn() as c:
+            c.execute("BEGIN IMMEDIATE")
+            cur = c.execute("INSERT OR IGNORE INTO searches(search_id, parent_run_id, objective, created_utc)"
+                            " VALUES(?,?,?,?)", (search_id, parent_run_id, objective, now()))
+            created = cur.rowcount == 1
+            if created:
+                c.executemany("INSERT INTO search_items(search_id, offset_s) VALUES(?,?)",
+                              [(search_id, o) for o in offsets_s])
+            c.execute("COMMIT")
+        return created
+
+    def get_search(self, search_id: str) -> dict | None:
+        with self._conn() as c:
+            row = c.execute("SELECT * FROM searches WHERE search_id=?", (search_id,)).fetchone()
+            if row is None:
+                return None
+            items = c.execute(
+                "SELECT i.offset_s, i.run_id, r.status, r.error_code, r.error_detail FROM search_items i"
+                " LEFT JOIN runs r ON r.run_id = i.run_id WHERE i.search_id=? ORDER BY i.offset_s",
+                (search_id,)).fetchall()
+        return {**dict(row), "items": [dict(i) for i in items]}
+
+    def searches_of(self, parent_run_id: str) -> list[str]:
+        with self._conn() as c:
+            return [r["search_id"] for r in c.execute(
+                "SELECT search_id FROM searches WHERE parent_run_id=? ORDER BY created_utc, search_id",
+                (parent_run_id,))]
+
+    def unfinished_searches(self) -> list[str]:
+        """Searches with at least one date not yet admitted as a run."""
+        with self._conn() as c:
+            return [r["search_id"] for r in c.execute(
+                "SELECT DISTINCT i.search_id FROM search_items i JOIN searches s USING(search_id)"
+                " WHERE i.run_id IS NULL AND i.offset_s != 0 ORDER BY s.created_utc")]
+
+    def assign_search_item(self, search_id: str, offset_s: int, run_id: str) -> None:
+        with self._conn() as c:
+            c.execute("UPDATE search_items SET run_id=? WHERE search_id=? AND offset_s=? AND run_id IS NULL",
+                      (run_id, search_id, offset_s))
 
     # ------------------------------------------------------------------ attempts
     def claim(self, run_id: str) -> tuple[int, Path] | None:

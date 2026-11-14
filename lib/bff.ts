@@ -47,6 +47,13 @@ const ROUTES: RouteDef[] = [
     maxBodyBytes: 4096,
   },
   { method: "GET", re: new RegExp(`^analyses/(${RUN})/variants$`), upstream: (m) => `analyses/${m[1]}/variants` },
+  { method: "GET", re: new RegExp(`^analyses/(${RUN})/searches$`), upstream: (m) => `analyses/${m[1]}/searches`, timeoutMs: 20_000 },
+  {
+    method: "GET",
+    re: new RegExp(`^analyses/(${RUN})/searches/([0-9a-f]{32})$`),
+    upstream: (m) => `analyses/${m[1]}/searches/${m[2]}`,
+    timeoutMs: 20_000,
+  },
   {
     method: "GET",
     re: new RegExp(`^analyses/(${RUN})/results$`),

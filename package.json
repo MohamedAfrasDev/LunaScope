@@ -12,7 +12,9 @@
     "gen:api": "openapi-typescript docs/openapi.json -o lib/api/generated.ts",
     "check:api": "node scripts/check-api-types.mjs",
     "verify": "npm run check:api && npm run typecheck && npm run lint && npm test",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:fallback": "playwright test -c playwright.fallback.config.ts",
+    "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
     "next": "16.4.6",

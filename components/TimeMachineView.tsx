@@ -16,6 +16,7 @@ import type {
 import { fieldLabel, fieldValue } from "@/lib/facts";
 import { duration, pctRange, shortId, siteLabel, targetLabel, utc } from "@/lib/format";
 import { INTERVAL, OUTCOME, SITE_STATUS, WARNING_TEXT } from "@/lib/status";
+import { AlternativesStrip } from "./AlternativesStrip";
 import { ResultStateFrame } from "./ResultStateFrame";
 import { useRun } from "./RunView";
 import { StatusChip } from "./StatusChip";
@@ -191,12 +192,23 @@ export function TimeMachineView({ runId }: { runId: string }) {
         </form>
       )}
 
+      {baseReady && (
+        <AlternativesStrip
+          runId={runId}
+          onOpenDate={(_days, id) => {
+            setChildId(id);
+            loadLinks();
+            document.getElementById("time-alignment")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+        />
+      )}
+
       {baseReady && links && links.children.length > 0 && (
         <TestedDates links={links} selected={childId} onSelect={setChildId} />
       )}
 
       {baseReady && childId && (
-        <fieldset className="rounded-lg border border-border bg-surface p-4">
+        <fieldset id="time-alignment" className="rounded-lg border border-border bg-surface p-4">
           <legend className="px-1 text-base font-semibold">Time alignment</legend>
           <div className="grid gap-2 sm:grid-cols-2">
             {ALIGNMENTS.map((a) => (

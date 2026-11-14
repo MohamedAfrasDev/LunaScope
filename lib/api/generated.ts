@@ -131,6 +131,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analyses/{run_id}/searches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Searches */
+        get: operations["list_searches_api_v1_analyses__run_id__searches_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyses/{run_id}/searches/{search_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Search */
+        get: operations["get_search_api_v1_analyses__run_id__searches__search_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/analyses/{run_id}/validation": {
         parameters: {
             query?: never;
@@ -164,8 +198,9 @@ export interface paths {
         put?: never;
         /**
          * Create Variant
-         * @description Time Machine (FR-10, spec 8.4): copy the parent's canonical request, change only the
-         *     start, admit it as an ordinary run and link it. Same inputs as a fresh request = same run.
+         * @description Time Machine (FR-10) and alternatives search (FR-11), spec 8.4. A date shift copies the
+         *     parent's canonical request, changes only the start, admits it as an ordinary run and links it.
+         *     A search plans several shifted dates and admits them in bounded batches.
          */
         post: operations["create_variant_api_v1_analyses__run_id__variants_post"];
         delete?: never;
@@ -670,6 +705,53 @@ export interface components {
             /** Status Url */
             status_url?: string | null;
         };
+        /** SearchAdmissionResponse */
+        SearchAdmissionResponse: {
+            /** Attached */
+            attached: boolean;
+            /** Objective */
+            objective: string;
+            /** Parent Run Id */
+            parent_run_id: string;
+            /** Planned */
+            planned: number;
+            /** Search Id */
+            search_id: string;
+            /** Status Url */
+            status_url: string;
+            /**
+             * Variant Type
+             * @constant
+             */
+            variant_type: "alternatives_search";
+        };
+        /** SearchListResponse */
+        SearchListResponse: {
+            /** Run Id */
+            run_id: string;
+            /** Searches */
+            searches: components["schemas"]["SearchStripResponse"][];
+        };
+        /** SearchStripResponse */
+        SearchStripResponse: {
+            /** Complete */
+            complete: boolean;
+            counts: components["schemas"]["StripCounts"];
+            /** Dates */
+            dates: components["schemas"]["StripDate"][];
+            /** Largest Margin Among Passing */
+            largest_margin_among_passing: {
+                [key: string]: number | null;
+            };
+            /** Note */
+            note: string;
+            /** Objective */
+            objective: string;
+            /** Parent Run Id */
+            parent_run_id: string;
+            /** Search Id */
+            search_id: string;
+        };
         /** SiteResultsResponse */
         SiteResultsResponse: {
             /**
@@ -712,6 +794,77 @@ export interface components {
             el_deg: (number | null)[];
             /** Step S */
             step_s: number;
+        };
+        /** StripCounts */
+        StripCounts: {
+            /** Failed Runs */
+            failed_runs: number;
+            /** Failing */
+            failing: number;
+            /** Passing */
+            passing: number;
+            /** Pending */
+            pending: number;
+            /** Planned */
+            planned: number;
+            /** Tested */
+            tested: number;
+            /** Unknown */
+            unknown: number;
+        };
+        /** StripDate */
+        StripDate: {
+            error: components["schemas"]["StripError"] | null;
+            /** Offset Days */
+            offset_days: number;
+            /** Offset S */
+            offset_s: number;
+            /** Run Id */
+            run_id: string | null;
+            /** Sites */
+            sites: components["schemas"]["StripSite"][];
+            /** Start Utc */
+            start_utc: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "baseline" | "pending" | "queued" | "running" | "complete" | "complete_with_warnings" | "failed";
+            /** Verdict */
+            verdict: ("pass" | "fail" | "unknown") | null;
+        };
+        /** StripError */
+        StripError: {
+            /** Code */
+            code: string | null;
+            /** Message */
+            message: string | null;
+        };
+        /** StripSite */
+        StripSite: {
+            /** Earth Margin */
+            earth_margin: number;
+            /**
+             * Earth Outcome
+             * @enum {string}
+             */
+            earth_outcome: "PASS" | "FAIL" | "INDETERMINATE" | "EXCLUDED";
+            /** Objective Margin */
+            objective_margin: number;
+            /** Site Id */
+            site_id: string;
+            /**
+             * Site Status
+             * @enum {string}
+             */
+            site_status: "PASS" | "FAIL_SUN" | "FAIL_EARTH" | "FAIL_BOTH" | "INDETERMINATE" | "UNKNOWN_COVERAGE";
+            /** Sun Margin */
+            sun_margin: number;
+            /**
+             * Sun Outcome
+             * @enum {string}
+             */
+            sun_outcome: "PASS" | "FAIL" | "INDETERMINATE" | "EXCLUDED";
         };
         /** TargetHorizonResult */
         TargetHorizonResult: {
@@ -1171,6 +1324,87 @@ export interface operations {
             };
         };
     };
+    list_searches_api_v1_analyses__run_id__searches_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchListResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_search_api_v1_analyses__run_id__searches__search_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+                search_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchStripResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     validation_api_v1_analyses__run_id__validation_get: {
         parameters: {
             query?: never;
@@ -1277,7 +1511,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["VariantAdmissionResponse"];
+                    "application/json": components["schemas"]["VariantAdmissionResponse"] | components["schemas"]["SearchAdmissionResponse"];
                 };
             };
             /** @description Successful Response */
@@ -1286,7 +1520,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["VariantAdmissionResponse"];
+                    "application/json": components["schemas"]["VariantAdmissionResponse"] | components["schemas"]["SearchAdmissionResponse"];
                 };
             };
             /** @description Not Found */

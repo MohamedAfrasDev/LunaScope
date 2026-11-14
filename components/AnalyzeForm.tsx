@@ -11,11 +11,14 @@ import {
   clearDraft,
   customBody,
   customErrors,
+  decodeShare,
   emptyCustom,
+  encodeShare,
   fieldKeyFromService,
   loadDraft,
   referenceDraft,
   saveDraft,
+  SHARE_PARAM,
   sampleCount,
   toRequest,
   validateDraft,
@@ -71,13 +74,24 @@ export function AnalyzeForm() {
   const [errors, setErrors] = useState<Errors>({});
   const [formErr, setFormErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
 
   useEffect(() => {
     getJson<SitesResponse>("sites")
       .then((c) => {
         setCatalog(c);
         const known = new Set(c.sites.map((s) => s.site_id));
-        const saved = loadDraft();
+        // a shared link fills the form and nothing more: it never starts a run
+        const raw = new URLSearchParams(window.location.search).get(SHARE_PARAM);
+        const shared = raw === null ? null : decodeShare(raw);
+        if (raw !== null) {
+          window.history.replaceState(null, "", window.location.pathname);
+          setNotice(shared
+            ? "These inputs came from a shared link. Nothing has been run: check them, then press Run analysis."
+            : "That link could not be read, so the default inputs are shown.");
+        }
+        const saved = shared ?? loadDraft();
         // a saved draft survives navigation in this tab; preset ids no longer in the catalog are dropped
         setD(saved ? { ...saved, siteIds: saved.siteIds.filter((x) => known.has(x)) } : referenceDraft([...known]));
       })
@@ -103,7 +117,19 @@ export function AnalyzeForm() {
     setD(referenceDraft(catalog.sites.map((s) => s.site_id)));
     setErrors({});
     setFormErr(null);
+    setNotice(null);
   };
+  async function share() {
+    if (!d) return;
+    const url = `${window.location.origin}/analyze?${SHARE_PARAM}=${encodeShare(d)}`;
+    setShareUrl(url);
+    try {
+      await navigator.clipboard.writeText(url);
+      setNotice("Link copied. It holds these inputs only; opening it fills the form and runs nothing.");
+    } catch {
+      setNotice("Copy the link below. It holds these inputs only; opening it fills the form and runs nothing.");
+    }
+  }
   const fid = (n: string) => `${uid}-${n}`;
   const f = (key: string, n: string) => ({
     id: fid(n),
@@ -142,6 +168,7 @@ export function AnalyzeForm() {
           <strong>Fix {Object.keys(errors).length} field(s) before submitting.</strong> Nothing has been sent.
         </div>
       )}
+      {notice && <p role="status" className="rounded border border-info/40 bg-info-soft px-4 py-3 text-sm text-info">{notice}</p>}
       {formErr && (
         <p role="alert" className="rounded border border-fail/40 bg-fail-soft px-4 py-3 text-sm text-fail">
           {formErr}
@@ -313,11 +340,20 @@ export function AnalyzeForm() {
         <button type="button" onClick={reset} className="rounded border border-border px-3 py-2 text-sm">
           Reset to the reference mission
         </button>
+        <button type="button" onClick={share} className="rounded border border-border px-3 py-2 text-sm">
+          Copy a link to these inputs
+        </button>
         <p className="text-sm text-muted" aria-live="polite">
           {samples.toLocaleString("en")} samples ({d.siteIds.length + d.custom.length} site(s) × 2 targets), limit{" "}
           {MAX_SAMPLES.toLocaleString("en")}
         </p>
       </div>
+      {shareUrl && (
+        <label className="grid gap-1 text-sm">
+          <span className="font-medium">Link to these inputs</span>
+          <input readOnly value={shareUrl} onFocus={(e) => e.currentTarget.select()} className="rounded border border-border bg-surface px-3 py-2 font-mono text-xs" />
+        </label>
+      )}
     </form>
   );
 }
