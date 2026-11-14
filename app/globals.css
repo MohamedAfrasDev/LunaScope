@@ -3,54 +3,66 @@
 /*
  * Design tokens.
  * Status colours are always paired with an icon and a word in the markup (never colour alone).
- * The palette is deliberately quiet: cool neutrals, one accent, and status hues used only for state.
+ * The palette is deliberately quiet: cool neutrals, one accent, Sun/Earth hues, and status hues used only for state.
  */
+/* Dark is the default look (a quiet console in shadow); light is the alternate. */
 :root {
-  --background: #f7f8f9;
-  --foreground: #14181d;
-  --surface: #ffffff;
-  --surface-2: #eff1f3;
-  --border: #dadfe4;
-  --border-strong: #b9c1c9;
-  --muted: #565f69;
-  --accent: #1d4ed8;
-  --accent-hover: #1e40af;
-  --accent-contrast: #ffffff;
-  --ok: #0f6b3a;
-  --ok-soft: #e3f4ea;
-  --fail: #a4262c;
-  --fail-soft: #fbe7e8;
-  --warn: #7c5200;
-  --warn-soft: #fff1d6;
-  --info: #1d4f8c;
-  --info-soft: #e5eefb;
-  --focus: #1d4ed8;
-  --shadow-sm: 0 1px 2px rgb(16 24 40 / 0.05);
+  color-scheme: dark;
+  --background: #090b0e;
+  --foreground: #e6e9ed;
+  --surface: #0f1216;
+  --surface-2: #151a20;
+  --border: #232a32;
+  --border-strong: #3a4551;
+  --muted: #98a2ad;
+  --accent: #7fb0ff;
+  --accent-hover: #a3c6ff;
+  --accent-contrast: #090b0e;
+  /* The two protagonists: the Sun is warm amber, Earth is cool blue, everywhere they appear. */
+  --sun: #f2b84b;
+  --sun-soft: #2e2208;
+  --earth: #6aa8ff;
+  --earth-soft: #11233d;
+  --ok: #6fd69b;
+  --ok-soft: #10281b;
+  --fail: #ff8f94;
+  --fail-soft: #33151a;
+  --warn: #f0c36a;
+  --warn-soft: #30240a;
+  --info: #8ab4ff;
+  --info-soft: #12213a;
+  --focus: #8ab4ff;
+  --shadow-sm: none;
   --radius: 0.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    --background: #0c0e11;
-    --foreground: #e9ebed;
-    --surface: #14171b;
-    --surface-2: #1b1f24;
-    --border: #2b3138;
-    --border-strong: #46505a;
-    --muted: #a0a8b1;
-    --accent: #8ab4ff;
-    --accent-hover: #a9c7ff;
-    --accent-contrast: #0c0e11;
-    --ok: #6fd69b;
-    --ok-soft: #12301f;
-    --fail: #ff8f94;
-    --fail-soft: #3a1618;
-    --warn: #f0c36a;
-    --warn-soft: #36290a;
-    --info: #8ab4ff;
-    --info-soft: #14233b;
-    --focus: #8ab4ff;
-    --shadow-sm: none;
+    color-scheme: light;
+    --background: #f7f8f9;
+    --foreground: #14181d;
+    --surface: #ffffff;
+    --surface-2: #eff1f3;
+    --border: #dadfe4;
+    --border-strong: #b9c1c9;
+    --muted: #565f69;
+    --accent: #1d4ed8;
+    --accent-hover: #1e40af;
+    --accent-contrast: #ffffff;
+    --sun: #8a5500;
+    --sun-soft: #fff1d6;
+    --earth: #1d4f9c;
+    --earth-soft: #e5eefb;
+    --ok: #0f6b3a;
+    --ok-soft: #e3f4ea;
+    --fail: #a4262c;
+    --fail-soft: #fbe7e8;
+    --warn: #7c5200;
+    --warn-soft: #fff1d6;
+    --info: #1d4f8c;
+    --info-soft: #e5eefb;
+    --focus: #1d4ed8;
+    --shadow-sm: 0 1px 2px rgb(16 24 40 / 0.05);
   }
 }
 
@@ -65,6 +77,10 @@
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-contrast: var(--accent-contrast);
+  --color-sun: var(--sun);
+  --color-sun-soft: var(--sun-soft);
+  --color-earth: var(--earth);
+  --color-earth-soft: var(--earth-soft);
   --color-ok: var(--ok);
   --color-ok-soft: var(--ok-soft);
   --color-fail: var(--fail);

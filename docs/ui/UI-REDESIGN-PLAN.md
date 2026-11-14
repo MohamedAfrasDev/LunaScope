@@ -69,15 +69,30 @@ Goal: know exactly what must not break.
 
 Done when: baseline results and screenshots are saved, and the pinned-selector list exists.
 
-## Phase 1: Dark-first tokens and Sun/Earth hues (S)
+## Phase 1: Dark-first tokens and Sun/Earth hues (S): DONE
 
-Files: `app/globals.css`, `app/layout.tsx`.
+Files: `app/globals.css` only (no component edits needed).
 
-- [ ] Make dark the default palette; light under `prefers-color-scheme: light`. Decide on an explicit theme toggle: **no** for now (respect system, default dark when no preference).
-- [ ] Define `--sun` and `--earth` tokens (with soft variants) for both themes, plus Tailwind theme aliases.
-- [ ] Re-tune neutrals, borders, surface steps for a quiet dark console feel.
-- [ ] Check contrast (AA) for text, chips, borders and both hues on both surfaces; record ratios in the doc.
-- [ ] Update `color-scheme` so native controls (inputs, scrollbars, progress) match.
+- [x] Dark is the default palette; light under `prefers-color-scheme: light`. No manual toggle for now (system preference; dark when there is none).
+- [x] `--sun` / `--earth` tokens with soft variants for both themes, plus Tailwind aliases (`text-sun`, `bg-earth-soft`, ...). They match the hues the sky plot already uses (Sun amber, Earth blue), so nothing recoloured by surprise.
+- [x] Neutrals, borders and surface steps re-tuned (near-black `#090b0e`, surfaces `#0f1216` / `#151a20`).
+- [x] Contrast checked (below). Everything passes AA.
+- [x] `color-scheme` set per theme so native controls, scrollbars and `progress` match.
+
+Contrast ratios (WCAG, text on its surface; 4.5:1 required):
+
+| Pair | Dark | Light |
+|---|---|---|
+| foreground on background | 16.2 | 16.8 |
+| muted on background / surface / surface-2 | 7.6 / 7.3 / 6.8 | 6.1 / 6.5 / 5.7 |
+| accent on background / surface | 9.0 / 8.5 | 6.3 / 6.7 |
+| sun on background / surface | 11.0 / 10.5 | 5.8 / 6.2 |
+| earth on background / surface | 8.1 / 7.7 | 7.5 / 7.9 |
+| sun on sun-soft, earth on earth-soft | 8.7, 6.5 | 5.6, 6.8 |
+| ok / fail / warn / info on their soft fills | 7.6 to 9.2 | 5.8 to 7.0 |
+
+Verification: vitest 149, tsc, eslint, Playwright e2e 6 all pass. Because the e2e suite runs in the light scheme,
+axe was also run by hand in **dark and light** on all 9 routes: 0 violations (WCAG 2 A/AA, 2.1 A/AA).
 
 Done when: every existing page renders correctly in both themes with no component edits, and contrast ratios are recorded.
 
