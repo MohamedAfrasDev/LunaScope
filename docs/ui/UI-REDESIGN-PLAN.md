@@ -58,14 +58,14 @@ PR A is the foundation (no structure changes). PR C and D deliver most of the "e
 
 ---
 
-## Phase 0: Baseline and safety net (S)
+## Phase 0: Baseline and safety net (S): DONE
 
 Goal: know exactly what must not break.
 
-- [ ] Inventory every text string, role and link name pinned by `tests/web/*` and `tests/e2e/*` (list in this doc's appendix when done).
-- [ ] Capture "before" screenshots (dark and light, 1280 and 375) for every route into `docs/ui/screenshots/before/`.
-- [ ] Run the full suite once to record the green baseline (`vitest`, `tsc`, `eslint`, Playwright e2e, fallback e2e, `next build`).
-- [ ] Decide test-update policy: structural changes may change selectors; wording changes may not.
+- [x] Inventory every text string, role and link name pinned by `tests/web/*` and `tests/e2e/*` (Appendix A).
+- [x] Capture "before" screenshots (dark and light at 1280, light at 375) for every route into `docs/ui/screenshots/before/` (27 images).
+- [x] Run the full suite once to record the green baseline (Appendix B).
+- [x] Test-update policy: structural changes may change selectors; wording changes may not.
 
 Done when: baseline results and screenshots are saved, and the pinned-selector list exists.
 
@@ -255,6 +255,46 @@ Recommended first release: A, B, C, D.
 2. Add a manual theme toggle later, or system preference only?
 3. Should "Technical" mode also collapse the plain-words sections, or stay as is?
 
-## Appendix: pinned-selector inventory
+## Appendix A: pinned-selector inventory
 
-To be filled in during phase 0.
+Tests are semantic. No test asserts on class names, colours or layout (no `className` or `toHaveClass` in
+`tests/`). Only four raw selectors exist: `main`, `svg desc`, `title`, `input[type=checkbox]:checked`.
+So restyling is free; structure and wording are what to protect.
+
+**Wording pinned (do not rephrase):**
+- Buttons: "Start the reference mission", "Guided", "Technical", "Shift and recompute", "Test 15 dates",
+  "Next event", "Compare", "Check terrain coverage for point 1".
+- Links: "Local sky", /Open the Time Machine/.
+- Headings: "Validation cards", "Disc size: centre or edge?".
+- Text: "In plain words", "Facts from the service", "Replay mode", /offline copy: it shows saved runs only/,
+  /Synthetic demonstration data/, /Reference GR-001/, /Objective, stated:/, /Held constant/,
+  /compared in elapsed time/, /compared in calendar time/, /3 of 3 dates tested/,
+  "Starts 2027-01-10 00:00:00 UTC", /not to scale and not computed from data/,
+  /stays below the ridges and crater walls/.
+- Labels: "Shift the start by (days)", "From (days)", "To (days)", /Horizon radius/, "Latitude (°)",
+  /Calendar time/, site labels such as "89.5°S, 240°E".
+
+**Structure pinned (keep roles and names when moving things):**
+- `table` (status matrix, deltas, disc reading), `slider` (sky time), `img` (plots and SVGs), `alert`.
+- `group` named /Sites/, `region` named /Sun at the cursor/, `list` named "Tested dates", `article` named "Baseline run".
+- Keyboard completeness of the core flow and axe on every page (e2e).
+- No sideways scrolling at phone width (e2e `mobile-layout`).
+
+**Notes for later phases:**
+- Phase 4: the status pill must still expose "Replay mode" and the offline-copy sentence as text.
+- Phase 7: a `table` must still exist on the run page; if it sits in a closed disclosure, tests must open it.
+- Phase 5/7: the "Local sky" link must stay reachable from the matrix or site cards.
+
+## Appendix B: green baseline (2026-11-14, `main` at c9b6f63)
+
+| Check | Result |
+|---|---|
+| `vitest` | 15 files, 149 tests pass |
+| `tsc --noEmit` | clean |
+| `eslint` | clean |
+| Playwright e2e (synthetic stack) | 6 passed (axe, keyboard flow, mobile no-sideways-scroll) |
+| Playwright fallback e2e | 1 passed with `LUNASCOPE_FALLBACK_STACK=live` (the packaged data is live-stack; the default `synthetic` fails by design) |
+| `next build` | passes |
+
+Screenshots: `docs/ui/screenshots/before/`, named `<route>-<desktop|mobile>-<dark|light>.png`
+(routes: home, analyze, why, run, timeline, sky, compare, time-machine, evidence).
