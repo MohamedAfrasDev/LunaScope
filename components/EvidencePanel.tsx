@@ -162,7 +162,6 @@ export function EvidencePanel({ runId }: { runId: string }) {
 
   return (
     <div className="grid gap-6">
-      {back}
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Evidence</h1>
         <p className="mt-1 max-w-3xl text-sm text-muted">

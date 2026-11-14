@@ -89,7 +89,6 @@ export function CompareView({ runId }: { runId: string }) {
 
   return (
     <div className="grid gap-6">
-      <Link href={`/runs/${runId}`} className="text-sm text-accent underline underline-offset-4">← Back to the status matrix</Link>
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Compare sites</h1>
         <p className="mt-1 max-w-3xl text-sm text-muted">

@@ -187,11 +187,30 @@ Done when: status is visible on every page without a banner, full text is one in
 
 Files: new `app/runs/[runId]/layout.tsx`, new `components/RunNav.tsx`, `RunView.tsx`.
 
-- [ ] Run layout with a compact header (short run id, status chip) and a tab bar: Matrix, Timeline, Sky, Compare, Time Machine, Evidence. Tabs are links to existing routes, with `aria-current`.
-- [ ] Site switcher for Timeline and Sky (links, no new data).
-- [ ] Hide Compare tab when fewer than 2 sites (current behaviour).
-- [ ] Remove the now-redundant "Back to the status matrix" links only if the tab bar covers them.
-- [ ] Verify Cache Components rules (Suspense around `usePathname`) per `node_modules/next/dist/docs/` before writing.
+- [x] New `app/runs/[runId]/layout.tsx` (server, reads no request data) wrapping every run view, with a client
+  `components/RunNav.tsx` behind `Suspense`. Per the Next docs, a client component calls `useParams()` /
+  `usePathname()` instead of awaiting `params`, so the page shell stays static (build output still shows the run
+  routes as partially prerendered).
+- [x] Tab bar `nav[aria-label="Analysis views"]`: Matrix, Timeline, Sky, Compare, Time Machine, Evidence, as plain
+  links to the existing routes with `aria-current="page"`. The right side shows the short run id (readout) and the
+  run's own result state as a `ResultBadge` (first page use of that primitive).
+- [x] Timeline and Sky link to the first site, or to the current site when already on a site view.
+- [x] Site switcher `nav[aria-label="Switch site"]` on Timeline and Sky: links to the same tab for another site, the
+  current site marked `aria-current="true"`. No new data; sites come from the run's matrix.
+- [x] Compare tab only when the run has 2+ sites (same rule as the matrix link). Timeline, Sky and Compare appear
+  once the run is complete (the nav polls with the existing `useRun` hook until the run is terminal).
+- [x] The nav renders nothing for an invalid id or a run the service says does not exist; the page itself explains.
+- [x] Removed the redundant "← Back to the status matrix" link from the five main views (Timeline, Sky, Compare,
+  Time Machine, Evidence). Kept it inside the error and loading states, where it is the only way out.
+- [x] Tab labels were chosen not to collide with pinned link names ("Local sky", "Timeline and evidence",
+  "Compare these sites", "Open the Time Machine", "Open the evidence").
+- [x] Phone: the tab strip scrolls sideways inside its own box (links are focusable); the page itself does not.
+- Not done: a separate run status chip. The run page already shows queued, running and failed states, and the badge
+  covers the result state.
+
+Verification: vitest 175 (7 new in `tests/web/run-nav.test.tsx`), tsc (after `next typegen`), eslint, Playwright
+e2e 6, fallback e2e 1 (live stack), `next build`, axe in dark and light on all 9 routes: 0 violations. Checked at
+1280 and 375px: correct active tab and site on every route, no sideways page scroll.
 
 Done when: every run page shows the same tab bar with the correct active tab, and all existing links still resolve.
 

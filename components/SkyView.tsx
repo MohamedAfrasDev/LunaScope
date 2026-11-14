@@ -234,7 +234,6 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
 
   return (
     <div className="grid gap-6">
-      <Link href={`/runs/${runId}`} className="text-sm text-accent underline underline-offset-4">← Back to the status matrix</Link>
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">Local sky: {siteLabel(siteId)}</h1>
         <StatusChip p={sp} title={sp.help} />

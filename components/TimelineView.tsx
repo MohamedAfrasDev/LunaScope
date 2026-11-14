@@ -96,7 +96,6 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
 
   return (
     <div className="grid gap-6">
-      {back}
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">Timeline: {siteLabel(siteId)}</h1>
         <StatusChip p={sp} title={sp.help} />
