@@ -339,6 +339,9 @@ button.bg-accent:not(:disabled):hover {
 .hero-in {
   animation: hero-in 0.7s ease-out both;
 }
+.reveal {
+  animation: hero-in 0.9s ease-out both;
+}
 .hero-d1 {
   animation-delay: 0.15s;
 }

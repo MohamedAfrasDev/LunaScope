@@ -17,6 +17,8 @@ import { INTERVAL, SITE_STATUS } from "@/lib/status";
 import { ResultStateFrame } from "./ResultStateFrame";
 import { PolarSky, SkyLegend, UnrolledSky, type Track } from "./SkyPlots";
 import { StatusChip } from "./StatusChip";
+import { Button } from "./ui/Button";
+import { Disclosure } from "./ui/Disclosure";
 
 const TARGETS: Target[] = ["sun_center", "earth_center"];
 const SPEEDS = [
@@ -244,53 +246,101 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
 
       <ResultStateFrame state={site.result_state}>
         <div className="grid gap-6">
-          <fieldset className="flex flex-wrap items-center gap-4 text-sm">
-            <legend className="sr-only">Sky view</legend>
-            <span className="font-medium">View</span>
-            {(["polar", "unrolled"] as const).map((v) => (
-              <label key={v} className="flex items-center gap-2">
-                <input type="radio" name={`${uid}-view`} checked={view === v} onChange={() => setView(v)} />
-                {v === "polar" ? "Polar (north up)" : "Unrolled (azimuth across)"}
-              </label>
-            ))}
-          </fieldset>
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)] lg:items-start">
+            {/* the stage: view switch, plot and time player are one object */}
+            <div className="grid gap-3">
+              <div className="surface-card overflow-hidden">
+                <fieldset className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2 text-sm">
+                  <legend className="sr-only">Sky view</legend>
+                  <span className="eyebrow mr-1">View</span>
+                  {(["polar", "unrolled"] as const).map((v) => (
+                    <label
+                      key={v}
+                      className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-2.5 py-1 transition-colors hover:border-border-strong has-[:checked]:border-accent has-[:checked]:bg-surface-2 has-[:checked]:font-medium"
+                    >
+                      <input type="radio" name={`${uid}-view`} checked={view === v} onChange={() => setView(v)} />
+                      {v === "polar" ? "Polar (north up)" : "Unrolled (azimuth across)"}
+                    </label>
+                  ))}
+                </fieldset>
 
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-            <div>
-              {view === "polar" ? (
-                <PolarSky profile={data.profile} tracks={cursors} band={band} title={title} desc={desc} />
-              ) : (
-                <UnrolledSky profile={data.profile} tracks={cursors} band={band} title={title} desc={desc} />
-              )}
-              <div className="mt-2"><SkyLegend /></div>
-              <p className="mt-2 text-xs text-muted">
+                <div className="p-3 sm:p-4">
+                  {view === "polar" ? (
+                    <PolarSky profile={data.profile} tracks={cursors} band={band} title={title} desc={desc} />
+                  ) : (
+                    <UnrolledSky profile={data.profile} tracks={cursors} band={band} title={title} desc={desc} />
+                  )}
+                </div>
+
+                <div role="group" tabIndex={0} onKeyDown={onKey}
+                  aria-label="Time player. With this group focused: Space plays or pauses, comma and period jump to the previous or next event, left and right arrows step ten minutes."
+                  aria-keyshortcuts="Space , . ArrowLeft ArrowRight"
+                  className="grid gap-3 border-t border-border bg-surface-2 p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button variant="primary" disabled={reduced} onClick={() => (t >= total && setT(0), setPlaying((p) => !p))}>
+                      {playing ? "Pause" : "Play"}
+                    </Button>
+                    <Button onClick={() => jump(prevEvent(events, t))} disabled={prevEvent(events, t) === null}>
+                      Previous event
+                    </Button>
+                    <Button onClick={() => jump(nextEvent(events, t))} disabled={nextEvent(events, t) === null}>
+                      Next event
+                    </Button>
+                    <label className="ml-auto flex items-center gap-2 text-sm">
+                      Speed
+                      <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))}
+                        className="rounded-md border border-border-strong bg-surface px-2 py-1">
+                        {SPEEDS.map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}
+                      </select>
+                    </label>
+                  </div>
+                  {reduced && (
+                    <p className="text-xs text-muted">Your system asks for reduced motion, so playback is off. Use the slider and the event buttons.</p>
+                  )}
+                  <label className="grid gap-1 text-sm">
+                    <span className="font-medium">Time (UTC)</span>
+                    <input type="range" min={0} max={total} step={60} value={Math.round(t)}
+                      aria-valuetext={clock(t)}
+                      onChange={(e) => { setPlaying(false); setT(Number(e.target.value)); }} />
+                    <span className="flex justify-between text-xs text-muted tabular-nums"><span>{clock(0)}</span><span>{clock(total)}</span></span>
+                  </label>
+                </div>
+              </div>
+
+              <SkyLegend />
+              <p className="type-caption">
                 Hatched ground is the terrain skyline from the elevation data; the dashed circle or line is the flat 0°
                 horizon. A target is visible only where it is above the skyline, which the service decides, not this
                 picture. Elevation rings are 5° apart.
               </p>
             </div>
 
-            <div className="grid content-start gap-4">
-              <div className="rounded border border-border p-3 text-sm">
-                <h2 className="font-semibold">At the cursor</h2>
-                <p className="tabular-nums" aria-live={playing ? "off" : "polite"}>{clock(t)}</p>
-                <p className="text-xs text-muted">Day {(t / 86400).toFixed(2)} of {(total / 86400).toFixed(0)}</p>
+            {/* one readout panel: the cursor time, then the Sun and Earth at that moment */}
+            <div className="surface-card grid content-start gap-4 p-4 text-sm">
+              <div>
+                <h2 className="eyebrow">At the cursor</h2>
+                <p className="readout mt-1 text-base" aria-live={playing ? "off" : "polite"}>{clock(t)}</p>
+                <p className="type-caption readout">Day {(t / 86400).toFixed(2)} of {(total / 86400).toFixed(0)}</p>
               </div>
               {cursors.map((c) => {
                 const cls = classAt(c.intervals, t);
                 const skyline = skylineAt(data.profile, c.cursor.az);
+                const sun = c.target === "sun_center";
                 return (
-                  <section key={c.target} aria-label={`${targetLabel(c.target)} at the cursor`} className="rounded border border-border p-3 text-sm">
-                    <h2 className="font-semibold">{targetLabel(c.target)}</h2>
-                    <dl className="mt-1 grid grid-cols-[max-content_1fr] gap-x-3 gap-y-0.5">
-                      <dt className="text-muted">Azimuth</dt><dd className="tabular-nums">{c.cursor.az.toFixed(2)}°</dd>
-                      <dt className="text-muted">Elevation</dt><dd className="tabular-nums">{degrees(c.cursor.el)}</dd>
+                  <section key={c.target} aria-label={`${targetLabel(c.target)} at the cursor`} className="border-t border-border pt-4">
+                    <h2 className="flex items-center gap-2 font-semibold">
+                      <span aria-hidden="true" className={sun ? "text-sun" : "text-earth"}>{sun ? "●" : "◆"}</span>
+                      {targetLabel(c.target)}
+                    </h2>
+                    <dl className="mt-2 grid grid-cols-[max-content_1fr] gap-x-3 gap-y-0.5">
+                      <dt className="text-muted">Azimuth</dt><dd className="readout">{c.cursor.az.toFixed(2)}°</dd>
+                      <dt className="text-muted">Elevation</dt><dd className="readout">{degrees(c.cursor.el)}</dd>
                       <dt className="text-muted">Skyline there</dt>
-                      <dd className="tabular-nums">{skyline === null ? "unknown (no terrain data)" : degrees(skyline)}</dd>
+                      <dd className="readout">{skyline === null ? "unknown (no terrain data)" : degrees(skyline)}</dd>
                       <dt className="text-muted">State</dt>
                       <dd>{cls ? INTERVAL[cls].label : "outside the window"}</dd>
                     </dl>
-                    <div className="mt-2 border-t border-border pt-2">
+                    <div className="mt-3 border-t border-border pt-3">
                       <CountdownCard runId={runId} siteId={siteId} target={c.target} t={t} playing={playing} range={variantRange(site?.sensitivity, c.target)} />
                     </div>
                   </section>
@@ -299,46 +349,8 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
             </div>
           </div>
 
-          <div role="group" tabIndex={0} onKeyDown={onKey}
-            aria-label="Time player. With this group focused: Space plays or pauses, comma and period jump to the previous or next event, left and right arrows step ten minutes."
-            aria-keyshortcuts="Space , . ArrowLeft ArrowRight"
-            className="grid gap-3 rounded-lg border border-border bg-surface-2 p-3">
-            <div className="flex flex-wrap items-center gap-3">
-              <button type="button" disabled={reduced} onClick={() => (t >= total && setT(0), setPlaying((p) => !p))}
-                className="rounded border border-border bg-surface px-3 py-2 text-sm font-medium disabled:opacity-50">
-                {playing ? "Pause" : "Play"}
-              </button>
-              <button type="button" onClick={() => jump(prevEvent(events, t))} disabled={prevEvent(events, t) === null}
-                className="rounded border border-border bg-surface px-3 py-2 text-sm disabled:opacity-50">
-                Previous event
-              </button>
-              <button type="button" onClick={() => jump(nextEvent(events, t))} disabled={nextEvent(events, t) === null}
-                className="rounded border border-border bg-surface px-3 py-2 text-sm disabled:opacity-50">
-                Next event
-              </button>
-              <label className="flex items-center gap-2 text-sm">
-                Speed
-                <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))}
-                  className="rounded border border-border bg-surface px-2 py-1">
-                  {SPEEDS.map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}
-                </select>
-              </label>
-            </div>
-            {reduced && (
-              <p className="text-xs text-muted">Your system asks for reduced motion, so playback is off. Use the slider and the event buttons.</p>
-            )}
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Time (UTC)</span>
-              <input type="range" min={0} max={total} step={60} value={Math.round(t)}
-                aria-valuetext={clock(t)}
-                onChange={(e) => { setPlaying(false); setT(Number(e.target.value)); }} />
-              <span className="flex justify-between text-xs text-muted tabular-nums"><span>{clock(0)}</span><span>{clock(total)}</span></span>
-            </label>
-          </div>
-
-          <details className="rounded border border-border">
-            <summary className="cursor-pointer px-3 py-2 text-sm font-medium">View sky positions as a table (every 6 hours)</summary>
-            <div className="overflow-x-auto px-3 pb-3">
+          <Disclosure summary="View sky positions as a table (every 6 hours)">
+            <div className="overflow-x-auto">
               <table className="w-full min-w-[40rem] text-left text-sm">
                 <thead>
                   <tr className="border-b border-border">
@@ -359,11 +371,11 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
                   ))}
                 </tbody>
               </table>
-              <button type="button" onClick={csv} className="mt-3 rounded border border-border px-3 py-2 text-sm font-medium">
+              <Button onClick={csv} className="mt-3">
                 Download all positions (CSV)
-              </button>
+              </Button>
             </div>
-          </details>
+          </Disclosure>
         </div>
       </ResultStateFrame>
     </div>
