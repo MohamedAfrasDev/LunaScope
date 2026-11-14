@@ -43,6 +43,20 @@ For the live stack mount the large data files read-only at `data/raw/` (they are
 
 The service image keeps the repository layout (`/app/science`, `/app/data`) because the code finds its manifests relative to the package.
 
+## Hosted demo (web on Vercel, science service on a free container host)
+
+This is the **replay** deployment: the service serves only the saved real-data runs (GR-001, its five-day shift and the dates search), so it needs no terrain files, no kernels and no network, and fits a free tier. Anything not saved is refused with `REPLAY_ONLY`, and the web app shows a REPLAY MODE badge. It is not live computing. Status: **prepared and tested locally, not deployed** (no hosted account has been used yet).
+
+1. **Service (Render, free).** In the Render dashboard choose New > Blueprint and pick this repository; `render.yaml` builds `deploy/replay.Dockerfile` (the packaged runs in `deploy/replay-package/`, 6.6 MB, are baked into the image). Render generates `LUNASCOPE_API_TOKEN`. Copy that value and the service's public URL. Free instances sleep when idle, so the first request after a pause is slow: open the health URL a minute before presenting.
+2. **Web (Vercel).** Import the repository as a Next.js project and set two environment variables: `SCIENCE_API_URL` = the Render URL (no trailing slash) and `SCIENCE_API_TOKEN` = the token from step 1. They are read on the server only and never reach the browser.
+3. **Smoke test, signed out:**
+   ```bash
+   node scripts/smoke.mjs https://<your-vercel-url> --stack live --mode replay
+   ```
+   Do not announce the link until it exits 0.
+
+The same image runs locally: `docker build -f deploy/replay.Dockerfile -t lunascope-replay .` then `docker run -e LUNASCOPE_API_TOKEN=... -p 8000:8000 lunascope-replay`. The entrypoint refuses to start without a token and copies the store into a writable `/data` on every start. Keep `deploy/replay-package/` in step with the rebuilt `fallback/` package (copy `FALLBACK-MANIFEST.json` and `data/store/` after each `build_fallback.py build`), then run `build_fallback.py check deploy/replay-package --stack live`.
+
 ## Smoke test
 
 ```bash
