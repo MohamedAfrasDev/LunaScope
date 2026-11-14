@@ -1,0 +1,115 @@
+{
+ "algorithm_version": "0.2.0-phase1",
+ "commit": "75b7e6bf31a77ed0ede0397721f0078856891331",
+ "definition_sha256": "0be977245ec9407e324a8b9bc4bcffdb8188b53818e18c4ba1a56268890be7d0",
+ "definition_status": "frozen",
+ "dirty": false,
+ "frozen": true,
+ "gates": {
+  "failing": [],
+  "gates": [
+   {
+    "detail": "SPICE agrees with the provider to 0.0017 arcsec at most, and interpolation is inside its allowance, for every site and target",
+    "failing": [],
+    "gate": "geometry",
+    "status": "pass"
+   },
+   {
+    "detail": "every skyline has its recorded digest, agrees with its own summary, and has every sector certified",
+    "failing": [],
+    "gate": "horizon",
+    "status": "pass"
+   },
+   {
+    "detail": "intervals tile the window, V + H + U + X + G equals it, the bounds follow from the intervals, and every result re-derives from the stored series and skyline",
+    "failing": [],
+    "gate": "aggregation",
+    "status": "pass"
+   },
+   {
+    "detail": "no interval is uncertified or missing data, and all 5 events are bracketed within the root tolerance (0 are near-tangent and flagged as such)",
+    "failing": [],
+    "gate": "event_search",
+    "status": "pass"
+   },
+   {
+    "detail": "all 5 cases (time step, azimuth step, radius) ran at every site and none is flagged SENSITIVITY_HIGH",
+    "failing": [],
+    "gate": "convergence",
+    "status": "pass"
+   }
+  ],
+  "note": "Passing means the run is internally consistent, converged and checked against SPICE. It is not a validation of the science.",
+  "passes": true
+ },
+ "reference_id": "GR-001",
+ "resources": [
+  {
+   "role": "spice_kernels",
+   "sha256": "2c8e70737346c0290fe0243f79ee5df173b77ad5c607fd1e1305d31fa1575737"
+  }
+ ],
+ "run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+ "sites": [
+  {
+   "bundle": "9ff1298c116ed038_160ecf9606be.json",
+   "bundle_sha256": "160ecf9606be1f91491d9af12aade6b6ccf1d55b24710f63ec221d4e2dd2b1ee",
+   "geometry_raw_sha256": {
+    "earth_center": "aa30db6f5bb67ddd6e3061111a4a4faaa0a453db8c5de5fdf2ef4bf08d8d2eac",
+    "sun_center": "eec1ece15ed34502e306ce6a343582ce35f5024e3e892b639bf619631c313cf7"
+   },
+   "horizon_payload_sha256": "658a94948f68ea3284166f000b3399907fe2763ef14d9c765acc6c74ae6aae05",
+   "ready": true,
+   "seconds": 63.2,
+   "sensitivity_high": [],
+   "site_id": "rule-89.5S-E0",
+   "site_result_id": "b549626025f24b1ee76de53460edf20986081b27023332f3cb1b2c967aeb623e",
+   "site_run_id": "9ff1298c116ed038e81c51c7226bca146c8b94fc85d913bc82c944751a29481c",
+   "warnings": [
+    "EOP_PREDICTED",
+    "UNVERIFIED",
+    "UTC_FUTURE_LEAP_SECOND_ASSUMPTION"
+   ]
+  },
+  {
+   "bundle": "453bfe83a1f29883_653fdfb6a608.json",
+   "bundle_sha256": "653fdfb6a608534331ccee7b994cf1c062cf7a053a0a655ca384c9f4aef68140",
+   "geometry_raw_sha256": {
+    "earth_center": "2843374b732ee556e7ab0b910d7ea3a1a638e7f61e522484d12e1215835cf985",
+    "sun_center": "77f64801ffb9f19c73915500291db36859206deaba4b7023c38f2293249d603a"
+   },
+   "horizon_payload_sha256": "ae6e7c59ef2d35f3b810ce0d57065349dce45b383944ff8d097995c2009826bf",
+   "ready": true,
+   "seconds": 50.5,
+   "sensitivity_high": [],
+   "site_id": "rule-89.5S-E120",
+   "site_result_id": "cf4ace471e0e3abb2de3125e789862e8ab3c1c34e8cbf15ca13b54adb416679a",
+   "site_run_id": "453bfe83a1f2988370e17e253f777d3e357fa83b03ebb1cef2b0b13a4886296d",
+   "warnings": [
+    "EOP_PREDICTED",
+    "UNVERIFIED",
+    "UTC_FUTURE_LEAP_SECOND_ASSUMPTION"
+   ]
+  },
+  {
+   "bundle": "34baacdd803a55c7_043868311c70.json",
+   "bundle_sha256": "043868311c70637ffc4b409b6be16a1548a83c645c94cfa5f4e371b2799dd388",
+   "geometry_raw_sha256": {
+    "earth_center": "db8ce145467445a7d0b8f5c8c732468d64375747efb7482e3663d6eb1ba317e1",
+    "sun_center": "dd03319bbb740c8387e2cc95bf5fe539ddcb3a08567777880ba4a8802bfde6da"
+   },
+   "horizon_payload_sha256": "bcd400069d8f6f77a54c25ac8b5a72fff25a1ec6a1152c5f73b4686fe6d4887f",
+   "ready": true,
+   "seconds": 74.6,
+   "sensitivity_high": [],
+   "site_id": "rule-89.5S-E240",
+   "site_result_id": "c6b572c84b8d058945fb33bb48c7f0367b3436ea8adb7a19d3e4602e4e721caf",
+   "site_run_id": "34baacdd803a55c71414b3c872ae2f7db56affeb7374945e525ddab8a272a430",
+   "warnings": [
+    "EOP_PREDICTED",
+    "UNVERIFIED",
+    "UTC_FUTURE_LEAP_SECOND_ASSUMPTION"
+   ]
+  }
+ ]
+}

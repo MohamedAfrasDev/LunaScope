@@ -2,3 +2,5 @@
 science/tests/fixtures/** -text
 data/manifests/*.json text eol=lf
 docs/runs/bundles/** -text
+docs/runs/GR-001/** -text
+data/reference/*.json text eol=lf

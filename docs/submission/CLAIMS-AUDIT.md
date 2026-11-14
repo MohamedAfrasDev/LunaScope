@@ -34,13 +34,13 @@ Landing safety, electrical power, link performance or mission feasibility; NASA 
 
 | Claim | Status |
 | --- | --- |
-| "GR-001 passes the scientific gates" | **Not delivered.** The definition is a draft whose three sites are the RUN-001 rule points, labelled `PLACEHOLDER`. It has not been run live, its convergence report has not been run on real data, and it is not frozen. |
-| "Computed claims are added only after the golden run passes the scientific gates" (spec summary) | Currently true by omission: no real-data claim beyond `RUN-001`, which is `real_data_unverified`. Do not add one until GR-001 is run and frozen. |
+| "GR-001 passes the scientific gates" | **Delivered, with limits.** GR-001 is **frozen** (14 Nov, on the project owner's go-ahead; SDR-001 sign-off is still pending) and its frozen run, made at a clean commit with no network, passes the five Gate 2 checks (geometry, horizon, aggregation, event search, convergence; see `docs/runs/GR-001-run.md`). Its three sites are rule-chosen points and not candidate sites, and its terrain-horizon validation card reads "not evaluated" because no independent skyline implementation exists. Say "passes internal consistency, convergence and SPICE checks", never "validated". |
+| "Computed claims are added only after the golden run passes the scientific gates" (spec summary) | The frozen run passes its checks, so numbers from `docs/runs/GR-001-run.md` may be quoted, labelled `real_data_unverified`. They are the same numbers as RUN-001 (same coordinates and window). |
 
 ## Open items that block honest claims
 
-1. **D-09:** three sites with coordinate and terrain provenance.
-2. **D-11:** the Horizons contact; the live stack refuses to call Horizons without it.
+1. **D-09:** decided for GR-001 (rule points, declared a reference scenario); real candidate sites remain open for any GR-002. Science-owner sign-off pending.
+2. **D-11:** the project's GitHub URL is used as the Horizons contact for the live run (set per run, not stored in the repository).
 3. **D-12:** organizer permission for pre-event work; the template is in `docs/permissions/`, **no permission is on file**. Do not state eligibility until it is.
 4. **SDR-001:** unsigned.
 

@@ -111,12 +111,22 @@ describe("Timeline additions", () => {
 
 // ----------------------------------------------------------------------------- Home
 const gr001 = {
-  reference_id: "GR-001", status: "draft", frozen: null, sites_status: "PLACEHOLDER",
+  reference_id: "GR-001", status: "draft", frozen: null, sites_status: "DECLARED REFERENCE SCENARIO",
   request: { schema_version: "1", mission: { start_utc: "2027-01-10T00:00:00Z", duration_s: 604800, step_s: 600 },
     requirements: { sun_min_availability: 0.6, earth_min_availability: 0.5 },
     terrain: { dem_profile: "lola-80s-20m-adj", radius_km: 150, az_step_deg: 0.1, observer_height_m: 2 },
     sites: [{ site_id: "a" }, { site_id: "b" }, { site_id: "c" }], options: { sensitivity: true } },
 };
+
+describe("Home reference mission, frozen", () => {
+  it("says the reference is frozen and still says its sites are not candidates", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => json({ ...gr001, status: "frozen", frozen: { run_id: "a".repeat(64) } })));
+    render(<ReferenceMissionButton />);
+    expect(await screen.findByText(/GR-001 is frozen: its inputs and settings cannot change, and any change would be a new reference version/)).toBeInTheDocument();
+    expect(screen.getByText(/rule-chosen points, not candidate landing sites/)).toBeInTheDocument();
+    expect(screen.queryByText(/is a draft/)).toBeNull();
+  });
+});
 
 describe("Home reference mission", () => {
   it("submits the GR-001 request exactly and says it is a draft with demonstration sites", async () => {
@@ -130,7 +140,7 @@ describe("Home reference mission", () => {
     }));
     render(<ReferenceMissionButton />);
     expect(await screen.findByText(/Reference GR-001: 7 days from 2027-01-10 UTC.*3 sites, with sensitivity checks/)).toBeInTheDocument();
-    expect(screen.getByText(/GR-001 is a draft/)).toBeInTheDocument();
+    expect(screen.getByText(/GR-001 is a draft\. Its three sites are rule-chosen points, not candidate landing sites/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Start the reference mission" }));
     await waitFor(() => expect(push).toHaveBeenCalledWith(`/runs/${RUN}`));
     expect(posts).toEqual([gr001.request]);

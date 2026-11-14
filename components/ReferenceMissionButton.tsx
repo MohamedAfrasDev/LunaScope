@@ -57,9 +57,12 @@ export function ReferenceMissionButton() {
             `${ref.request.sites.length} sites${ref.request.options.sensitivity ? ", with sensitivity checks" : ""}.`
           : "Loading the reference definition…"}
       </p>
-      {ref && ref.status !== "frozen" && (
+      {ref && (
         <p className="mt-1 text-xs text-muted">
-          {ref.reference_id} is a {ref.status}: its sites are demonstration points until verified candidate sites are chosen.
+          {ref.status === "frozen"
+            ? `${ref.reference_id} is frozen: its inputs and settings cannot change, and any change would be a new reference version. `
+            : `${ref.reference_id} is a ${ref.status}. `}
+          Its three sites are rule-chosen points, not candidate landing sites.
         </p>
       )}
       {err && (

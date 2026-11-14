@@ -23,6 +23,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import math
+from itertools import pairwise
 from pathlib import Path
 
 import numpy as np
@@ -198,6 +199,139 @@ def readiness(analysis: dict, *, horizon_dir: Path | None = None, rederive: bool
     return {"ready": not failing, "checks": checks, "failing": failing,
             "note": "Readiness means the stored result is internally consistent and re-derives. "
                     "It is not a validation of the science."}
+
+
+# ----------------------------------------------------------------------------- Gate 2
+GATES = ("geometry", "horizon", "aggregation", "event_search", "convergence")
+TILING_TOL_S = 1e-6
+
+
+def _g(gate: str, status: str, detail: str, failing: list[str] | None = None) -> dict:
+    return {"gate": gate, "status": status, "detail": detail, "failing": failing or []}
+
+
+def _geometry_gate(bundles: list[dict]) -> dict:
+    bad, missing, worst = [], [], 0.0
+    for b in bundles:
+        sid = b["request"]["site"]["site_id"]
+        for tgt in TARGETS:
+            g = b["geometry"][tgt]
+            ra, h = g.get("reference_agreement"), g.get("holdout")
+            if ra is None:
+                missing.append(f"{sid}/{tgt}: no independent SPICE reference")
+            else:
+                worst = max(worst, ra["max_total_arcsec"])
+                if not ra["within_tolerance"]:
+                    bad.append(f"{sid}/{tgt}: SPICE disagreement {ra['max_total_arcsec']:.4f} arcsec exceeds {ra['tolerance_arcsec']}")
+            if h is None:
+                missing.append(f"{sid}/{tgt}: no interpolation holdout")
+            elif h["max_deg"] > g["delta_geom_used_deg"]:
+                bad.append(f"{sid}/{tgt}: interpolation holdout {h['max_deg']:.2e} deg exceeds the {g['delta_geom_used_deg']:.0e} deg allowance")
+        if "GEOMETRY_REFERENCE_MISMATCH" in b.get("warnings", []):
+            bad.append(f"{sid}: GEOMETRY_REFERENCE_MISMATCH warning")
+    if bad:
+        return _g("geometry", "fail", f"{len(bad)} geometry check(s) failed", bad)
+    if missing:
+        return _g("geometry", "not_evaluated", f"{len(missing)} geometry check(s) were not run", missing)
+    return _g("geometry", "pass", f"SPICE agrees with the provider to {worst:.4f} arcsec at most, and interpolation is inside its allowance, for every site and target")
+
+
+def _horizon_gate(bundles: list[dict], horizon_dir: Path | None) -> dict:
+    bad = []
+    for b in bundles:
+        sid = b["request"]["site"]["site_id"]
+        bad += [f"{sid}: {c['check']} {c['status']}: {c['detail']}" for c in _horizon_checks(sid, b["horizon"], horizon_dir)
+                if c["status"] != "pass"]
+        sec = b["horizon"]["sectors"]
+        total = sum(sec.values())
+        if total == 0 or sec.get("certified", 0) != total:
+            bad.append(f"{sid}: only {sec.get('certified', 0)} of {total} skyline sectors are certified")
+    if bad:
+        return _g("horizon", "fail", f"{len(bad)} skyline check(s) failed", bad)
+    return _g("horizon", "pass", "every skyline has its recorded digest, agrees with its own summary, and has every sector certified")
+
+
+def _aggregation_gate(bundles: list[dict]) -> dict:
+    bad = []
+    for b in bundles:
+        sid = b["request"]["site"]["site_id"]
+        duration = float(b["request"]["mission"]["duration_s"])
+        bad += [f"{sid}: {c['check']}: {c['detail']}" for c in _compare_rederived(sid, b, rederive_site(b)) if c["status"] != "pass"]
+        for tgt in TARGETS:
+            for name in ("terrain", "flat"):
+                blk = b["targets"][tgt][name]
+                ivs, m = blk["intervals"], blk["metrics"]
+                where = f"{sid}/{tgt}/{name}"
+                if not ivs or abs(ivs[0]["start_s"]) > TILING_TOL_S or abs(ivs[-1]["end_s"] - duration) > TILING_TOL_S:
+                    bad.append(f"{where}: intervals do not span the whole window")
+                bad += [f"{where}: gap or overlap at {x['end_s']:.1f} s" for x, y in pairwise(ivs)
+                        if abs(y["start_s"] - x["end_s"]) > TILING_TOL_S]
+                total = m["visible_s"] + m["hidden_s"] + m["unknown_s"]
+                if abs(total - m["total_s"]) > 1e-3:
+                    bad.append(f"{where}: visible + hidden + unknown = {total:.3f} s, not the window {m['total_s']:.3f} s")
+                if abs(m["availability_lower"] - m["visible_s"] / m["total_s"]) > 1e-9:
+                    bad.append(f"{where}: lower availability is not visible time over the window")
+                if abs(m["availability_upper"] - (m["visible_s"] + m["unknown_s"]) / m["total_s"]) > 1e-9:
+                    bad.append(f"{where}: upper availability is not (visible + unknown) over the window")
+                if m["availability_lower"] > m["availability_upper"] + 1e-12:
+                    bad.append(f"{where}: lower bound exceeds upper bound")
+    if bad:
+        return _g("aggregation", "fail", f"{len(bad)} aggregation check(s) failed", bad)
+    return _g("aggregation", "pass", "intervals tile the window, V + H + U + X + G equals it, the bounds follow from the intervals, and every result re-derives from the stored series and skyline")
+
+
+def _event_search_gate(bundles: list[dict]) -> dict:
+    bad, events, tangent = [], 0, 0
+    for b in bundles:
+        sid = b["request"]["site"]["site_id"]
+        tau = float(b["effective_settings"]["tau_s"])
+        for tgt in TARGETS:
+            for name in ("terrain", "flat"):
+                blk = b["targets"][tgt][name]
+                where = f"{sid}/{tgt}/{name}"
+                unc = [i for i in blk["intervals"] if i["class"] in ("X", "G")]
+                if unc:
+                    bad.append(f"{where}: {len(unc)} interval(s) the event search could not certify or that lack data (classes X or G)")
+                for e in blk["events"]:
+                    events += 1
+                    tangent += e.get("quality") == "near_tangent"
+                    if e["solver_bracket_s"] > tau + 1e-9:
+                        bad.append(f"{where}: event at {e['t_s']:.1f} s is bracketed to {e['solver_bracket_s']} s, wider than {tau} s")
+    if bad:
+        return _g("event_search", "fail", f"{len(bad)} event-search check(s) failed", bad)
+    return _g("event_search", "pass", f"no interval is uncertified or missing data, and all {events} events are bracketed within the root tolerance ({tangent} are near-tangent and flagged as such)")
+
+
+def _convergence_gate(bundles: list[dict]) -> dict:
+    expected = {name for name, _ in CONVERGENCE_CASES}
+    bad, missing = [], []
+    for b in bundles:
+        sid = b["request"]["site"]["site_id"]
+        conv = b.get("convergence")
+        if conv is None:
+            missing.append(f"{sid}: no convergence report")
+            continue
+        done = {c["case"] for c in conv["cases"]} | {c["case"] for c in conv.get("skipped", [])}
+        bad += [f"{sid}: convergence case {n} is missing" for n in sorted(expected - done)]
+        bad += [f"{sid}: {c['case']} is SENSITIVITY_HIGH" for c in conv["cases"] if c["sensitivity_high"]]
+    if bad:
+        return _g("convergence", "fail", f"{len(bad)} convergence problem(s)", bad)
+    if missing:
+        return _g("convergence", "not_evaluated", "the convergence report was not run", missing)
+    return _g("convergence", "pass", f"all {len(expected)} cases (time step, azimuth step, radius) ran at every site and none is flagged SENSITIVITY_HIGH")
+
+
+def gate_report(bundles: list[dict], *, horizon_dir: Path | None = None) -> dict:
+    """Gate 2's "GR-001 passes geometry, horizon, aggregation, event-search and convergence checks" as five
+    named checks over the SAVED site bundles. A check is `pass` only if it ran and held; `not_evaluated`
+    and `fail` both keep the gate shut. Passing says the run is internally sound, converged and checked
+    against SPICE; it does not validate the science."""
+    bundles = list(bundles)
+    gates = [_geometry_gate(bundles), _horizon_gate(bundles, horizon_dir), _aggregation_gate(bundles),
+             _event_search_gate(bundles), _convergence_gate(bundles)]
+    return {"passes": all(g["status"] == "pass" for g in gates), "gates": gates,
+            "failing": [g["gate"] for g in gates if g["status"] != "pass"],
+            "note": "Passing means the run is internally consistent, converged and checked against SPICE. It is not a validation of the science."}
 
 
 # ----------------------------------------------------------------------------- convergence
