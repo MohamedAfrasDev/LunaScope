@@ -1,6 +1,6 @@
 # LunaScope UI redesign plan: "Mission console, in shadow"
 
-Status: plan only, no code written. Follows `UI-POLISH.md` (token and consistency pass, merged in PR #14).
+Status: **complete.** All 15 phases shipped as PRs #14 to #31 (see [UI-REDESIGN.md](UI-REDESIGN.md) for the final design record). Originally: plan only, no code written. Follows `UI-POLISH.md` (token and consistency pass, merged in PR #14).
 
 Decisions already made:
 1. **Dark-first.** Dark is the default look; light stays fully supported.
@@ -515,10 +515,22 @@ Done when: the sweep checklist is ticked and defects are fixed or logged.
 
 ## Phase 14: Verification and documentation (S)
 
-- [ ] Full suite: `vitest`, `tsc`, `eslint`, Playwright e2e (axe), fallback e2e, `next build`.
-- [ ] "After" screenshots in `docs/ui/screenshots/after/`, before/after pairs in the doc.
-- [ ] Update `docs/ui/UI-POLISH.md` or add `UI-REDESIGN.md` with final tokens, primitives and decisions.
-- [ ] Update `docs/USER-GUIDE.md` where screenshots or navigation descriptions changed.
+- [x] **Full suite**, on a production build: `vitest` 243 tests in 23 files, `tsc`, `eslint` and `check:api` clean,
+  Playwright e2e 11 (axe on every route; core flow; phone layout; the a11y sweep), fallback e2e 1 (live stack),
+  `next build`, and axe in dark and light on all 9 routes: 0 violations.
+- [x] **Scope check**, from the commits rather than memory: the 16 UI commits touched 108 files, all under `app/`
+  (excluding the API route), `components/`, `tests/` and `docs/`. Nothing in `lib/`, `science/`, `scripts/` or `deploy/`.
+- [x] **After screenshots**: `docs/ui/screenshots/after/`, 27 images matching the 27 in `before/` by name (dark and light
+  at 1280 px, light at 375 px, 9 routes). Eight pairs are embedded in `UI-REDESIGN.md`. (A first capture was unstyled
+  because an old `next start` was still serving stylesheet names a new build had replaced; it was discarded and
+  retaken from a fresh server.)
+- [x] **`docs/ui/UI-REDESIGN.md`** written: why, design language (tokens, type, shape, motion), building blocks, page by page,
+  accessibility and how it is enforced, decisions and departures, final verification, before/after, follow-ups, and how to
+  extend it. `UI-POLISH.md` now points to it.
+- [x] **`docs/USER-GUIDE.md`** updated where behaviour or navigation changed: the data-status pill (replacing the banner),
+  the header, Home, the Advanced settings section and sticky Run bar, the run workspace tabs and site switcher, the verdict
+  and site cards, the Timeline order, the Sky stage, the Time Machine steps and outcome-change summary, the Evidence order
+  and provenance sections, the shared explainer sketch, and the accessibility section. A README link was added.
 
 Done when: all suites are green and the docs reflect the shipped design.
 

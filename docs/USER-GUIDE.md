@@ -100,16 +100,16 @@ On the **Home** page press **Start the reference mission**. That submits the fro
 
 ## 3. The labels that appear everywhere
 
-### The data-status banner (top of every page)
+### The data-status pill (top of every page)
 
-A coloured strip that tells you what the numbers are. It rechecks the service every 30 seconds.
+A small pill in the header tells you what the numbers are: an icon and words, always visible. It rechecks the service every 30 seconds. Click it (or focus it and press Enter) to read the full sentence; Escape or a click elsewhere closes it.
 
-| You see | It means |
-| --- | --- |
-| **Synthetic demonstration data: values are invented test fixtures, not lunar results.** | The service is on the synthetic stack. Do not read the values as science. |
-| **Real data, unverified: no validation gate has closed. Screening and education only, not flight-qualified.** | Real NASA data, but nothing is validated. |
-| **Science service not reachable. No results can be computed or shown right now.** | The web app cannot reach the service. Nothing is shown rather than something stale. |
-| A **REPLAY MODE** badge, plus "This is an offline copy: it shows saved runs only and cannot compute new ones." | The service is serving a saved package and will refuse anything not in it. See [section 9](#9-offline-replay-and-the-fallback-package). |
+| In the pill | Full sentence (when you open it) | It means |
+| --- | --- | --- |
+| ◆ **Synthetic demonstration data** | **Synthetic demonstration data: values are invented test fixtures, not lunar results.** | The service is on the synthetic stack. Do not read the values as science. |
+| ◇ **Real data, unverified** | **Real data, unverified: no validation gate has closed. Screening and education only, not flight-qualified.** | Real NASA data, but nothing is validated. |
+| A **REPLAY MODE** chip beside either | "This is an offline copy: it shows saved runs only and cannot compute new ones." | The service is serving a saved package and will refuse anything not in it. See [section 9](#9-offline-replay-and-the-fallback-package). |
+| No pill; a full-width red strip above the header: **Science service not reachable. No results can be computed or shown right now.** | (the strip is the whole message) | The web app cannot reach the service. Nothing is shown rather than something stale. This one is deliberately not folded away. |
 
 ### The result-state frame (around every set of numbers)
 
@@ -148,24 +148,28 @@ Each state has its own **pattern** on the timeline (solid, hatched, dotted, cros
 
 ## 4. A tour, page by page
 
-Pages are reached through the header (**LunaScope** home, **New analysis**, **Why the south pole is hard**, the **Guided / Technical** switch) and through links on each result page.
+Pages are reached through the header (**LunaScope** home, **New analysis**, **Why the south pole is hard**, the data-status pill, the **Guided / Technical** switch) and, inside a run, through a tab bar (see 4.4) and links on each result page.
 
 ### 4.1 Header, footer and global controls
 
 - **Skip to content** link: the first thing a keyboard user tabs to.
-- **Guided / Technical** switch (top right): chooses how explanations are worded. It is remembered in your browser. At present it changes the explanation text on the **Timeline** page (see 4.6); other pages read the same in both modes. See [section 7](#7-keyboard-accessibility-and-the-small-things).
+- The header stays at the top as you scroll. It holds the [data-status pill](#the-data-status-pill-top-of-every-page) and the **Guided / Technical** switch. On a phone it takes three rows: brand and switch, the two links, then the status.
+- **Guided / Technical** switch: chooses how explanations are worded. It is remembered in your browser. At present it changes the explanation text on the **Timeline** page (see 4.6); other pages read the same in both modes. See [section 7](#7-keyboard-accessibility-and-the-small-things).
 - **Footer**: "Not flight-qualified. Does not certify landing safety, electrical power, link performance or mission feasibility. Not endorsed by NASA." with the data credits (JPL Horizons, LRO LOLA, NAIF SPICE).
+- The look is dark by default and follows your system if it prefers light.
 
 ### 4.2 Home (`/`)
 
-- A one-paragraph statement of the question and why a flat horizon can mislead.
+- The question and why a flat horizon can mislead, beside a small **sketch**: a low site, a ridge, a flat horizon, a Sun that is above that horizon but hidden, and an Earth with a clear line of sight. Under it: "Illustration only: not to scale, and not taken from any data." It is a picture of the idea, not a result.
 - **Start the reference mission**: submits **GR-001**, the frozen reference scenario, exactly as the service stores it, then opens its run page. The sentence beneath it states the scenario read from the service (days, start date, requirements, number of sites, whether sensitivity checks are on) and says **GR-001 is frozen: its inputs and settings cannot change, and any change would be a new reference version. Its three sites are rule-chosen points, not candidate landing sites.**
 - Links: **Or set up your own analysis** and **Why the south pole is hard**.
-- A side panel with the three rules (above) and **What it is not**: not a landing-safety, power, link-budget or feasibility assessment; sunlight percentage is geometric illumination; Earth visibility is a line of sight, not a communications guarantee.
+- A strip with the three rules (above) and **What it is not**: not a landing-safety, power, link-budget or feasibility assessment; sunlight percentage is geometric illumination; Earth visibility is a line of sight, not a communications guarantee.
 
 ### 4.3 New analysis (`/analyze`)
 
-Builds a request in four groups. Every field is checked **before** anything is sent, with a message under the field; the service checks again and its errors are shown too. If anything is invalid, a banner says "Fix N field(s) before submitting. Nothing has been sent."
+Builds a request. Every field is checked **before** anything is sent, with a message under the field; the service checks again and its errors are shown too. If anything is invalid, a box says "Fix N field(s) before submitting. Nothing has been sent." and keyboard focus moves to it.
+
+On screen the order is **Mission window (UTC)**, **Sites**, then a closed **Advanced settings** section holding **Requirements**, **Terrain** and **Options**. Its summary line always states the current values ("Sunlight at least 60%, Earth visibility at least 50%, terrain 150 km, sensitivity off"), so nothing is hidden. If a field inside it is invalid, whether caught by the form or by the service, the section opens by itself. The tables below follow the fields, not the screen order.
 
 **Mission window (UTC)**
 
@@ -204,11 +208,9 @@ A note under them: "Sunlight and Earth are judged separately. There is no combin
 **Options**
 - **Also run a sensitivity check** (half the azimuth step, and the other DEM release). Slower, and it fills the Sensitivity panel and two of the validation checks.
 
-**Below the form**
-- **Run analysis**: validates, sends, and takes you to the run page.
-- **Reset to the reference mission**: restores the default inputs.
-- **Copy a link to these inputs**: see [Share link](#share-link).
-- A live line: "N samples (sites × 2 targets), limit 60,000". Samples are sites × 2 targets × (duration ÷ step + 1).
+**Run bar and actions**
+- **Run analysis**: validates, sends, and takes you to the run page. It sits in a bar that stays at the bottom of the window as you scroll, next to a live line: "N samples (sites × 2 targets), limit 60,000". Samples are sites × 2 targets × (duration ÷ step + 1).
+- Just below the bar: **Reset to the reference mission** (restores the default inputs) and **Copy a link to these inputs** (see [Share link](#share-link)).
 
 **Small behaviours**
 - Your edits are kept in this browser tab (session storage) if you navigate away and back, and cleared when you submit or reset. If storage is blocked the form still works.
@@ -222,17 +224,23 @@ A note under them: "Sunlight and Earth are judged separately. There is no combin
 
 The run id is a 64-character fingerprint of the request, the data pins and the algorithm, so **the same inputs always lead to the same page**.
 
+**The run workspace.** Every view of a run shares one bar at the top: tabs for **Matrix**, **Timeline**, **Sky**, **Compare** (two or more sites), **Time Machine** and **Evidence**, with the current one marked, plus the short run id and the run's own result-state label. On **Timeline** and **Sky** a second row, **Site**, switches to another site and stays on the same tab. The bar appears once the run is complete and shows nothing for a run that does not exist.
+
 - While running: a **Queued / Running: <stage>** card with a progress bar. A seven-day, three-site run with sensitivity takes minutes on a laptop; the page polls and you can leave and come back to the address.
 - If it **failed**: a red box with the code and message, "No result was produced, so nothing is shown as passed or failed", and a link to adjust and try again.
-- When complete:
+- When complete, top to bottom:
   - A link, **What if the date slips? Open the Time Machine**.
-  - The **status matrix** (4.5).
-  - **Warnings carried with these results**: each code with a plain-words explanation (see [section 5](#5-reading-a-result)).
+  - Inside the result-state frame, **the answer first**: a sentence such as "0 of 3 sites meet both requirements", a line saying how many sites fail each requirement (each is judged on its own), and, where it applies, "A flat-horizon estimate would pass sunlight at 3 sites… that the terrain fails. The terrain is what changes the answer." These are counts of what the service reported, never a score or a ranking.
+  - **One card per site** (see 4.5), **Compare these sites side by side** (two or more sites), and any **Excluded** sites.
+  - **Full comparison table (terrain-aware and flat horizon)**: the status matrix (4.5), closed until you open it.
+  - **Warnings carried with these results (N)**: closed until you open it; each code comes with a plain-words explanation (see [section 5](#5-reading-a-result)).
   - An **Evidence** summary: the three validation cards as icon-and-word chips, with a link to the Evidence page.
 
-### 4.5 The status matrix
+### 4.5 Site cards and the status matrix
 
-One row per site, with **Overall** and four result columns, so each requirement is judged on its own:
+**Site cards.** One card per decided site: the site, its overall status chip, then a **Sun** block and an **Earth** block (Sun is an amber dot, Earth a blue diamond, each with its word). Each block shows the terrain-aware outcome chip, the availability **range** (for example "74.5–74.7%") with "needs at least N%", a small bar (solid = certified visible time, lighter = time still inside the decision band, tick = the requirement), and the flat-horizon result as a labelled comparison line. Links: **Timeline and evidence** and **Local sky**. A site the service could not decide is not a card: it appears in an **Excluded** group, "not counted as failures", with a link to see why.
+
+**The full comparison table** has one row per site, with **Overall** and four result columns, so each requirement is judged on its own:
 
 | Column | Meaning |
 | --- | --- |
@@ -241,13 +249,15 @@ One row per site, with **Overall** and four result columns, so each requirement 
 | Earth, terrain-aware (decides) | As above for Earth. |
 | Earth, flat horizon (comparison) | As above. |
 
-Each cell shows the outcome chip, the availability **range** (for example "74.5–74.7%"), and "needs at least N%". The range is the lower bound (certified visible time) to the upper bound (adding time still inside the decision band).
-
-Each row links to **Timeline and evidence** (the Timeline page) and **Local sky**. With two or more sites there is **Compare these sites side by side**. A site the service could not decide appears in a separate **Excluded** group, "not counted as failures", with a link to see why.
+Each cell shows the outcome chip, the availability range, and "needs at least N%". The range is the lower bound (certified visible time) to the upper bound (adding time still inside the decision band). Each row links to **Timeline and evidence** and **Local sky**.
 
 ### 4.6 Timeline (`/runs/{id}/timeline/{site}`)
 
-For one site. Header: the site, its status chip, and a link to the **Local sky**.
+For one site. Header: the site, its status chip, and a link to the **Local sky**. Use the **Site** row above to switch sites.
+
+**Verdict by requirement** (first): for Sun and Earth, the outcome chip, the availability range, "needs at least N%", and what a flat horizon would have given.
+
+**The timeline chart** (next, above the fold on a normal desktop window): aligned bands for Sun and Earth, each in terrain-aware and flat-horizon form, with the Sun's amber dot or Earth's blue diamond at the start of each row, one pattern per state, black ticks for predicted rises and sets, and a red bracket above a terrain-aware band marking its **longest known outage**. Times are UTC, with a day scale underneath. **Download intervals (CSV)** sits beside the legend.
 
 **One summary card per target (Sun, Earth)**
 - The outcome chip.
@@ -259,21 +269,18 @@ For one site. Header: the site, its status chip, and a link to the **Local sky**
 - An **availability bar**: the range from lower to upper bound, with the requirement drawn as a line.
 - A note if the case was **excluded**, and why.
 
-**The timeline chart**: aligned bands for Sun and Earth, each in terrain-aware and flat-horizon form, one pattern per state, black ticks for predicted rises and sets, and a red bracket above a terrain-aware band marking its **longest known outage**. Times are UTC, with a day scale underneath. Under it, an expandable **view as table** section for each band lists every interval as a table, and **Download intervals (CSV)** saves them all.
-
-**Predicted events**: each rise or set with its UTC time, the solver bracket (how tightly the crossing was located, in seconds) and the geometry timing bound (or "no timing bound claimed" when the crossing is nearly tangent).
-
-**Sensitivity panel**: for each variant (half the azimuth step; the other DEM release) a table of what changed: availability, outcome, event count, largest event shift. A variant that moved beyond tolerance is flagged **in words**. If no sensitivity check was run, it says so and where to start one.
-
-Warnings for the site are listed at the bottom.
+Then one **view as table** section for each band (every interval as a table), and these folded sections:
+- **Predicted events (N)**: each rise or set with its UTC time, the solver bracket (how tightly the crossing was located, in seconds) and the geometry timing bound (or "no timing bound claimed" when the crossing is nearly tangent).
+- **Sensitivity** (always shown): for each variant (half the azimuth step; the other DEM release) its name and a **Within tolerance** or **Result changes beyond tolerance** flag **in words**, with the table of what changed (availability, outcome, event count, largest event shift) under **Differences from the base run**. If no sensitivity check was run, it says so and where to start one.
+- **Warnings carried with these results (N)** for the site.
 
 ### 4.7 Local sky (`/runs/{id}/sky/{site}`)
 
-The target tracks over the terrain skyline, with a cursor you can move through the window.
+The target tracks over the terrain skyline, with a cursor you can move through the window. One card holds the **view switch**, the plot and the time player underneath it; a panel beside it (below it on a phone) holds the readout.
 
-**View**: **Polar (north up)** shows the sky from above, north at the top; **Unrolled (azimuth across)** lays azimuth along the horizontal axis. Hatched ground is the terrain skyline from the elevation data; the dashed circle or line is the flat 0° horizon; elevation rings are 5° apart. The Sun is orange and Earth blue, and each has a different marker shape so colour is not the only cue. A line segment is drawn in the style of its state (visible, hidden, unresolved, uncertified, no data). The picture only draws what the service decided: **whether a target is visible is never worked out in the browser.**
+**View**: **Polar (north up)** shows the sky from above, north at the top; **Unrolled (azimuth across)** lays azimuth along the horizontal axis. Hatched ground is the terrain skyline from the elevation data; the dashed grey circle or line is the flat 0° horizon (grey on purpose: blue always means Earth); elevation rings are 5° apart. The Sun is amber and Earth blue, and each has a different marker shape (a dot and a diamond) and a label, so colour is not the only cue. A line segment is drawn in the style of its state (visible, hidden, unresolved, uncertified, no data). The picture only draws what the service decided: **whether a target is visible is never worked out in the browser.**
 
-**At the cursor** (side panel): the UTC time and "Day X of Y". For each target: **Azimuth**, **Elevation**, **Skyline there** (or "unknown (no terrain data)"), **State**, and a **countdown**.
+**At the cursor** (readout panel): the UTC time and "Day X of Y". For each target: **Azimuth**, **Elevation**, **Skyline there** (or "unknown (no terrain data)"), **State**, and a **countdown**.
 
 **The countdown** is asked from the service at the cursor time. It says what happens next ("Predicted set under this terrain model: in 3 h 12 min") with the model bracket in seconds, or one of:
 
@@ -296,30 +303,35 @@ Under a predicted event it adds **how far that time moves across the terrain var
 
 ### 4.8 Compare (`/runs/{id}/compare`)
 
-Compares the sites **within one run**, all computed from identical inputs. Choose at least two with the checkboxes (fewer shows "Choose at least two sites"). The comparison is recomputed by the service for exactly the sites you picked.
+Compares the sites **within one run**, all computed from identical inputs. Choose at least two with the site buttons, which are checkboxes (fewer shows "Choose at least two sites"). The comparison is recomputed by the service for exactly the sites you picked.
 
 - **Held constant and changed**: the full list of inputs that are identical for every site (duration, radius, step, requirements, algorithm, data pins), and the one thing that differs: the site (with its status and ground height).
 - **What differs**: typed facts from fixed templates, for example "terrain changes the Sun result: Pass on a flat horizon but Fail with the terrain skyline", "the sites reach different outcomes", "the same availability but a different longest outage", "a wide gap between the lower and upper bounds". **LunaScope does not rank the sites.**
-- **Per target** (Sun, Earth): the range of availability across the compared sites, a table (terrain-aware decides; flat horizon is the comparison), and a **paired timeline** with one row per site on one shared time axis, each with its own table.
+- **Per target** (Sun, Earth; each heading carries its dot or diamond): the range of availability across the compared sites, a table (terrain-aware decides; flat horizon is the comparison), and a **paired timeline** with one row per site on one shared time axis, each with its own table.
 - Warnings, and the limits that apply to every number.
 
 ### 4.9 Time Machine (`/runs/{id}/time-machine`)
 
 Answers **"what changes if the date slips?"** It takes a finished run (the *baseline*), moves the start date, and recomputes with **everything else identical**. The baseline stays frozen.
 
-**Shift the start by (days)**: a whole number from −30 to 30, not zero (negative is earlier). Errors appear under the field and nothing is sent until it is valid. **Shift and recompute** creates the shifted run. If that run already exists you get it back instead of a new computation.
+The page is three steps, one question each.
 
-**Shifted runs of this baseline**: one button per run already made, labelled like "+5 d · starts 2027-01-15 00:00:00 UTC". Click one to compare it.
+**Step 1 of 3: shift the start.** **Shift the start by (days)**: a whole number from −30 to 30, not zero (negative is earlier). Errors appear under the field and nothing is sent until it is valid. **Shift and recompute** creates the shifted run. If that run already exists you get it back instead of a new computation.
 
-**Time alignment**: how the two runs are lined up.
-- **Elapsed time**: each run keeps its own UTC; day 1 of the baseline is compared with day 1 of the shifted run.
-- **Calendar time**: one shared UTC axis. Only the dates **both runs cover** are compared, and time outside a run's own window is never counted. If the two windows do not overlap, the service refuses ("the two windows do not overlap in calendar time").
+**Step 2 of 3: which dates pass?** (see below).
+
+**Step 3 of 3: compare a shifted run.** It appears once there is a shifted run.
+- **Shifted runs of this baseline**: one button per run already made, labelled like "+5 d · starts 2027-01-15 00:00:00 UTC". Click one to compare it.
+- **Time alignment**: how the two runs are lined up.
+  - **Elapsed time**: each run keeps its own UTC; day 1 of the baseline is compared with day 1 of the shifted run.
+  - **Calendar time**: one shared UTC axis. Only the dates **both runs cover** are compared, and time outside a run's own window is never counted. If the two windows do not overlap, the service refuses ("the two windows do not overlap in calendar time").
 
 **The comparison**
 - **Shifted by +N d, compared in … time**, the alignment note, and (for calendar) the shared window.
-- **Changed** (the one field, the start) and **Held constant** (a collapsible list).
-- **Deltas from the baseline (terrain-aware)**: per site and target, the baseline and shifted outcome and availability, the change in percentage points, a flag if the **outcome changes**, the longest known hidden stretch before and after, event counts, and how many spans differ. No date is ranked.
-- **Each run on its own clock**: two panels, **Baseline** and **Shifted**, each showing its own start time in UTC, the site status, its own countdown at the start (with the resolved UTC time) and its own timeline and interval table. This is deliberate: the two never share one clock unless you choose calendar alignment.
+- **Outcome changes** (right under it): "N of M site and target results change outcome" and which ones ("89.5°S, 0°E, Sun: Fail → Excluded"), or "No site or target changes outcome with this shift." This counts what the service reports; it is not a score.
+- **Changed** (the one field, the start) and **Held constant (N inputs)** (a collapsible list).
+- **Deltas from the baseline (terrain-aware): the full table** (closed until you open it): per site and target, the baseline and shifted outcome and availability, the change in percentage points, a flag if the **outcome changes**, the longest known hidden stretch before and after, event counts, and how many spans differ. No date is ranked.
+- **Each run on its own clock** (always shown): two panels, **Baseline** and **Shifted**, each showing its own start time in UTC, the site status, its own countdown at the start (with the resolved UTC time) and its own timeline and interval table. This is deliberate: the two never share one clock unless you choose calendar alignment. Pick the site with the **Site** selector.
 - **Changed spans**: for each target, the periods where the state differs, shown on both clocks.
 
 #### Which dates pass? (on the same page)
@@ -343,16 +355,17 @@ Tests a **range of start dates** against the same sites, requirements and terrai
    - **Numerical convergence**: whether results hold at a finer azimuth step.
 
    A card is **Met** only if *every* check in it ran and passed, **Not met** if any failed, and **Not evaluated** otherwise. An unrun check never counts as a pass. Open **The N checks behind this card** for each check, its facts and its scope. *The terrain-horizon card currently reads Not evaluated because no second, independent skyline implementation exists.*
-2. **Identity and pinned resources**: the run id, the result id (sealed at completion), the algorithm, and the SHA-256 pins of the DEM and SPICE kernels.
-3. **Method and inputs**: every input and setting (window, step, requirements, terrain, decision band ε, root tolerance τ, minimum interval, interpolation, algorithm names, data stack).
-4. **Per site**: position and frame, ground and mast height, each provider with its signature, correction mode, time scale, retrieval time and response hash, the SPICE check and interpolation holdout, the skyline settings, sector counts, key and digest, and any warnings.
-5. **Disc size: centre or edge?**: see [section 6](#6-how-the-numbers-are-made). A table per site showing the **Upper limb**, **Centre (used)** and **Whole disc** readings for each target, flagged in words if the outcome changes. If a result was made before this check existed it says **not computed** and shows no invented numbers.
-6. **Limits that apply to every number here.**
-7. **Export**: **Download investigative bundle (JSON)**. It holds the request, settings, resource pins, provider response hashes, angle series, skyline, classified intervals, events, metrics and caveats, plus a **frozen snapshot of the validation cards**. It is designated *investigative*. **A "verified" export is refused** (error `EXPORT_BLOCKED_UNVERIFIED`) until a validation scope closes. The file comes with an `X-Content-SHA256` header, and the same result always gives the same bytes.
+2. **Disc size: centre or edge?**: see [section 6](#6-how-the-numbers-are-made). A table per site showing the **Upper limb**, **Centre (used)** and **Whole disc** readings for each target, flagged in words if the outcome changes. If a result was made before this check existed it says **not computed** and shows no invented numbers.
+3. **Provenance**: three folded sections, closed until you open them.
+   - **Identity and pinned resources**: the run id, the result id (sealed at completion), the algorithm, and the SHA-256 pins of the DEM and SPICE kernels.
+   - **Method and inputs**: every input and setting (window, step, requirements, terrain, decision band ε, root tolerance τ, minimum interval, interpolation, algorithm names, data stack).
+   - **Per site: observer, geometry and skyline**: position and frame, ground and mast height, each provider with its signature, correction mode, time scale, retrieval time and response hash, the SPICE check and interpolation holdout, the skyline settings, sector counts, key and digest, and any warnings.
+4. **Limits that apply to every number here.**
+5. **Export**: **Download investigative bundle (JSON)** (the main button on the page). It holds the request, settings, resource pins, provider response hashes, angle series, skyline, classified intervals, events, metrics and caveats, plus a **frozen snapshot of the validation cards**. It is designated *investigative*. **A "verified" export is refused** (error `EXPORT_BLOCKED_UNVERIFIED`) until a validation scope closes. The file comes with an `X-Content-SHA256` header, and the same result always gives the same bytes.
 
 ### 4.11 Why the south pole is hard (`/why-the-south-pole-is-hard`)
 
-A short explainer for learners, one click from Home and the header: the Sun barely clears the horizon, so the ground decides; Earth is near the horizon too; what follows (a flat horizon overestimates, dates matter, small errors matter, "not sure" is a real answer); and what LunaScope does about it. It has a **schematic** (labelled as not to scale and not computed from data) with a text description, a "What this page is not" note, and the data sources. Its rounded figures are textbook values and one worked example, not results.
+A short explainer for learners, one click from Home and the header: the Sun barely clears the horizon, so the ground decides; Earth is near the horizon too; what follows (a flat horizon overestimates, dates matter, small errors matter, "not sure" is a real answer); and what LunaScope does about it. It has a **schematic** (the same drawing as the Home sketch, without Earth; labelled as not to scale and not computed from data) with a text description, a "What this page is not" note, and the data sources. Its rounded figures are textbook values and one worked example, not results.
 
 ---
 
@@ -428,13 +441,15 @@ Screening and education only; centre-of-disc visibility (bracketed above); no re
 
 ## 7. Keyboard, accessibility and the small things
 
-**Keyboard.** Every control is reachable with Tab and operable from the keyboard: forms, switches, radio groups (arrow keys), the date and shift controls, tables and downloads. The core flow (Home → run → Time Machine → Evidence → download) was tested with keyboard only. The **Skip to content** link and visible focus rings are provided. Sky-player shortcuts are in 4.7.
+**Keyboard.** Every control is reachable with Tab and operable from the keyboard: forms, switches, radio groups (arrow keys), the run tabs and site switcher, the folded sections (Enter or Space on their heading), the data-status pill (Enter opens it, Escape closes it and returns focus to it), the date and shift controls, tables and downloads. The core flow (Home → run → Time Machine → Evidence → download) was tested with keyboard only. The **Skip to content** link and visible focus rings are provided. Sky-player shortcuts are in 4.7.
 
-**Not colour alone.** Every status is an icon *and* a word. Timeline states have patterns; sky states have line styles; Sun and Earth have different marker shapes.
+**Not colour alone.** Every status is an icon *and* a word. Timeline states have patterns; sky states have line styles; Sun and Earth have different marker shapes (a dot and a diamond) as well as hues.
 
-**Text alternatives.** Every chart has a text description (the SVG title and description) and a table version of its data: timeline intervals, sky positions every 6 hours, tested dates, deltas.
+**Contrast and size.** Text is at least 4.5:1 and the edge of every form control at least 3:1, in both the dark and the light look. Standalone links and buttons are at least 24 by 24 pixels, and pages work from a 320-pixel phone to a wide desktop without scrolling sideways.
 
-**Reduced motion.** If your system asks for reduced motion, the sky player's playback is disabled and says so; stepping still works.
+**Text alternatives.** Every chart has a text description (the SVG title and description) and a table version of its data: timeline intervals, sky positions every 6 hours, tested dates, deltas. The Home sketch and the explainer schematic say in words that they are not to scale and not from data.
+
+**Reduced motion.** If your system asks for reduced motion, nothing animates: the Home sketch and the sky terrain simply appear, the sky player's playback is disabled and says so (stepping still works), and the page does not scroll smoothly.
 
 **Guided and Technical.** The switch in the header is remembered in your browser (and still works if storage is blocked). *Guided* uses plain-language sentences from fixed templates; *Technical* shows the service's own wording. It is a convenience of this browser only.
 

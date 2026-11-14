@@ -1,5 +1,8 @@
 # LunaScope UI polish: design notes
 
+> This was the first pass (tokens and consistency). The interface has since been redesigned; the current description is in
+> [UI-REDESIGN.md](UI-REDESIGN.md). Colours and class names below are superseded where the two differ.
+
 Scope: visual and interaction polish only. No API, data, science or business logic was changed, and no user-facing
 wording, roles or labels were altered, so the unit and end-to-end tests keep their selectors.
 
