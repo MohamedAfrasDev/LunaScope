@@ -33,7 +33,7 @@ test("core flow is keyboard-complete and every page passes axe", async ({ page }
   await page.keyboard.press("Enter");
   await page.waitForURL(/\/runs\/[0-9a-f]{64}$/);
   const runUrl = page.url();
-  await expect(page.getByRole("table").first()).toBeVisible({ timeout: 90_000 });
+  await expect(page.getByRole("region", { name: /Result state/ }).first()).toBeVisible({ timeout: 90_000 });
   await expect(page.getByRole("region", { name: /Synthetic demonstration/ }).first()).toBeVisible();
   await axe(page, "run");
 
@@ -84,7 +84,7 @@ test("workspaces for one run pass axe and are reachable from the matrix", async 
   const ref = await (await request.get("/api/v1/references/GR-001")).json();
   const run = await (await request.post("/api/v1/analyses", { data: ref.request })).json();
   await page.goto(`/runs/${run.run_id}`);
-  await expect(page.getByRole("table").first()).toBeVisible({ timeout: 90_000 });
+  await expect(page.getByRole("region", { name: /Result state/ }).first()).toBeVisible({ timeout: 90_000 });
 
   await tabTo(page, page.getByRole("link", { name: "Timeline and evidence" }).first());
   await page.keyboard.press("Enter");

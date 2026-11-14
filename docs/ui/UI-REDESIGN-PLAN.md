@@ -248,12 +248,44 @@ Done when: home tells the Sun-above-ridge story at a glance, the CTA is unambigu
 
 Files: `components/RunView.tsx`, `components/StatusMatrix.tsx`, new `components/SiteCard.tsx`, new `components/RunVerdict.tsx`.
 
-- [ ] Derive the headline from matrix data (counts of sites meeting both, one requirement, neither; excluded counted separately). Pure presentation of existing fields, no new logic beyond counting; add unit tests for the counting helper.
-- [ ] Site card per site: label, overall chip, Sun and Earth outcome chips (terrain-aware decides), lower to upper availability as readouts, mini availability bar, links to Timeline and Sky.
-- [ ] Excluded sites shown as a distinct card state ("not enough data to decide"), never styled as failures.
-- [ ] Move the 6-column table into a `Disclosure` ("Full comparison table"), flat-horizon comparison kept and labelled.
-- [ ] Collapse warnings into one disclosure; the count and the codes stay visible on expand.
-- [ ] Keep `ResultStateFrame` around computed values.
+- [x] `components/RunVerdict.tsx`: `summarizeRows()` counts the matrix (sites meeting both, failing sunlight, failing
+  Earth visibility, indeterminate, excluded, and where a flat horizon would have passed what the terrain fails).
+  It only counts fields the service already returns; no ranking, no score. The headline reads, for example,
+  "0 of 3 sites meet both requirements", with a per-requirement line and, when it applies, "A flat-horizon estimate
+  would pass sunlight at 3 sites and Earth visibility at 1 site that the terrain fails. The terrain is what changes
+  the answer." (the product's core story, now on the first screen). Singular and plural verbs are handled.
+- [x] `components/SiteCard.tsx`: one card per decided site: label, overall chip, a Sun block and an Earth block
+  (Sun amber dot, Earth blue diamond, plus the word), terrain-aware chip, lower to upper availability as a readout
+  with "needs at least X%", an availability bar (solid = certified lower bound, light = time still inside the
+  decision band, tick = the requirement; decorative, `aria-hidden`), the flat-horizon comparison as a labelled
+  muted line, and links "Timeline and evidence" and "Local sky".
+- [x] Excluded sites are **not** cards. `ExcludedSites` was extracted from `StatusMatrix` and is always visible under
+  the cards (region "Excluded sites", "not counted as failures", link to the timeline), never inside the collapsed
+  table. One phrase changed because it became false: "not shown in the matrix above" is now "not shown in the results".
+- [x] The 6-column table sits in a `Disclosure` "Full comparison table (terrain-aware and flat horizon)", closed by
+  default and open when no site could be decided. `StatusMatrix` gained `showExcluded` and `showCompareLink`
+  (default true, so its own tests and any other caller are unchanged). "Compare these sites side by side" stays
+  visible beside the cards.
+- [x] Warnings are one `Disclosure`: "Warnings carried with these results (3)", codes and text on expand. The
+  result-state frame around everything stays, and the header badge, the status pill and the frame all still name
+  "Real data, unverified" without a click.
+- [x] `ResultStateFrame` kept around all computed values.
+
+Test changes (structural; wording otherwise unchanged):
+- Six e2e waits used `getByRole("table")` to mean "the run has finished". The table is now collapsed, so they wait
+  for the result-state region instead (it renders only for a completed run).
+- `out-of-order.test.tsx` expected a site label exactly once; it now appears on its card and in the table, so it
+  counts matches (the stale site is still asserted absent).
+- New `tests/web/run-verdict.test.tsx` (12 tests): counts, flat-horizon contrast, singular verbs, no ranking words,
+  cards (terrain first, bound not point, links, no card for excluded, decorative bars), and the composed run page
+  (table and warnings closed, excluded and compare link outside them, table open when nothing is decided).
+
+Verification: vitest 190, tsc, eslint, Playwright e2e 6, fallback e2e 1 (live stack), `next build`, axe in dark and
+light on all 9 routes and with both disclosures open: 0 violations. Reviewed at 1280 (dark and light) and 375px: no
+sideways scroll; the verdict and cards are the first thing on the page.
+
+Open question for later: the monospace readouts ("100.0%") look a little gappy at small sizes; consider a tighter
+`letter-spacing` or a narrower tabular face in phase 13.
 
 Done when: the answer is readable in under five seconds, the full table is one click away, and the excluded/unknown semantics are unchanged.
 

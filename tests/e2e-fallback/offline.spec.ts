@@ -20,7 +20,7 @@ test("the fallback opens the demo and says it is a replay", async ({ page }) => 
 
   await page.getByRole("button", { name: "Start the reference mission" }).click();
   await page.waitForURL(/\/runs\/[0-9a-f]{64}$/);
-  await expect(page.getByRole("table").first()).toBeVisible({ timeout: 30_000 }); // no waiting: it is packaged
+  await expect(page.getByRole("region", { name: /Result state/ }).first()).toBeVisible({ timeout: 30_000 }); // no waiting: it is packaged
   await expect(page.getByText("Replay mode").first()).toBeVisible();
 
   await page.getByRole("link", { name: /Open the Time Machine/ }).click();
