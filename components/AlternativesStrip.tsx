@@ -6,6 +6,7 @@ import type { SearchAdmission, SearchStrip, StripDate } from "@/lib/api/types";
 import { pct, siteLabel, utc } from "@/lib/format";
 import type { Presentation } from "@/lib/status";
 import { StatusChip } from "./StatusChip";
+import { Button } from "./ui/Button";
 
 const MAX_DATES = 15;
 
@@ -129,9 +130,9 @@ export function AlternativesStrip({ runId, onOpenDate }: { runId: string; onOpen
               aria-invalid={formErr ? true : undefined} aria-describedby={formErr ? `${uid}-err` : undefined} />
           </label>
         ))}
-        <button type="submit" disabled={busy || !!formErr} className="rounded bg-accent px-4 py-2 font-medium text-background disabled:opacity-50">
+        <Button type="submit" variant="primary" disabled={busy || !!formErr}>
           {busy ? "Starting…" : count > 0 ? `Test ${count} date${count === 1 ? "" : "s"}` : "Test dates"}
-        </button>
+        </Button>
       </form>
       {formErr && <p id={`${uid}-err`} className="mt-2 text-sm font-medium text-fail"><span aria-hidden="true">✗ </span>{formErr}</p>}
       {err && <p role="alert" className="mt-2 text-sm text-fail">{err}</p>}
@@ -157,7 +158,7 @@ function Strip({ strip, onOpenDate }: { strip: SearchStrip; onOpenDate: (offsetD
           const p = present(d);
           return (
             <li key={d.offset_s}>
-              <div className="flex min-w-[6.5rem] flex-col items-start gap-1 rounded border border-border p-2 text-xs">
+              <div className="flex min-w-[6.5rem] flex-col items-start gap-1 rounded-md border border-border p-2 text-xs">
                 <span className="font-medium tabular-nums">{dayLabel(d)}</span>
                 <StatusChip p={p} title={p.help} />
                 <span className="text-muted tabular-nums">{utc(d.start_utc).slice(5, 10)}</span>

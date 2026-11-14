@@ -311,6 +311,12 @@ body {
   font-weight: 600;
   box-shadow: var(--shadow-sm);
 }
+.btn-primary.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: none;
+}
 .btn-primary:disabled {
   opacity: 0.6;
 }
