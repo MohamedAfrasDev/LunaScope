@@ -14,6 +14,8 @@ test("the fallback opens the demo and says it is a replay", async ({ page }) => 
 
   await page.goto("/");
   await expect(page.getByText("Replay mode").first()).toBeVisible();
+  // the pill always names the state; the full sentence is one click away
+  await page.getByText("Replay mode").first().click();
   await expect(page.getByText(/offline copy: it shows saved runs only/)).toBeVisible();
 
   await page.getByRole("button", { name: "Start the reference mission" }).click();

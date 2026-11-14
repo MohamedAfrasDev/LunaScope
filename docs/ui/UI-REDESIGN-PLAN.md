@@ -157,10 +157,29 @@ Done when: primitives exist, tests pass, and the one-off alert/button class stri
 
 Files: `app/layout.tsx`, `components/DataStatusBanner.tsx`, `components/NavLink.tsx`.
 
-- [ ] Replace the full-width data banner with a compact status pill in the header (state + mode: Replay / Synthetic / Real unverified / Unreachable), with a popover or disclosure carrying the full sentence.
-- [ ] Keep `role="status"`, keep the full text reachable, and keep the "service unreachable" case prominent (it must not be easy to miss).
-- [ ] Keep the footer disclaimer; tighten spacing.
-- [ ] Ensure the pill works at 375px (wraps cleanly under the brand).
+- [x] The full-width banner is now a compact pill in the header. It always shows icon + words for the state
+  (`◆ Synthetic demonstration data` or `◇ Real data, unverified`) plus a `REPLAY MODE` chip when the service is a
+  replay. A native `details` panel under it carries the full sentences ("Data status: ...", the offline-copy
+  sentence). Escape closes it and returns focus to the pill; a click elsewhere closes it too.
+- [x] "Service unreachable" is deliberately **not** collapsed: it stays a full-width red banner above the header and
+  the pill is hidden, so the one state that blocks everything cannot be missed.
+- [x] One health poll now feeds both parts (`DataStatusProvider` context), so the page does not ask twice.
+- [x] `role="status"` kept on the pill and the banner; the loading state is a neutral "Checking the science service…".
+- [x] Footer unchanged (already tightened in the polish pass). The header's "Screening and education tool" text was
+  removed: the panel and every result label carry it.
+- [x] 375px: the pill wraps under the brand and the panel spans the header width (first version clipped on the left;
+  fixed). No sideways scroll at 1280 or 375.
+
+Test changes (structural, wording unchanged):
+- `tests/e2e-fallback/offline.spec.ts` opens the pill (clicks "Replay mode") before asserting the offline-copy
+  sentence, because that sentence now lives in the panel. "Replay mode" itself is still visible without a click.
+- The core flow still sees "Synthetic demonstration data" persistently in the pill (no click needed).
+- New `tests/web/data-status.test.tsx` (6 tests): synthetic, real, replay, Escape and focus return, unreachable
+  banner with no pill, neutral loading state.
+
+Verification: vitest 168, tsc, eslint, Playwright e2e 6, fallback e2e 1 (live stack), `next build`, axe in dark and
+light on all 9 routes and on the unreachable state: 0 violations. Screenshots reviewed: desktop and mobile, light and
+dark, pill closed and open, and the unreachable banner.
 
 Done when: status is visible on every page without a banner, full text is one interaction away and exposed to assistive tech, and unreachable and synthetic states are clearly distinct.
 
