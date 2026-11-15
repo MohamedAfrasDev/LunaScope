@@ -1,6 +1,6 @@
 # LunaScope "Calm Galaxy" redesign: shadcn components and a complete product experience
 
-Status: **plan, revised to a calm, aesthetic direction. G0 (baseline), G1 (shadcn foundation and calm tokens) and G2 (shadcn components) and G3 (calm visual system) and G4 (app shell) and G5 (command palette) and G6 (polished states) are done**; see Appendices A to G. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
+Status: **plan, revised to a calm, aesthetic direction. G0 (baseline), G1 (shadcn foundation and calm tokens) and G2 (shadcn components) and G3 (calm visual system) and G4 (app shell) and G5 (command palette) and G6 (polished states) and G7 (onboarding) are done**; see Appendices A to H. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
 
 ## 1. The ask, and the decisions already made
 
@@ -139,7 +139,7 @@ Small, individually mergeable; each ends with unit tests, e2e, axe in both theme
 | G4 | **Done.** App shell: Sidebar, Sheet on mobile, breadcrumbs, recent runs, ToggleGroup for the view mode, status pill relocated | D |
 | G5 | **Done.** Command palette: Command dialog, entries, shortcuts, tests | D |
 | G6 | **Done.** Polished states: skeletons, Sonner toasts, Empty/error/not-found, a short page fade | E |
-| G7 | Onboarding: tour, tooltips, glossary | F |
+| G7 | **Done.**  Onboarding: tour, tooltips, glossary | F |
 | G8 | Calm hero: the supplied image (optimised, with a scrim), plus an optional gentle 3D layer, fallbacks and a performance guard | G |
 | G9 | Re-skin each route on the new system (Home, Run, Timeline, Sky, Compare, Time Machine, Evidence, Analyze, Explainer, notable sites) | H |
 | G10 | Verification and docs: sweep, perf budget, update `UI-REDESIGN.md` and the user guide, after screenshots | H |
@@ -492,3 +492,33 @@ shadcn `Command` (cmdk) in a `Dialog`: `components/shell/CommandPalette.tsx`. A 
 | `next build` | passes (`/_not-found` prerendered) |
 | Playwright e2e | 25 pass (new: `states.spec.ts`: real 404 inside the shell and axe clean, missing run, a palette toast, skeleton motion with and without reduced motion); fallback e2e 1 passes |
 | Visual | The 404 page reviewed in the browser |
+
+## Appendix H. G7: onboarding
+
+### H.1 What changed
+
+| Part | Behaviour |
+|---|---|
+| **Glossary** (`lib/glossary.ts`) | One file with six terms: terrain-aware, flat horizon, availability range, unresolved, unknown, excluded. The sentences come from the user guide, so the product says the same thing everywhere. Used by the term popovers and the explainer's new **Key terms** section |
+| **Terms** (`components/ui/term.tsx`, shadcn `Popover`) | A real button with a dotted underline; Enter, Space, tap or click open the meaning, Escape closes it. A popover rather than a hover tooltip, because a tooltip cannot be opened by touch and is awkward by keyboard. One quiet line under the results ("Terms used here: ...", `TermsHint`) carries all five |
+| **Page tour** (`components/tour/RunTour.tsx`) | On a finished run: five steps (the verdict; one card per site; the views of the analysis; detail that stays folded; the data label). Each step **outlines** the part of the page it explains (an outline, so layout and text contrast never change), scrolls it into view (no smooth scrolling under reduced motion) and moves focus to the step heading. Back, Next, End tour, Done, Escape. A step whose target is not on the page is skipped |
+| **Offer, not ambush** | The tour is **offered once**, as a quiet line above the results ("New here? ... Take the tour / No thanks"). It never opens by itself and never reopens by itself: after the first answer (started or declined) it is remembered in `localStorage` and the offer is gone. It stays available from the command palette ("Take the page tour", on a run's main page) |
+| **Palette** | New entries: **Key terms** (the explainer's glossary) and, on a run page, **Take the page tour** |
+
+### H.2 Decisions and findings
+
+- **Wording had to change.** The explainer page has a guard against sounding like a certification (a test that forbids "certified" and its forms). The guide's phrases "certified visible time" and "cannot be certified" tripped it, so the glossary says "the time confirmed visible" and "cannot be confirmed either way". The meaning is the same; the guide itself is unchanged.
+- **Terms are in one place, not woven into existing labels.** Wrapping words inside labels such as "Flat horizon (comparison)" would split the text node and break the tests (and screen-reader reading) that treat the label as one phrase. The single terms line adds five tab stops instead of one per label.
+- **The tour floats only when asked for.** An always-on floating tour would sit on top of controls in every test and for every first-time visitor; an in-flow offer does not. Once started, the step card is fixed at the bottom of the window and does not trap focus.
+- **A test mock was wrong, and the new render timing exposed it.** Two RunView tests answered the evidence `validation` request with a run object, so the evidence link read `v.groups` of the wrong shape and crashed the tree whenever the response arrived early. The mocks now refuse `validation` as they already refused `provenance`. (No product code changed for this.)
+- **Not done:** a tour for pages other than a finished run; tooltips inside the Time Machine and Timeline pages (the terms line and the glossary cover the same words); translating or splitting the tour by Guided/Technical.
+
+### H.3 Verification (production build)
+
+| Check | Result |
+|---|---|
+| `vitest` | 31 files, 298 tests pass (new: `onboarding.test.tsx`: glossary, term popover, tour offer, steps, Escape, restart, a missing target) |
+| `tsc`, `eslint` | clean |
+| `next build` | passes |
+| Playwright e2e | 27 pass (new: `onboarding.spec.ts`: a term opens with Enter and closes with Escape, axe clean with the popover open and during the tour, the five-step tour, never re-offered after a reload, restarted from the palette; the explainer's Key terms); fallback e2e 1 passes |
+| Visual | Not reviewed on screen this phase: the tour needs a finished run (the science service); it was checked by the browser tests above (focus, outline, axe) |

@@ -118,7 +118,7 @@ function serve(body: unknown) {
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string) =>
-      String(url).includes("provenance")
+      (String(url).includes("provenance") || String(url).includes("validation"))
         ? new Response("{}", { status: 500 })
         : new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } }),
     ),

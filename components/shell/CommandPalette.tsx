@@ -1,6 +1,6 @@
 "use client";
 
-import { Compass, Copy, Eye, History, House, Mountain, Pause, Play, Plus, Search, Trash2, type LucideIcon } from "lucide-react";
+import { BookOpen, Compass, Copy, Eye, History, House, Mountain, Pause, Play, Plus, Route, Search, Trash2, type LucideIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toggleAmbient, useAmbientPaused } from "@/components/AmbientToggle";
@@ -18,6 +18,7 @@ import {
 import { shortId, siteLabel } from "@/lib/format";
 import { clearRecentRuns, useRecentRuns } from "@/lib/recent-runs";
 import { toast } from "sonner";
+import { startTour } from "@/lib/tour";
 
 const OPEN_EVENT = "lunascope:palette";
 
@@ -100,6 +101,7 @@ export function CommandPalette() {
     { id: "home", label: "Home", icon: House, run: go("/") },
     { id: "analyze", label: "New analysis", icon: Plus, run: go("/analyze") },
     { id: "why", label: "Why the south pole is hard", icon: Mountain, run: go("/why-the-south-pole-is-hard"), keywords: "learn explainer" },
+    { id: "terms", label: "Key terms", icon: BookOpen, run: go("/why-the-south-pole-is-hard#key-terms"), keywords: "glossary words meaning terrain-aware flat horizon" },
   ];
 
   const here = path.match(RUN)?.[1];
@@ -118,6 +120,7 @@ export function CommandPalette() {
     if (sites.length >= 2) views.push({ id: "v-compare", label: "Compare sites", icon: Compass, run: go(`${base}/compare`) });
     views.push({ id: "v-tm", label: "Time Machine", icon: Compass, run: go(`${base}/time-machine`) });
     views.push({ id: "v-ev", label: "Evidence", icon: Compass, run: go(`${base}/evidence`) });
+    if (path === base) views.push({ id: "v-tour", label: "Take the page tour", icon: Route, run: startTour, keywords: "help guide onboarding" });
   }
 
   const actions: Entry[] = [

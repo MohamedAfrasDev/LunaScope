@@ -598,6 +598,13 @@ body {
   }
 }
 
+/* The part of the page the tour is talking about. An outline, so it never changes layout or text contrast. */
+[data-tour-active] {
+  outline: 2px solid var(--ring);
+  outline-offset: 6px;
+  border-radius: var(--radius);
+}
+
 /* Visible keyboard focus everywhere (NFR-03). */
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 3px solid var(--ring);
