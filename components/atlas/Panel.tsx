@@ -110,6 +110,9 @@ export function Panel({
         height: size && open ? size.h : undefined,
         flex: size && open ? "none" : undefined,
         alignSelf: size ? "flex-start" : undefined,
+        // a panel's own limits (max-h-full and the like) only set its first size; once you size it, you decide
+        maxWidth: size ? "none" : undefined,
+        maxHeight: size ? "none" : undefined,
         zIndex: z,
       }}
       className={cn("atlas-panel relative flex min-h-0 flex-col", className)}

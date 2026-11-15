@@ -65,6 +65,9 @@ describe("Panel move and resize", () => {
     ptr("pointermove", grip, 500, 560);
     expect(panel.style.width).toBe("400px");
     expect(panel.style.height).toBe("460px");
+    // the panel's own size limits no longer hold it back, so it can grow past its default as well as shrink
+    expect(panel.style.maxWidth).toBe("none");
+    expect(panel.style.maxHeight).toBe("none");
     ptr("pointermove", grip, -5000, -5000);
     expect(panel.style.width).toBe("240px");
     expect(panel.style.height).toBe("120px");
