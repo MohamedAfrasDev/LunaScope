@@ -1,6 +1,6 @@
 # LunaScope Explorer: plan
 
-Status: **E0 done** (spike and decisions, section 9); E1 to E7 not started. Follows the galaxy phases ([GALAXY-PLAN.md](GALAXY-PLAN.md), [UI-GALAXY.md](UI-GALAXY.md)).
+Status: **E0 and E1 done** (sections 9 and 10); E2 to E7 not started. Follows the galaxy phases ([GALAXY-PLAN.md](GALAXY-PLAN.md), [UI-GALAXY.md](UI-GALAXY.md)).
 
 ## 1. Goal
 
@@ -104,3 +104,29 @@ Checked on the working tree and from this machine; one observation each, not a l
 4. **Open for E5:** the System scale needs more than direction series; decide in E5 whether to ask for a service field or to draw directions only.
 
 E0 changed no application code.
+
+## 10. E1 record: the viewer
+
+**Shipped.** `/explore`: a Moon globe (CesiumJS 1.147 with the Moon's ellipsoid) with orbit, tilt and zoom to the surface, streamed NASA Moon Trek tiles (levels 0 to 8), a bundled low-resolution picture under them, **Whole Moon** and **South pole** views, a compass that turns north up, zoom buttons, a readout (centre, height, scale bar) and the credit line. It is in the side navigation and in Search.
+
+| Piece | Where |
+|---|---|
+| Page | `app/explore/page.tsx`, `components/explore/ExploreLoader.tsx` (lazy, client only), `components/explore/ExploreViewer.tsx` |
+| Pure helpers (scale bar, formatting, views, key steps) | `lib/explore/geometry.ts`, `tests/web/explore-geometry.test.ts` |
+| Cesium runtime files | `scripts/copy-cesium.mjs` copies Workers, ThirdParty and Assets to `public/cesium` (not committed) before `dev`, `build` and `test:e2e` |
+| Fallback picture | `public/explore/moon-2k.jpg` (458 KB, NASA imagery, credited) |
+| Guards | `tests/e2e/explore.spec.ts` (starts and is sized, controls and keyboard, offline fallback notice, the library loads on this page only, axe in both themes) |
+
+**How it behaves.**
+- If the tile server cannot be reached, the globe keeps working on the bundled picture and says so ("The detailed imagery could not be reached").
+- If WebGL is unavailable, a flat picture of the Moon and a plain sentence are shown instead.
+- Keyboard: the globe is a focusable region; arrow keys turn it, plus and minus zoom, Home returns to the whole Moon. Reduced motion: the fly-to is instant.
+- Render on demand (not a continuous loop), so an idle page does not use the GPU.
+
+**Measured** (production build, headless Chromium, no throttling, tiles blocked so only the fallback loads; one observation): JavaScript 1,556 KB transferred, Cesium workers 266 KB, images 544 KB (before the fallback was re-compressed to 458 KB), the globe ready in about 1.2 s on this machine. The other pages load **none** of it (tested). This is above the "about 1.5 MB" guess in section 5: the realistic budget for `/explore` is about **2 MB of script including workers**, to be set in E7. Tree-shaking through `@cesium/engine` may lower it and is not done yet.
+
+**Verification.** `vitest` 316 pass, `tsc` and `eslint` clean, `next build` passes, six new e2e tests pass. Seen in the Browser pane: the whole Moon and the south pole view render with real tiles.
+
+**Not done in E1 (by design).** No site pins (E2), no click-to-place or search (E3), no time dock (E4). The imagery carries no site data and is labelled as illustration.
+
+**Open for the owner:** the Moon Trek terms (section 9 item, now also flagged in `LICENCES-AND-CITATIONS.md`); the south-pole tile layer name for higher resolution near the pole.

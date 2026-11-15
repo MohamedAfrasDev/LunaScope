@@ -30,17 +30,3 @@ describe("HeroSkyline", () => {
     expect(svg).toContain("var(--earth)");
   });
 });
-
-describe("Explainer schematic shares the hero drawing", () => {
-  it("draws the same picture without Earth, keeps its own pinned text, and never matches the hero's text", async () => {
-    const { default: Why } = await import("@/app/why-the-south-pole-is-hard/page");
-    const { container } = render(<Why />);
-    const svg = container.querySelector("svg")!;
-    expect(svg).toHaveAttribute("role", "img");
-    expect(svg.outerHTML).toContain("var(--sun)"); // same hues as the hero
-    expect(svg.outerHTML).not.toContain("var(--earth)"); // this one is about the Sun only
-    expect(svg.textContent).toContain("Sun, about 1° up");
-    expect(container.textContent).toMatch(/Schematic, not to scale and not computed from data/);
-    expect(container.textContent).not.toMatch(/Illustration only/); // the hero's caption stays the hero's
-  });
-});

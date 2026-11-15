@@ -86,7 +86,11 @@ function siteGroups(catalog: SitesResponse): [string, SitesResponse["sites"]][] 
   return order.filter((g) => by[g]).map((g) => [label[g] ?? g, by[g]]);
 }
 
-export function AnalyzeForm() {
+/**
+ * The analysis form. By default a submitted run opens its page. Inside the Atlas, `onStarted` receives the run id instead, and
+ * `seed` fills the form with inputs chosen elsewhere (for example one site), exactly as a shared link would: it starts nothing.
+ */
+export function AnalyzeForm({ onStarted, seed }: { onStarted?: (runId: string) => void; seed?: Draft | null } = {}) {
   const router = useRouter();
   const uid = useId();
   const [catalog, setCatalog] = useState<SitesResponse | null>(null);
@@ -119,11 +123,13 @@ export function AnalyzeForm() {
             ? "These inputs came from a shared link. Nothing has been run: check them, then press Run analysis."
             : "That link could not be read, so the default inputs are shown.");
         }
-        const saved = shared ?? loadDraft();
+        const saved = shared ?? seed ?? loadDraft();
         // a saved draft survives navigation in this tab; preset ids no longer in the catalog are dropped
         setD(saved ? { ...saved, siteIds: saved.siteIds.filter((x) => known.has(x)) } : referenceDraft(defaultSiteIds(c.sites)));
       })
       .catch((e) => setLoadErr(describeError(e)));
+    // the form is remounted (by key) when the seed changes, so it is read once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loadErr)
@@ -149,7 +155,7 @@ export function AnalyzeForm() {
   };
   async function share() {
     if (!d) return;
-    const url = `${window.location.origin}/analyze?${SHARE_PARAM}=${encodeShare(d)}`;
+    const url = `${window.location.origin}/atlas?${SHARE_PARAM}=${encodeShare(d)}`;
     setShareUrl(url);
     try {
       await navigator.clipboard.writeText(url);
@@ -181,7 +187,10 @@ export function AnalyzeForm() {
     try {
       const run = await postJson<RunSummary>("analyses", toRequest(d));
       clearDraft(); // the run now holds an immutable snapshot of these inputs
-      router.push(`/runs/${run.run_id}`);
+      if (onStarted) {
+        onStarted(run.run_id);
+        setBusy(false);
+      } else router.push(`/atlas?run=${run.run_id}`);
     } catch (e) {
       const key = e instanceof ApiError ? fieldKeyFromService(e.field) : null;
       if (key) {

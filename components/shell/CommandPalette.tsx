@@ -1,10 +1,8 @@
 "use client";
 
-import { BookOpen, Compass, Copy, Eye, History, House, Mountain, Pause, Play, Plus, Route, Search, Trash2, type LucideIcon } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { Copy, Globe, History, House, Search, Trash2, type LucideIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { toggleAmbient, useAmbientPaused } from "@/components/AmbientToggle";
-import { setViewMode, useViewMode } from "@/components/ViewMode";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -15,10 +13,9 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { shortId, siteLabel } from "@/lib/format";
+import { shortId } from "@/lib/format";
 import { clearRecentRuns, useRecentRuns } from "@/lib/recent-runs";
 import { toast } from "sonner";
-import { startTour } from "@/lib/tour";
 
 const OPEN_EVENT = "lunascope:palette";
 
@@ -47,8 +44,6 @@ export function PaletteButton() {
   );
 }
 
-const RUN = /^\/runs\/([0-9a-f]{64})(?:\/|$)/;
-
 type Entry = { id: string; label: string; hint?: string; icon: LucideIcon; run: () => void; keywords?: string };
 
 function typing(t: EventTarget | null): boolean {
@@ -65,10 +60,7 @@ function typing(t: EventTarget | null): boolean {
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
-  const path = usePathname() ?? "/";
   const runs = useRecentRuns();
-  const mode = useViewMode();
-  const paused = useAmbientPaused();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -99,41 +91,10 @@ export function CommandPalette() {
 
   const pages: Entry[] = [
     { id: "home", label: "Home", icon: House, run: go("/") },
-    { id: "analyze", label: "New analysis", icon: Plus, run: go("/analyze") },
-    { id: "why", label: "Why the south pole is hard", icon: Mountain, run: go("/why-the-south-pole-is-hard"), keywords: "learn explainer" },
-    { id: "terms", label: "Key terms", icon: BookOpen, run: go("/why-the-south-pole-is-hard#key-terms"), keywords: "glossary words meaning terrain-aware flat horizon" },
+    { id: "atlas", label: "Open the Atlas", icon: Globe, run: go("/atlas"), keywords: "moon globe sites time clock" },
   ];
 
-  const here = path.match(RUN)?.[1];
-  const current = here ? runs.find((r) => r.id === here) : undefined;
-  const views: Entry[] = [];
-  if (here) {
-    const base = `/runs/${here}`;
-    views.push({ id: "v-matrix", label: "Matrix", icon: Compass, run: go(base) });
-    const sites = current?.sites ?? [];
-    for (const s of sites) {
-      views.push({ id: `v-tl-${s}`, label: `Timeline: ${siteLabel(s)}`, icon: Compass, run: go(`${base}/timeline/${encodeURIComponent(s)}`) });
-    }
-    for (const s of sites) {
-      views.push({ id: `v-sky-${s}`, label: `Sky: ${siteLabel(s)}`, icon: Compass, run: go(`${base}/sky/${encodeURIComponent(s)}`) });
-    }
-    if (sites.length >= 2) views.push({ id: "v-compare", label: "Compare sites", icon: Compass, run: go(`${base}/compare`) });
-    views.push({ id: "v-tm", label: "Time Machine", icon: Compass, run: go(`${base}/time-machine`) });
-    views.push({ id: "v-ev", label: "Evidence", icon: Compass, run: go(`${base}/evidence`) });
-    if (path === base) views.push({ id: "v-tour", label: "Take the page tour", icon: Route, run: startTour, keywords: "help guide onboarding" });
-  }
-
   const actions: Entry[] = [
-    mode === "guided"
-      ? { id: "a-tech", label: "Switch to the Technical view", icon: Eye, run: () => { setViewMode("technical"); toast("Technical view on"); }, keywords: "guided technical explanation" }
-      : { id: "a-guided", label: "Switch to the Guided view", icon: Eye, run: () => { setViewMode("guided"); toast("Guided view on"); }, keywords: "guided technical explanation" },
-    {
-      id: "a-motion",
-      label: paused ? "Resume background motion" : "Pause background motion",
-      icon: paused ? Play : Pause,
-      run: toggleAmbient,
-      keywords: "animation stars",
-    },
     {
       id: "a-copy",
       label: "Copy link to this page",
@@ -165,22 +126,19 @@ export function CommandPalette() {
       open={open}
       onOpenChange={setOpen}
       title="Search LunaScope"
-      description="Go to a page, a recent run or a view of this run, or run an action. Type to filter, Enter to choose, Escape to close."
+      description="Go to a page or a recent run, or run an action. Type to filter, Enter to choose, Escape to close."
       className="chrome-glass sm:max-w-lg"
     >
       <Command>
       <CommandInput placeholder="Go to a page, a run, or an action…" />
       <CommandList>
-        <CommandEmpty>Nothing matches. Try a page name, a site or “technical”.</CommandEmpty>
-        {views.length > 0 && (
-          <CommandGroup heading="This analysis">{views.map(item)}</CommandGroup>
-        )}
+        <CommandEmpty>Nothing matches. Try a page name or a recent run.</CommandEmpty>
         <CommandGroup heading="Pages">{pages.map(item)}</CommandGroup>
         {runs.length > 0 && (
           <>
             <CommandGroup heading="Recent runs">
               {runs.map((r) =>
-                item({ id: `r-${r.id}`, label: r.label, hint: shortId(r.id), icon: History, run: go(`/runs/${r.id}`), keywords: r.id }),
+                item({ id: `r-${r.id}`, label: r.label, hint: shortId(r.id), icon: History, run: go(`/atlas?run=${r.id}`), keywords: r.id }),
               )}
             </CommandGroup>
           </>

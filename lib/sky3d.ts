@@ -66,6 +66,24 @@ export function skylineWall(
   return { positions: new Float32Array(pos), indices: new Uint32Array(idx) };
 }
 
+/**
+ * Texture coordinates for `skylineWall`, in the same order (four vertices per known bin: floor and top at the start of the bin, floor
+ * and top at its end). `repeat` is how many times the picture goes round the circle; `vSpan` is how much of the picture the wall
+ * covers vertically, so its texels stay about square.
+ */
+export function skylineWallUv(azimuthDeg: number[], horizonElDeg: (number | null)[], repeat = 10, vSpan = 0.3): Float32Array {
+  const n = azimuthDeg.length;
+  const out: number[] = [];
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n;
+    if (horizonElDeg[i] == null || horizonElDeg[j] == null) continue;
+    const u0 = (i / n) * repeat;
+    const u1 = ((i + 1) / n) * repeat;
+    out.push(u0, 0, u0, vSpan, u1, 0, u1, vSpan);
+  }
+  return new Float32Array(out);
+}
+
 /** The ridge line: runs of consecutive known bins, each a polyline (an unknown bin breaks the line). */
 export function skylineRuns(azimuthDeg: number[], horizonElDeg: (number | null)[], R: number, k = 1): Float32Array[] {
   const n = azimuthDeg.length;

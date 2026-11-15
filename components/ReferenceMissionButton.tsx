@@ -32,7 +32,7 @@ export function ReferenceMissionButton() {
     setErr(null);
     try {
       const run = await postJson<RunSummary>("analyses", ref.request);
-      router.push(`/runs/${run.run_id}`);
+      router.push(`/atlas?run=${run.run_id}`);
     } catch (e) {
       setErr(describeError(e));
       setBusy(false);

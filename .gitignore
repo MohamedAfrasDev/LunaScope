@@ -58,3 +58,6 @@ next-env.d.ts
 
 # private study notes and planning (not for GitHub)
 /my-notes/
+
+# CesiumJS runtime files, copied by scripts/copy-cesium.mjs
+/public/cesium/

@@ -37,8 +37,8 @@ const MAP: Record<keyof SkyPalette, [token: string, fallback: string]> = {
   earth: ["--earth", "#86b8ff"],
 };
 
-export function readSkyPalette(): SkyPalette {
-  const cs = typeof document !== "undefined" ? getComputedStyle(document.documentElement) : null;
+export function readSkyPalette(scope?: Element | null): SkyPalette {
+  const cs = typeof document !== "undefined" ? getComputedStyle(scope ?? document.documentElement) : null;
   const out = {} as SkyPalette;
   for (const [key, [token, fallback]] of Object.entries(MAP) as [keyof SkyPalette, [string, string]][]) {
     const v = cs?.getPropertyValue(token).trim();

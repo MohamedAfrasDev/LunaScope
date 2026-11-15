@@ -124,12 +124,12 @@ function DiskEdgeTable({ siteId, d }: { siteId: string; d: DiskEdge }) {
 }
 
 /** Evidence workspace (FR-09, FR-13): can I trust and reproduce this? */
-export function EvidencePanel({ runId }: { runId: string }) {
+export function EvidencePanel({ runId, embedded = false }: { runId: string; embedded?: boolean }) {
   const uid = useId();
   const { p, v, err } = useEvidence(runId);
 
   const back = (
-    <Link href={`/runs/${runId}`} className="tap text-sm text-primary underline underline-offset-4">
+    <Link href={`/atlas?run=${runId}`} className="tap text-sm text-primary underline underline-offset-4">
       ← Back to the status matrix
     </Link>
   );
@@ -167,7 +167,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="type-title">Evidence</h1>
+        {embedded ? <h2 className="text-base font-medium">Evidence</h2> : <h1 className="type-title">Evidence</h1>}
         <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
           What was used, what was checked against what, and what was not checked. Every number in this run
           traces to the inputs below.
@@ -351,7 +351,7 @@ export function EvidenceLink({ runId }: { runId: string }) {
         </ul>
       )}
       <p className="mt-3">
-        <Link href={`/runs/${runId}/evidence`} className="tap font-medium text-primary underline underline-offset-4">
+        <Link href={`/atlas?run=${runId}`} className="tap font-medium text-primary underline underline-offset-4">
           Open the evidence: provenance, validation cards and export
         </Link>
       </p>

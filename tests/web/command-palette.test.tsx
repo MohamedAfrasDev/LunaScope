@@ -4,8 +4,7 @@ import { CommandPalette, PaletteButton } from "@/components/shell/CommandPalette
 import { resetRecentRunsForTests, rememberRun } from "@/lib/recent-runs";
 
 const push = vi.fn();
-let path = "/";
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push }), usePathname: () => path }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 
 const A = "a".repeat(64);
 
@@ -19,9 +18,7 @@ beforeEach(() => {
   Element.prototype.scrollIntoView = vi.fn();
   localStorage.clear();
   resetRecentRunsForTests();
-  delete document.documentElement.dataset.motion;
   push.mockClear();
-  path = "/";
 });
 afterEach(() => localStorage.clear());
 
@@ -33,7 +30,7 @@ describe("CommandPalette", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
     press({ key: "k", ctrlKey: true });
     expect(screen.getByRole("dialog", { name: "Search LunaScope" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "New analysis" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Open the Atlas" })).toBeInTheDocument();
     fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
     expect(screen.queryByRole("dialog")).toBeNull();
   });
@@ -65,42 +62,26 @@ describe("CommandPalette", () => {
   it("goes to a page", () => {
     render(<CommandPalette />);
     press({ key: "k", metaKey: true });
-    fireEvent.click(screen.getByRole("option", { name: "Why the south pole is hard" }));
-    expect(push).toHaveBeenCalledWith("/why-the-south-pole-is-hard");
+    fireEvent.click(screen.getByRole("option", { name: "Open the Atlas" }));
+    expect(push).toHaveBeenCalledWith("/atlas");
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("offers the open run's own views, with its sites, and recent runs", () => {
+  it("lists recent runs, which open in the Atlas", () => {
     rememberRun({ id: A, label: "Shackleton rim and 1 more", state: "synthetic_demonstration", sites: ["shackleton_rim", "malapert"] });
-    path = `/runs/${A}/evidence`;
     render(<CommandPalette />);
-    press({ key: "k", ctrlKey: true });
-    expect(screen.getByText("This analysis")).toBeInTheDocument();
-    for (const n of ["Matrix", "Compare sites", "Time Machine", "Evidence"]) expect(screen.getByRole("option", { name: n })).toBeInTheDocument();
-    expect(screen.getAllByRole("option", { name: /^Timeline: / })).toHaveLength(2);
-    expect(screen.getAllByRole("option", { name: /^Sky: / })).toHaveLength(2);
-    fireEvent.click(screen.getByRole("option", { name: "Time Machine" }));
-    expect(push).toHaveBeenCalledWith(`/runs/${A}/time-machine`);
     press({ key: "k", ctrlKey: true });
     fireEvent.click(screen.getByRole("option", { name: /Shackleton rim and 1 more/ }));
-    expect(push).toHaveBeenLastCalledWith(`/runs/${A}`);
+    expect(push).toHaveBeenLastCalledWith(`/atlas?run=${A}`);
   });
 
-  it("has no run views outside a run", () => {
+  it("can clear the recent runs", () => {
+    rememberRun({ id: A, label: "Shackleton rim and 1 more", state: "synthetic_demonstration", sites: ["shackleton_rim"] });
     render(<CommandPalette />);
     press({ key: "k", ctrlKey: true });
-    expect(screen.queryByText("This analysis")).toBeNull();
-  });
-
-  it("switches the explanation style and pauses the motion", () => {
-    render(<CommandPalette />);
+    fireEvent.click(screen.getByRole("option", { name: "Clear recent runs" }));
     press({ key: "k", ctrlKey: true });
-    fireEvent.click(screen.getByRole("option", { name: "Switch to the Technical view" }));
-    expect(localStorage.getItem("lunascope.view-mode")).toBe("technical");
-    press({ key: "k", ctrlKey: true });
-    expect(screen.getByRole("option", { name: "Switch to the Guided view" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("option", { name: "Pause background motion" }));
-    expect(localStorage.getItem("lunascope.motion")).toBe("paused");
+    expect(screen.queryByRole("option", { name: /Shackleton rim/ })).toBeNull();
   });
 
   it("says so when nothing matches", () => {
