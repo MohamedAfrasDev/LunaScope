@@ -21,6 +21,7 @@ import { StatusChip } from "./StatusChip";
 import { Button } from "./ui/button";
 import { Disclosure } from "./ui/disclosure";
 import { NativeSelect } from "./ui/native-select";
+import { LoadingState } from "@/components/ui/loading-state";
 
 const TARGETS: Target[] = ["sun_center", "earth_center"];
 const SPEEDS = [
@@ -203,7 +204,7 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
       </div>
     );
   if (!data || !site || tracks.length === 0)
-    return <p className="text-muted-foreground">Loading the local sky…</p>;
+    return <LoadingState label="Loading the local sky…" kind="page" />;
 
   const cursors: Track[] = tracks.map((x) => ({ ...x, cursor: interpAzEl(x.series, t) }));
   const sp = SITE_STATUS[site.site_status];

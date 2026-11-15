@@ -14,6 +14,7 @@ import { ShiftedRuns } from "./time-machine/ShiftedRuns";
 import { DONE } from "./time-machine/useComparison";
 import { Alert } from "./ui/alert";
 import { SectionHeader } from "./ui/section-header";
+import { LoadingState } from "@/components/ui/loading-state";
 
 /**
  * Mission Time Machine: what changes if the date slips? Three steps, one question each:
@@ -67,7 +68,7 @@ export function TimeMachineView({ runId }: { runId: string }) {
       </div>
 
       {baseErr && <Alert variant="warning">{baseErr}</Alert>}
-      {!base && !baseErr && <p className="text-muted-foreground">Loading the baseline…</p>}
+      {!base && !baseErr && <LoadingState label="Loading the baseline…" />}
       {base && !baseReady && (
         <p className="surface-card p-4 text-sm" aria-live="polite">
           {base.status === "failed"

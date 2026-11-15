@@ -8,6 +8,7 @@ import { DeltaTable } from "./DeltaTable";
 import { RunPanels } from "./RunPanels";
 import { useComparison } from "./useComparison";
 import { Progress } from "../ui/progress";
+import { LoadingState } from "@/components/ui/loading-state";
 
 /**
  * The shifted run against its baseline. Shows the loading, failed and running states of the shifted
@@ -21,7 +22,7 @@ export function RunComparison({ baseId, childId, alignment }: { baseId: string; 
   );
 
   if (childErr) return <Alert variant="warning">{childErr} Retrying…</Alert>;
-  if (!child) return <p className="text-muted-foreground">Loading the shifted run…</p>;
+  if (!child) return <LoadingState label="Loading the shifted run…" />;
   if (child.status === "failed")
     return (
       <Alert variant="destructive" className="p-4">

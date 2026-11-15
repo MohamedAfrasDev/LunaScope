@@ -578,6 +578,26 @@ body {
   }
 }
 
+/* Loading blocks breathe slowly (calm, not a flashing shimmer); the page settles in with a tiny rise (a transform, not an opacity change, so text contrast is never reduced mid-animation). Neither runs under reduced motion. */
+@keyframes soft-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+@keyframes page-in {
+  from {
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-slot="skeleton"] {
+    animation: soft-pulse 2.6s ease-in-out infinite;
+  }
+  .page-in {
+    animation: page-in 0.2s ease-out backwards;
+  }
+}
+
 /* Visible keyboard focus everywhere (NFR-03). */
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 3px solid var(--ring);

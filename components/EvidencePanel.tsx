@@ -12,6 +12,7 @@ import { StatusChip } from "./StatusChip";
 import { Alert } from "./ui/alert";
 import { Disclosure } from "./ui/disclosure";
 import { Button } from "./ui/button";
+import { LoadingState } from "@/components/ui/loading-state";
 
 const Hash = ({ v, n = 16 }: { v: string; n?: number }) => (
   <span className="break-all font-mono text-xs" title={v}>
@@ -138,7 +139,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
         <Alert variant="destructive">{err}</Alert>
       </div>
     );
-  if (!p) return <div className="grid gap-3">{back}<p className="text-muted-foreground">Loading the evidence…</p></div>;
+  if (!p) return <div className="grid gap-3">{back}<LoadingState label="Loading the evidence…" kind="page" /></div>;
 
   const req = p.request;
   const eff = p.effective_settings ?? {};

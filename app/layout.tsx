@@ -7,6 +7,7 @@ import { AppSidebar } from "@/components/shell/AppSidebar";
 import { CommandPalette } from "@/components/shell/CommandPalette";
 import { ShellBar } from "@/components/shell/ShellBar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
@@ -62,6 +63,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                   </p>
                 </footer>
               </SidebarInset>
+              <Toaster />
             </SidebarProvider>
           </TooltipProvider>
         </DataStatusProvider>

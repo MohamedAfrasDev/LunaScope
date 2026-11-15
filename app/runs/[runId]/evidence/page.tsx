@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { EvidencePanel } from "@/components/EvidencePanel";
+import { LoadingState } from "@/components/ui/loading-state";
 
 export const metadata: Metadata = { title: "Evidence" };
 
@@ -15,7 +16,7 @@ async function Body({ params }: { params: PageProps<"/runs/[runId]/evidence">["p
 
 export default function EvidencePage(props: PageProps<"/runs/[runId]/evidence">) {
   return (
-    <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
+    <Suspense fallback={<LoadingState label="Loading…" kind="page" />}>
       <Body params={props.params} />
     </Suspense>
   );
