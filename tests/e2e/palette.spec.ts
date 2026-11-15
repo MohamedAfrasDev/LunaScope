@@ -7,9 +7,12 @@ test("Ctrl+K opens a named dialog, filters, navigates, and Escape returns focus"
   await page.goto("/analyze");
   await expect(page.getByRole("button", { name: /Search/ })).toBeVisible();
 
-  await page.keyboard.press("Control+k");
   const dialog = page.getByRole("dialog", { name: "Search LunaScope" });
-  await expect(dialog).toBeVisible();
+  // the button is in the server-rendered page, so a key pressed before the page has hydrated is lost: press until it opens
+  await expect(async () => {
+    await page.keyboard.press("Control+k");
+    await expect(dialog).toBeVisible({ timeout: 1500 });
+  }).toPass({ timeout: 30_000 });
   await expect(dialog.getByRole("combobox")).toBeFocused();
 
   const axe = await new AxeBuilder({ page }).include('[role="dialog"]').analyze();
@@ -31,7 +34,11 @@ test("Ctrl+K opens a named dialog, filters, navigates, and Escape returns focus"
 test("the Search button opens it, and an action works from the keyboard", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/analyze");
-  await page.getByRole("button", { name: /Search/ }).click();
+  // a click before hydration does nothing, so click until the dialog is there
+  await expect(async () => {
+    await page.getByRole("button", { name: /Search/ }).click();
+    await expect(page.getByRole("dialog", { name: "Search LunaScope" })).toBeVisible({ timeout: 1500 });
+  }).toPass({ timeout: 30_000 });
   await page.keyboard.type("technical");
   await page.keyboard.press("Enter");
   await expect(page.getByRole("button", { name: "Technical" })).toHaveAttribute("aria-pressed", "true");

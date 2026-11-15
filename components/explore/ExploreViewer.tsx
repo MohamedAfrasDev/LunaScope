@@ -42,7 +42,21 @@ function reducedMotion(): boolean {
  * CesiumJS is imported inside an effect, so this chunk stays small and the library loads only on this page.
  * The picture is illustration of the surface. It is never an analysis result and carries no site data yet.
  */
-export type SceneHandle = { fly: (name: ViewName) => void };
+export type ScreenPoint = { x: number; y: number; visible: boolean };
+
+/**
+ * What the Atlas can ask of the globe (redesign phase C): move the camera, turn a surface point into a screen point (and say
+ * whether the Moon itself hides it), turn a click into a surface point, and hear about every frame. Plain numbers in and
+ * out, so nothing outside this file touches Cesium.
+ */
+export type SceneHandle = {
+  fly: (name: ViewName) => void;
+  flyToSite: (latDeg: number, lonDeg: number) => void;
+  project: (latDeg: number, lonDeg: number) => ScreenPoint | null;
+  pick: (x: number, y: number) => { latDeg: number; lonDeg: number } | null;
+  onFrame: (cb: () => void) => () => void;
+  setClickHandler: (cb: ((x: number, y: number) => void) | null) => void;
+};
 
 export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onReady?: (handle: SceneHandle) => void } = {}) {
   const host = useRef<HTMLDivElement>(null);
@@ -51,11 +65,13 @@ export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onR
   const [state, setState] = useState<State>("loading");
   const [readout, setReadout] = useState<Readout>(EMPTY);
   const [lowRes, setLowRes] = useState(false);
+  const clickCb = useRef<((x: number, y: number) => void) | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     let v: Viewer | null = null;
     let ro: ResizeObserver | null = null;
+    let clicks: import("cesium").ScreenSpaceEventHandler | null = null;
 
     (async () => {
       try {
@@ -86,6 +102,9 @@ export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onR
           mapProjection: new C.GeographicProjection(moon),
         });
         viewer.current = v;
+
+        clicks = new C.ScreenSpaceEventHandler(v.canvas);
+        clicks.setInputAction((e: { position: { x: number; y: number } }) => clickCb.current?.(e.position.x, e.position.y), C.ScreenSpaceEventType.LEFT_CLICK);
 
         const scene = v.scene;
         scene.backgroundColor = C.Color.fromCssColorString("#05060d");
@@ -118,7 +137,8 @@ export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onR
         });
         v.imageryLayers.addImageryProvider(tiles);
 
-        const home = VIEWS.moon;
+        // the Atlas is about the south pole, so it opens there; the explorer page opens on the whole Moon
+        const home = bleed ? VIEWS["south-pole"] : VIEWS.moon;
         v.camera.setView({ destination: C.Cartesian3.fromDegrees(home.lon, home.lat, home.heightM, moon) });
 
         // read the camera into plain text for the readout, the compass and the scale bar (throttled)
@@ -155,10 +175,12 @@ export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onR
     return () => {
       cancelled = true;
       ro?.disconnect();
+      clicks?.destroy();
       if (v && !v.isDestroyed()) v.destroy();
       viewer.current = null;
     };
-  }, []);
+    // `bleed` never changes for a mounted viewer; it only picks the opening view
+  }, [bleed]);
 
   const fly = useCallback((name: ViewName) => {
     const v = viewer.current;
@@ -173,7 +195,41 @@ export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onR
   }, []);
 
   useEffect(() => {
-    if (state === "ready") onReady?.({ fly });
+    if (state !== "ready") return;
+    const v = viewer.current;
+    const C = cesium.current;
+    if (!v || !C) return;
+    const moon = C.Ellipsoid.MOON;
+    onReady?.({
+      fly,
+      flyToSite(latDeg, lonDeg) {
+        v.camera.flyTo({
+          destination: C.Cartesian3.fromDegrees(lonDeg, latDeg, 900_000, moon),
+          orientation: { heading: 0, pitch: C.Math.toRadians(-90), roll: 0 },
+          duration: reducedMotion() ? 0 : 1.4,
+        });
+      },
+      project(latDeg, lonDeg) {
+        const p = C.Cartesian3.fromDegrees(lonDeg, latDeg, 0, moon);
+        const w = C.SceneTransforms.worldToWindowCoordinates(v.scene, p);
+        if (!w) return null;
+        return { x: w.x, y: w.y, visible: new C.EllipsoidalOccluder(moon, v.camera.positionWC).isPointVisible(p) };
+      },
+      pick(x, y) {
+        const hit = v.camera.pickEllipsoid(new C.Cartesian2(x, y), moon);
+        if (!hit) return null;
+        const c = C.Cartographic.fromCartesian(hit, moon);
+        return { latDeg: C.Math.toDegrees(c.latitude), lonDeg: C.Math.toDegrees(c.longitude) };
+      },
+      onFrame(cb) {
+        const off = v.scene.postRender.addEventListener(cb);
+        v.scene.requestRender();
+        return off;
+      },
+      setClickHandler(cb) {
+        clickCb.current = cb;
+      },
+    });
   }, [state, fly, onReady]);
 
   const zoom = useCallback((dir: 1 | -1) => {

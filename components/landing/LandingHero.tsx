@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DataStatusPill } from "@/components/DataStatusBanner";
 import { LandingMoon } from "@/components/landing/LandingMoon";
 import { Tag } from "@/components/atlas/Tag";
 
@@ -12,6 +13,11 @@ export function LandingHero() {
       <LandingMoon />
       {/* keeps the words readable wherever the picture is bright */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgb(5_5_7/0.85)_0%,rgb(5_5_7/0.35)_45%,transparent_70%)]" />
+
+      {/* what the numbers are, always in view (the same pill as every other page) */}
+      <div className="absolute right-4 top-4 sm:right-8">
+        <DataStatusPill />
+      </div>
 
       <div className="absolute inset-x-0 bottom-0 px-6 pb-16 sm:px-12 sm:pb-20 lg:px-[6.5rem]">
         <span aria-hidden="true" className="mb-6 block h-0.5 w-24 bg-[var(--select)]" />
@@ -28,7 +34,7 @@ export function LandingHero() {
           >
             Enter
           </Link>
-          <a href="#idea" className="atlas-label text-[var(--ink-dim)] underline-offset-4 hover:text-[var(--ink)] hover:underline">
+          <a href="#idea" className="tap atlas-label inline-flex items-center text-[var(--ink-dim)] underline-offset-4 hover:text-[var(--ink)] hover:underline">
             How it works
           </a>
         </div>

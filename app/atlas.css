@@ -192,3 +192,81 @@
   outline: 2px solid var(--select);
   outline-offset: 2px;
 }
+
+/*
+ * Site pins (phase C). A pin is a real button laid over the globe at a screen position the scene computes every frame.
+ * Ring style carries the coverage: solid means the terrain data covers the whole footprint, dashed means it does not
+ * (or has not been checked). The word is always in the label and in the panel, never colour alone.
+ */
+.atlas-pin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  will-change: transform;
+  pointer-events: auto;
+}
+.atlas-pin-mark {
+  position: absolute;
+  left: -8px;
+  top: -8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  border: 2px solid var(--ink);
+  background: rgb(5 5 7 / 0.55);
+  box-shadow: 0 0 0 1px rgb(5 5 7 / 0.8);
+  transition: transform 0.15s ease;
+}
+.atlas-pin[data-coverage="partial"] .atlas-pin-mark,
+.atlas-pin[data-coverage="unknown"] .atlas-pin-mark {
+  border-style: dashed;
+}
+.atlas-pin[data-kind="custom"] .atlas-pin-mark {
+  border-radius: 3px;
+  transform: rotate(45deg);
+}
+.atlas-pin:hover .atlas-pin-mark {
+  transform: scale(1.2);
+}
+.atlas-pin[data-kind="custom"]:hover .atlas-pin-mark {
+  transform: rotate(45deg) scale(1.2);
+}
+.atlas-pin[aria-pressed="true"] .atlas-pin-mark {
+  width: 22px;
+  height: 22px;
+  left: -11px;
+  top: -11px;
+  border-width: 3px;
+  border-color: var(--select);
+  background: var(--select);
+  box-shadow:
+    0 0 0 3px rgb(5 5 7 / 0.85),
+    0 0 0 5px var(--select);
+}
+.atlas-pin:focus-visible {
+  outline: none;
+}
+.atlas-pin:focus-visible .atlas-pin-mark {
+  outline: 2px solid var(--select);
+  outline-offset: 5px;
+}
+.atlas-pin-label {
+  position: absolute;
+  left: 14px;
+  top: -11px;
+  display: block;
+  white-space: nowrap;
+  padding: 0.2rem 0.45rem;
+  background: rgb(5 5 7 / 0.78);
+  border-left: 2px solid var(--panel-edge);
+  color: var(--ink);
+  pointer-events: none;
+}
+.atlas-pin[aria-pressed="true"] .atlas-pin-label {
+  border-left-color: var(--select);
+}

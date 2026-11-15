@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { DataStatusProvider } from "@/components/DataStatusBanner";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/", useRouter: () => ({ push: () => {} }) }));
 vi.mock("@/components/ReferenceMissionButton", () => ({ ReferenceMissionButton: () => <button type="button">Start the reference mission</button> }));
@@ -18,13 +19,27 @@ beforeEach(() => {
 
 describe("LandingHero", () => {
   it("is the wordmark, one line and one button, with the picture credited and labelled illustrative", () => {
-    render(<LandingHero />);
+    render(
+      <DataStatusProvider>
+        <LandingHero />
+      </DataStatusProvider>,
+    );
     expect(screen.getByRole("heading", { level: 1, name: "LunaScope" })).toBeInTheDocument();
     expect(screen.getByText(/Terrain-aware sunlight and Earth visibility/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Enter" })).toHaveAttribute("href", "/atlas");
     expect(screen.getByText(/NASA\/GSFC\/ASU, LRO WAC mosaic/)).toBeInTheDocument();
     expect(screen.getByText(/Lighting is illustrative/)).toBeInTheDocument();
     expect(screen.getByText("ILLUSTRATION")).toBeInTheDocument();
+  });
+
+  it("always shows what the numbers are: the data-status pill is on the first screen", () => {
+    render(
+      <DataStatusProvider>
+        <LandingHero />
+      </DataStatusProvider>,
+    );
+    // until the service answers the pill says it is checking; once it answers it names the data (see data-status.test.tsx)
+    expect(screen.getByText("Checking the science service…")).toBeInTheDocument();
   });
 });
 
@@ -38,7 +53,11 @@ describe("LandingMoon", () => {
 
 describe("Landing page", () => {
   it("has one h1, the idea, the three rules and the limits, and keeps the saved runs reachable", () => {
-    render(<Home />);
+    render(
+      <DataStatusProvider>
+        <Home />
+      </DataStatusProvider>,
+    );
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(screen.getByText(/Is the Sun or Earth above the terrain/)).toBeInTheDocument();
     expect(screen.getByText(/No placeholder is shown as science/)).toBeInTheDocument();

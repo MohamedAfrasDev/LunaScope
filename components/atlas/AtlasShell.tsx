@@ -1,12 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { LearnPanel } from "@/components/atlas/LearnPanel";
+import { PinLayer } from "@/components/atlas/PinLayer";
 import { Readout } from "@/components/atlas/Readout";
+import { SelectedSitePanel } from "@/components/atlas/SelectedSitePanel";
+import { SitesPanel } from "@/components/atlas/SitesPanel";
 import { TimeDock } from "@/components/atlas/TimeDock";
 import { TopBar, type PanelId, type Scale } from "@/components/atlas/TopBar";
+import { useCatalog } from "@/components/atlas/useCatalog";
 import { ExploreLoader } from "@/components/explore/ExploreLoader";
 import type { SceneHandle } from "@/components/explore/ExploreViewer";
+import { describeError, postJson } from "@/lib/api/client";
+import type { CustomSiteCheck } from "@/lib/api/types";
+import { fromCustomCheck, inTerrainData, MAX_CUSTOM_POINTS, type AtlasSite } from "@/lib/atlas/sites";
 import type { ViewName } from "@/lib/explore/geometry";
 
 function typing(t: EventTarget | null): boolean {
@@ -17,22 +25,87 @@ function typing(t: EventTarget | null): boolean {
 
 const SCALE_LABEL: Record<Scale, string> = { moon: "MOON SCALE", system: "SYSTEM SCALE", sky: "SITE SKY" };
 
+/** Placed points are checked by the service, and the precision is a stated assumption for a point set by hand. */
+const PLACED_SOURCE = "Placed by hand in the Atlas";
+const PLACED_PRECISION_M = 1000;
+
 /**
  * The Atlas frame (spec 3 and 4): one full-screen scene, floating instruments on top, one time dock underneath.
- * Phase A: the frame, the tokens and the real Moon. Sites, the clock and the result panels arrive in later phases.
- * H hides the interface (for screenshots) and shows it again.
+ * Phase C adds the sites: pins on the Moon, a Sites list, the selected-site card and custom points. The clock and the
+ * result panels arrive in later phases. H hides the interface (for screenshots) and shows it again.
  */
 export function AtlasShell() {
+  const catalog = useCatalog();
   const [scale, setScale] = useState<Scale>("moon");
-  const [open, setOpen] = useState<PanelId[]>([]);
+  const [open, setOpen] = useState<PanelId[]>(["sites"]);
   const [hidden, setHidden] = useState(false);
-  const scene = useRef<SceneHandle | null>(null);
+  const [scene, setScene] = useState<SceneHandle | null>(null);
+  const [customs, setCustoms] = useState<AtlasSite[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [placing, setPlacing] = useState(false);
+  const nextCustom = useRef(1);
 
-  const onReady = useCallback((h: SceneHandle) => {
-    scene.current = h;
-  }, []);
-  const onView = useCallback((v: ViewName) => scene.current?.fly(v), []);
+  const sites = useMemo(() => [...catalog.sites, ...customs], [catalog.sites, customs]);
+  const selected = sites.find((s) => s.id === selectedId) ?? null;
+
+  const onReady = useCallback((h: SceneHandle) => setScene(h), []);
+  const onView = useCallback((v: ViewName) => scene?.fly(v), [scene]);
   const toggle = useCallback((p: PanelId) => setOpen((o) => (o.includes(p) ? o.filter((x) => x !== p) : [...o, p])), []);
+
+  const select = useCallback(
+    (id: string) => {
+      setSelectedId(id);
+      const s = sites.find((x) => x.id === id);
+      if (s) scene?.flyToSite(s.latDeg, s.lonEastDeg);
+    },
+    [sites, scene],
+  );
+
+  /** Add a custom point after the service has checked it. Returns a sentence when it could not be added. */
+  const addCustom = useCallback(
+    async (latDeg: number, lonDeg: number): Promise<string | null> => {
+      if (!inTerrainData(latDeg)) return "The terrain data covers 80° S to the pole. Choose a latitude from −90 to −80.";
+      if (customs.length >= MAX_CUSTOM_POINTS) return `Up to ${MAX_CUSTOM_POINTS} custom points. Remove one to add another.`;
+      try {
+        const check = await postJson<CustomSiteCheck>("sites/custom", {
+          lat_deg: latDeg,
+          lon_deg: lonDeg,
+          lon_direction: "east_positive",
+          convention: "planetocentric",
+          source: PLACED_SOURCE,
+          precision_m: PLACED_PRECISION_M,
+        });
+        const site = fromCustomCheck(nextCustom.current++, check);
+        setCustoms((c) => [...c, site]);
+        setSelectedId(site.id);
+        scene?.flyToSite(site.latDeg, site.lonEastDeg);
+        return null;
+      } catch (e) {
+        return describeError(e);
+      }
+    },
+    [customs.length, scene],
+  );
+
+  // Place a point: while it is on, a click on the Moon proposes a point there.
+  useEffect(() => {
+    if (!scene) return;
+    if (!placing) {
+      scene.setClickHandler(null);
+      return;
+    }
+    scene.setClickHandler((x, y) => {
+      const hit = scene.pick(x, y);
+      if (!hit) return void toast.message("That click did not land on the Moon.");
+      void addCustom(hit.latDeg, hit.lonDeg).then((err) => (err ? toast.message(err) : toast.success("Point added and selected.")));
+    });
+    return () => scene.setClickHandler(null);
+  }, [scene, placing, addCustom]);
+
+  const removeCustom = useCallback((id: string) => {
+    setCustoms((c) => c.filter((s) => s.id !== id));
+    setSelectedId((cur) => (cur === id ? null : cur));
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -44,8 +117,10 @@ export function AtlasShell() {
   }, []);
 
   return (
-    <div className="atlas absolute inset-0 overflow-hidden" data-testid="atlas" data-scale={scale} data-hidden={hidden}>
+    <div className="atlas absolute inset-0 overflow-hidden" data-testid="atlas" data-scale={scale} data-hidden={hidden} data-placing={placing}>
+      <h1 className="sr-only">LunaScope Atlas: the lunar south pole</h1>
       <ExploreLoader bleed onReady={onReady} />
+      <PinLayer scene={scene} sites={sites} selectedId={selectedId} onSelect={select} />
 
       <p role="status" className="sr-only">
         {hidden ? "Interface hidden. Press H to show it." : ""}
@@ -57,13 +132,55 @@ export function AtlasShell() {
       )}
 
       {!hidden && (
-        <div className="pointer-events-none absolute inset-0 flex flex-col gap-3 p-3 [&>*]:pointer-events-auto">
-          <TopBar scale={scale} onScale={setScale} open={open} onTogglePanel={toggle} onView={onView} />
+        <div className="pointer-events-none absolute inset-0 flex flex-col gap-3 p-3">
+          {/* only the instruments take the mouse; everything between them is the globe (drag, zoom, click a pin) */}
+          <div className="pointer-events-auto">
+            <TopBar
+              scale={scale}
+              onScale={setScale}
+              open={open}
+              onTogglePanel={toggle}
+              onView={onView}
+              placing={placing}
+              onTogglePlacing={() => setPlacing((p) => !p)}
+            />
+          </div>
 
-          <div className="flex min-h-0 flex-1 items-start justify-between gap-3">
-            <div className="min-w-0" />
+          <div className="pointer-events-none flex min-h-0 flex-1 items-start justify-between gap-3">
+            <div className="pointer-events-none flex h-full min-h-0 w-[min(24rem,100%)] flex-col gap-3 [&>*]:pointer-events-auto">
+              {open.includes("sites") && (
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <SitesPanel
+                    catalog={catalog}
+                    sites={sites}
+                    selectedId={selectedId}
+                    onSelect={select}
+                    onAddPoint={addCustom}
+                    customCount={customs.length}
+                    onClose={() => toggle("sites")}
+                  />
+                </div>
+              )}
+              {selected && (
+                <div className="flex max-h-[58%] shrink-0 flex-col">
+                  <SelectedSitePanel
+                    key={selected.id}
+                    site={selected}
+                    onCentre={() => scene?.flyToSite(selected.latDeg, selected.lonEastDeg)}
+                    onReset={() => scene?.fly("south-pole")}
+                    onRemove={selected.kind === "custom" ? () => removeCustom(selected.id) : undefined}
+                    onClose={() => setSelectedId(null)}
+                  />
+                </div>
+              )}
+            </div>
             <div className="pointer-events-none flex h-full min-h-0 w-[min(26rem,100%)] flex-col items-end gap-3">
               <Readout scaleLabel={SCALE_LABEL[scale]} timeLabel="NO RUN LOADED" />
+              {placing && (
+                <p role="status" className="atlas-panel atlas-label pointer-events-auto px-3 py-2 text-[var(--ink)]">
+                  Click the Moon to place a point · latitude −90 to −80
+                </p>
+              )}
               {open.includes("learn") && (
                 <div className="pointer-events-auto flex min-h-0 w-full flex-1 flex-col">
                   <LearnPanel onClose={() => toggle("learn")} />
@@ -72,7 +189,9 @@ export function AtlasShell() {
             </div>
           </div>
 
-          <TimeDock />
+          <div className="pointer-events-auto">
+            <TimeDock />
+          </div>
         </div>
       )}
     </div>

@@ -364,3 +364,22 @@ Open **Analyse**, choose a window and sites (or place a point on the Moon), pres
 | D4 | System scale | Build only if the service can supply the geometry; otherwise cut |
 | D5 | Moon Trek imagery terms | The owner confirms before this ships |
 | D6 | Old routes | Redirect to the Atlas (keeps old links and tests working) |
+
+---
+
+## 15. Build record
+
+### Phase A (foundations), done
+`app/atlas.css` (scoped `.atlas` tokens, labels, panel, tags, pins), Tag, Panel, Readout, TopBar, TimeDock and Learn components, `/atlas`, and the E1 viewer in full-bleed mode. Contrast guarded by `tests/web/atlas-tokens.test.ts`.
+
+### Phase B (landing), done
+`/` is the Moon (three.js sphere with the bundled NASA surface picture, illustrative lighting), the wordmark and one Enter button; the idea, rules, limits and saved runs sit below. The data-status pill is on the first screen. Routes now live in two groups: `app/(shell)` (sidebar shell, analysis pages) and `app/(bare)` (landing and Atlas, full screen). The folder decides the layout; nothing reads the URL at runtime, which `cacheComponents` would reject on `/runs/[runId]`.
+Production cost measured: landing JS 430 KB and images 459 KB (budgets raised from 300 KB and 120 KB to 560 KB and 600 KB, with the reason in `perf-budget.spec.ts`); Atlas JS 1,710 KB (CesiumJS, this route only).
+
+### Phase C (sites), done
+- Pins for every catalog site, drawn as real focusable buttons over the globe; positions are written per frame; a pin the Moon hides is hidden; labels are decluttered so none overlaps another, with the selected site always labelled (`lib/atlas/sites.ts`, `PinLayer`).
+- Ring style carries terrain coverage (solid: whole 150 km footprint covered; dashed: partly outside or not checked). Unknown coverage is shown as unknown.
+- **Sites** panel (search, groups, add a point by coordinates) is the keyboard route to everything the pins do. **Selected site** panel shows coordinates, feature, precision, coverage, source and an **Analyse this site** link that fills the analysis form (inputs only, nothing is started).
+- **Place a point**: a click on the Moon (latitude -90 to -80) is checked by `POST /sites/custom`; a refusal or an unreachable service is said in words and no point is invented. The precision of a hand-placed point (1,000 m) is a stated assumption.
+- Fixed: the overlay layer was catching the mouse, so the globe could not be dragged or clicked between instruments. Only the top bar, panels and dock take the mouse now.
+- Not in this phase: Sun and Earth results for a selected site, the clock, Enter site sky (all need a run; phases D to F).

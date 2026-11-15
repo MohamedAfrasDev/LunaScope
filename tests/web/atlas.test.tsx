@@ -56,7 +56,7 @@ describe("Panel", () => {
 });
 
 describe("TopBar", () => {
-  const base = { scale: "moon" as const, onScale: vi.fn(), open: [] as "learn"[], onTogglePanel: vi.fn(), onView: vi.fn() };
+  const base = { scale: "moon" as const, onScale: vi.fn(), open: [] as ("learn" | "sites")[], onTogglePanel: vi.fn(), onView: vi.fn(), placing: false, onTogglePlacing: vi.fn() };
 
   it("marks the current scale, and disables the scales that are not built yet, saying so", () => {
     render(<TopBar {...base} />);
@@ -76,6 +76,16 @@ describe("TopBar", () => {
     expect(base.onView).toHaveBeenCalledWith("south-pole");
     fireEvent.click(screen.getByRole("button", { name: "Whole Moon" }));
     expect(base.onView).toHaveBeenCalledWith("moon");
+  });
+
+  it("has a Place a point toggle that shows when it is on", () => {
+    const { rerender } = render(<TopBar {...base} />);
+    const b = screen.getByRole("button", { name: "Place a point" });
+    expect(b).toHaveAttribute("aria-pressed", "false");
+    fireEvent.click(b);
+    expect(base.onTogglePlacing).toHaveBeenCalledOnce();
+    rerender(<TopBar {...base} placing />);
+    expect(screen.getByRole("button", { name: "Place a point" })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("reflects an open panel in aria-pressed", () => {

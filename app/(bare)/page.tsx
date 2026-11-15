@@ -4,7 +4,7 @@ import { LandingHero } from "@/components/landing/LandingHero";
 import { ReferenceMissionButton } from "@/components/ReferenceMissionButton";
 import { ReferenceRunCard } from "@/components/ReferenceRunCard";
 
-const linkClass = "text-[var(--ink)] underline underline-offset-4 hover:text-[var(--ink-dim)]";
+const linkClass = "tap inline-flex items-center text-[var(--ink)] underline underline-offset-4 hover:text-[var(--ink-dim)]";
 
 /**
  * The landing (docs/redesign/LAYOUT-SPEC.md, 6.1): the Moon, a wordmark and one button on the first screen; the idea, the

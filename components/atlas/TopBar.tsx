@@ -6,7 +6,7 @@ import { openCommandPalette } from "@/components/shell/CommandPalette";
 import { VIEWS, type ViewName } from "@/lib/explore/geometry";
 
 export type Scale = "moon" | "system" | "sky";
-export type PanelId = "learn";
+export type PanelId = "learn" | "sites";
 
 const SCALES: { id: Scale; label: string; ready: boolean; note: string }[] = [
   { id: "moon", label: "Moon", ready: true, note: "" },
@@ -14,7 +14,10 @@ const SCALES: { id: Scale; label: string; ready: boolean; note: string }[] = [
   { id: "sky", label: "Site sky", ready: false, note: "Arrives in a later phase" },
 ];
 
-const PANELS: { id: PanelId; label: string }[] = [{ id: "learn", label: "Learn" }];
+const PANELS: { id: PanelId; label: string }[] = [
+  { id: "sites", label: "Sites" },
+  { id: "learn", label: "Learn" },
+];
 
 /** The Atlas top bar (spec 4): brand, scale, panels, view shortcuts and search. Scales that are not built yet are disabled and say so. */
 export function TopBar({
@@ -23,12 +26,16 @@ export function TopBar({
   open,
   onTogglePanel,
   onView,
+  placing,
+  onTogglePlacing,
 }: {
   scale: Scale;
   onScale: (s: Scale) => void;
   open: PanelId[];
   onTogglePanel: (p: PanelId) => void;
   onView: (v: ViewName) => void;
+  placing: boolean;
+  onTogglePlacing: () => void;
 }) {
   return (
     <nav aria-label="Atlas" className="atlas-panel flex flex-wrap items-center gap-x-1 gap-y-1 px-2 py-1.5">
@@ -67,6 +74,9 @@ export function TopBar({
             {VIEWS[v].label}
           </button>
         ))}
+        <button type="button" className="atlas-key atlas-label" aria-pressed={placing} onClick={onTogglePlacing}>
+          Place a point
+        </button>
       </div>
 
       <button
