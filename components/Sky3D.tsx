@@ -23,8 +23,10 @@ import type { Track } from "./SkyPlots";
 export type Track3D = Pick<Track, "target" | "series" | "intervals">;
 import { targetLabel } from "@/lib/format";
 import { readSkyPalette, useColorScheme } from "@/lib/sky-palette";
-import { PHOTO_LOOK } from "@/lib/atlas/sky-look";
-import { earthCanvas, glowCanvas, regolithCanvas } from "@/lib/atlas/textures";
+import { EARTH_IMAGE, PHOTO_LOOK, SUN_IMAGE } from "@/lib/atlas/sky-look";
+import { subLunarPoint, sphereDirection } from "@/lib/atlas/earth-orient";
+import { buildTerrainMesh, decodeHeights, shadeColors, sunVector, type TerrainPatch } from "@/lib/atlas/terrain";
+import { discFromImage, earthCanvas, glowCanvas, hillsideCanvas, regolithCanvas } from "@/lib/atlas/textures";
 
 /**
  * A 3D look at the same sky: the terrain skyline as a wall around the observer, the Sun's and Earth's paths over it,
@@ -47,8 +49,10 @@ interface Handles {
 /** What a host (the Atlas) can ask of the view. */
 export type Sky3DHandle = { faceTarget: (target: string) => void; face: (yawDeg: number, pitchDeg?: number) => void };
 
-export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode: modeProp, exaggeration, showPaths, showLander = true, onReady, onView }: {
+export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode: modeProp, exaggeration, showPaths, showLander = true, utcMs, terrain = null, onReady, onView }: {
   profile: HorizonProfileResponse;
+  /** Atlas only: real heights around the site, drawn as the ground you stand on (an illustration of the DEM). */
+  terrain?: TerrainPatch | null;
   tracks: Track3D[]; // keep this array stable: the scene is rebuilt when it changes
   t: number;
   siteName: string;
@@ -61,6 +65,8 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
   showPaths?: Partial<Record<string, boolean>>;
   /** Atlas only: the generic lander model (an illustration). */
   showLander?: boolean;
+  /** Atlas only: the absolute UTC time of the clock, which turns the Earth to the side that faces the Moon. */
+  utcMs?: number;
   onReady?: (h: Sky3DHandle) => void;
   /** Where the view is looking (degrees), on every drawn frame. */
   onView?: (yawDeg: number, pitchDeg: number) => void;
@@ -80,7 +86,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
   const scheme = useColorScheme(); // rebuild the scene when the system theme changes
   const handles = useRef<Handles | null>(null);
   const view = useRef({ yaw: 0, pitch: 4, fov: 70, dist: 30 });
-  const live = useRef({ tracks, t, k, mode, lander: showLander, paths: { sun_center: sunPath, earth_center: earthPath } as Record<string, boolean> });
+  const live = useRef({ tracks, t, k, mode, lander: showLander, utc: utcMs ?? null, paths: { sun_center: sunPath, earth_center: earthPath } as Record<string, boolean> });
 
   const cursor = useMemo(() => tracks.map((x) => ({ target: x.target, ...interpAzEl(x.series, t), cls: (classAt(x.intervals, t) ?? "none") as IntervalClass | "none" })), [tracks, t]);
   const label = describeScene({
@@ -90,9 +96,9 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
 
   // The scene reads the latest props through this ref; it is updated in an effect, before any frame is drawn.
   useEffect(() => {
-    live.current = { tracks, t, k, mode, lander: showLander, paths: { sun_center: sunPath, earth_center: earthPath } };
+    live.current = { tracks, t, k, mode, lander: showLander, utc: utcMs ?? null, paths: { sun_center: sunPath, earth_center: earthPath } };
     handles.current?.render();
-  }, [tracks, t, k, mode, sunPath, earthPath, showLander]);
+  }, [tracks, t, k, mode, sunPath, earthPath, showLander, utcMs]);
 
   const faceTarget = useCallback((target: string) => {
     const c = live.current.tracks.find((x) => x.target === target);
@@ -157,28 +163,67 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
         regTex.anisotropy = 8;
         disposables.push(regTex);
       }
+      const hillside = photo ? hillsideCanvas(512, 256) : null;
+      const hillTex = hillside ? new THREE.CanvasTexture(hillside) : null;
+      if (hillTex) {
+        hillTex.wrapS = hillTex.wrapT = THREE.RepeatWrapping;
+        hillTex.colorSpace = THREE.SRGBColorSpace;
+        hillTex.anisotropy = 8;
+        disposables.push(hillTex);
+      }
       const ground = new THREE.CircleGeometry(R_WALL, 96);
       ground.rotateX(-Math.PI / 2);
       if (regTex) {
-        // planar texture coordinates: the picture repeats every 6 units
+        // planar texture coordinates: the picture repeats every 3 units
         const gp = ground.getAttribute("position");
         const uv = new Float32Array(gp.count * 2);
         for (let q = 0; q < gp.count; q++) {
-          uv[q * 2] = gp.getX(q) / 6;
-          uv[q * 2 + 1] = gp.getZ(q) / 6;
+          uv[q * 2] = gp.getX(q) / 3;
+          uv[q * 2 + 1] = gp.getZ(q) / 3;
         }
         ground.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
       }
       const groundMat = new THREE.MeshBasicMaterial(regTex ? { map: regTex, side: THREE.DoubleSide } : { color: pal.ground, side: THREE.DoubleSide });
-      add(new THREE.Mesh(ground, groundMat));
+      const groundMesh = add(new THREE.Mesh(ground, groundMat));
       disposables.push(ground, groundMat);
+
+      // real ground: the DEM around the site as a mesh, shaded by how each patch faces the Sun (no cast shadows)
+      let shade: ((sunAz: number, sunEl: number, direct: number) => void) | null = null;
+      if (photo && terrain) {
+        try {
+          const heights = decodeHeights(terrain);
+          const mesh = buildTerrainMesh(heights, terrain.size, terrain.step_m, terrain.radius_km, terrain.reference_radius_m, k);
+          const tg = new THREE.BufferGeometry();
+          tg.setAttribute("position", new THREE.BufferAttribute(mesh.positions, 3));
+          tg.setAttribute("uv", new THREE.BufferAttribute(mesh.uvs, 2));
+          tg.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
+          tg.computeVertexNormals();
+          const colors = new Float32Array(mesh.positions.length);
+          tg.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+          const tm = new THREE.MeshBasicMaterial({ ...(regTex ? { map: regTex } : {}), vertexColors: true, side: THREE.DoubleSide });
+          add(new THREE.Mesh(tg, tm));
+          disposables.push(tg, tm);
+          groundMesh.position.y = mesh.minY - 0.05; // the flat disc stays only under holes
+          const normals = tg.getAttribute("normal").array;
+          let last = "";
+          shade = (az, el, direct) => {
+            const key = `${az.toFixed(1)}/${el.toFixed(1)}/${direct}`;
+            if (key === last) return;
+            last = key;
+            shadeColors(normals, sunVector(az, el), direct, colors);
+            tg.getAttribute("color").needsUpdate = true;
+          };
+        } catch {
+          shade = null; // a damaged patch is not drawn; the skyline wall stands alone
+        }
+      }
 
       const wall = skylineWall(profile.azimuth_deg, profile.horizon_el_deg, R_WALL, FLOOR_EL, k);
       const wallGeo = new THREE.BufferGeometry();
       wallGeo.setAttribute("position", new THREE.BufferAttribute(wall.positions, 3));
       wallGeo.setIndex(new THREE.BufferAttribute(wall.indices, 1));
-      if (regTex) wallGeo.setAttribute("uv", new THREE.BufferAttribute(skylineWallUv(profile.azimuth_deg, profile.horizon_el_deg, 10, 0.3), 2));
-      const wallMat = new THREE.MeshBasicMaterial({ ...(regTex ? { map: regTex, color: PHOTO_LOOK.wall } : { color: pal.wall }), side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+      if (hillTex) wallGeo.setAttribute("uv", new THREE.BufferAttribute(skylineWallUv(profile.azimuth_deg, profile.horizon_el_deg, 6, 0.18), 2));
+      const wallMat = new THREE.MeshBasicMaterial({ ...(hillTex ? { map: hillTex, color: PHOTO_LOOK.wall } : { color: pal.wall }), side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
       add(new THREE.Mesh(wallGeo, wallMat));
       disposables.push(wallGeo, wallMat);
 
@@ -254,7 +299,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
 
       // markers. Diagram view: a solid body (hidden behind terrain by the depth test) plus a faint ghost that is always drawn.
       // Atlas view: a glowing Sun and an Earth globe whose phase follows the Sun, both hidden by the terrain, with no labels.
-      type Marker = { body: THREE_NS.Object3D; ghost: THREE_NS.Object3D | null; tag: THREE_NS.Object3D | null };
+      type Marker = { body: THREE_NS.Object3D; ghost: THREE_NS.Object3D | null; tag: THREE_NS.Object3D | null; globe?: THREE_NS.Object3D };
       const markers = new Map<string, Marker>();
       let earthLight: THREE_NS.DirectionalLight | null = null;
       if (photo) {
@@ -267,7 +312,28 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
           const group = new THREE.Group();
           const coreGeo = new THREE.SphereGeometry(0.2, 24, 16);
           const coreMat = new THREE.MeshBasicMaterial({ color: PHOTO_LOOK.sunCore });
-          group.add(new THREE.Mesh(coreGeo, coreMat));
+          const core = new THREE.Mesh(coreGeo, coreMat);
+          group.add(core);
+          // the real Sun: a NASA SDO photograph, cut to its disc, replaces the plain core once it has loaded
+          const discMat = new THREE.SpriteMaterial({ transparent: true, depthWrite: false, visible: false });
+          const disc = new THREE.Sprite(discMat);
+          disc.scale.set(0.62, 0.62, 1);
+          group.add(disc);
+          const sunImg = new Image();
+          sunImg.onload = () => {
+            const dc = !cancelled ? discFromImage(sunImg) : null;
+            if (!dc) return;
+            const tex = new THREE.CanvasTexture(dc);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            discMat.map = tex;
+            discMat.visible = true;
+            discMat.needsUpdate = true;
+            core.visible = false;
+            disposables.push(tex);
+            request();
+          };
+          sunImg.src = SUN_IMAGE;
+          disposables.push(discMat);
           const glowTex = new THREE.CanvasTexture(glowCanvas(256, "rgba(255,250,235,1)", "rgba(255,196,110,0.45)") ?? document.createElement("canvas"));
           const glowMat = new THREE.SpriteMaterial({ map: glowTex, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false });
           const glow = new THREE.Sprite(glowMat);
@@ -282,7 +348,16 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
           const geo = new THREE.SphereGeometry(0.5, 48, 32);
           const mat = new THREE.MeshStandardMaterial({ map: earthTex, roughness: 0.9, metalness: 0 });
           const globe = new THREE.Mesh(geo, mat);
-          globe.rotation.set(0.35, 1.2, 0.2);
+          // the real Earth: NASA Blue Marble replaces the drawn globe once it has loaded
+          new THREE.TextureLoader().load(EARTH_IMAGE, (tex) => {
+            if (cancelled) return tex.dispose();
+            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.anisotropy = 8;
+            mat.map = tex;
+            mat.needsUpdate = true;
+            disposables.push(tex);
+            request();
+          });
           const haloTex = new THREE.CanvasTexture(glowCanvas(128, "rgba(120,170,255,0.0)", "rgba(110,170,255,0.28)") ?? document.createElement("canvas"));
           const haloMat = new THREE.SpriteMaterial({ map: haloTex, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false });
           const halo = new THREE.Sprite(haloMat);
@@ -291,7 +366,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
           group.add(halo);
           group.add(globe);
           add(group);
-          markers.set(tr.target, { body: group, ghost: null, tag: null });
+          markers.set(tr.target, { body: group, ghost: null, tag: null, globe });
           disposables.push(earthTex, geo, mat, haloTex, haloMat);
         } else {
           const geo = tr.target === "sun_center" ? new THREE.SphereGeometry(0.34, 24, 16) : new THREE.OctahedronGeometry(0.42);
@@ -353,6 +428,19 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
 
       let raf = 0;
       let frames = 0;
+      // turn the globe so the side that faces the Moon at this UTC time faces the observer (display only, about half a degree)
+      const orientEarth = (globe: THREE_NS.Object3D, pos: [number, number, number], utc: number) => {
+        const f = new THREE.Vector3(-pos[0], -pos[1], -pos[2]).normalize(); // from the globe toward the observer
+        const sp = subLunarPoint(utc);
+        const [lx, ly, lz] = sphereDirection(sp.latDeg, sp.lonDeg);
+        const q1 = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(lx, ly, lz), f);
+        const flat = (v: THREE_NS.Vector3) => v.clone().sub(f.clone().multiplyScalar(v.dot(f))).normalize();
+        const n1 = flat(new THREE.Vector3(0, 1, 0).applyQuaternion(q1)); // Earth's north, as the first turn leaves it
+        const up = flat(Math.abs(f.y) > 0.999 ? new THREE.Vector3(0, 0, -1) : new THREE.Vector3(0, 1, 0)); // north up in the sky
+        const roll = Math.atan2(n1.clone().cross(up).dot(f), n1.dot(up));
+        globe.quaternion.copy(new THREE.Quaternion().setFromAxisAngle(f, roll).multiply(q1));
+        el.setAttribute("data-earth-sublunar", `${sp.latDeg.toFixed(1)},${sp.lonDeg.toFixed(1)}`); // which side of the Earth faces the Moon now
+      };
       const placeMarkers = () => {
         let sunPos: [number, number, number] | null = null;
         for (const tr of live.current.tracks) {
@@ -363,7 +451,11 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
           m.body.position.set(x, y, z);
           m.ghost?.position.set(x, y, z);
           m.tag?.position.set(x, y + 0.95, z);
-          if (tr.target === "sun_center") sunPos = [x, y, z];
+          if (tr.target === "sun_center") {
+            sunPos = [x, y, z];
+            shade?.(p.az, p.el, classAt(tr.intervals, live.current.t) === "V" ? 1 : 0);
+          }
+          if (m.globe && live.current.utc != null) orientEarth(m.globe, [x, y, z], live.current.utc);
         }
         if (earthLight) {
           // the globe is lit from the side of the Sun, so its phase is whatever the Sun and Earth directions make it
@@ -486,7 +578,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
       cancelled = true;
       cleanup?.();
     };
-  }, [profile, tracks, k, scheme, bleed]);
+  }, [profile, tracks, k, scheme, bleed, terrain]);
 
   const btn = "rounded-md border border-border px-2.5 py-1 text-sm transition-colors hover:border-input hover:bg-muted";
   if (ok === false && bleed)

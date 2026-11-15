@@ -61,8 +61,8 @@ export function MissionWindowPanel({
       </dl>
       <p className="atlas-prose flex flex-wrap items-center gap-2 text-xs text-[var(--ink-dim)]" data-testid="sky-illustration-note">
         <Tag kind="illustration" />
-        The ground, the Earth&apos;s surface and the lander are drawn, not photographed. The Sun and Earth are enlarged, and the Earth&apos;s phase
-        follows the angle between the Sun and Earth directions the service returned.
+        The ground and the lander are drawn, not photographed. The Earth is NASA&apos;s Blue Marble picture, turned to the side that faces the Moon at
+        this time (an estimate), lit from the Sun&apos;s side; the Sun is a NASA SDO photograph. Both are enlarged. Credit: NASA/GSFC SVS and NASA/SDO (HMI).
       </p>
       <p className="atlas-prose text-xs text-[var(--ink-dim)]">
         States are the service&apos;s classification at the clock time (terrain-aware). Sunlight and Earth visibility are judged separately.

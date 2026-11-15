@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import type { Sky3DHandle } from "@/components/Sky3D";
 import { LearnPanel } from "@/components/atlas/LearnPanel";
 import { MissionWindowPanel } from "@/components/atlas/MissionWindowPanel";
-import { SiteSky, type SkyLook } from "@/components/atlas/SiteSky";
+import { SiteSky } from "@/components/atlas/SiteSky";
 import { SkyControls } from "@/components/atlas/SkyControls";
 import { PinLayer } from "@/components/atlas/PinLayer";
 import { Readout } from "@/components/atlas/Readout";
@@ -22,10 +22,12 @@ import { RunsPanel } from "@/components/atlas/RunsPanel";
 import { analyseDraft } from "@/components/atlas/SelectedSitePanel";
 import { RIGHT_PANELS, TopBar, WIDE_PANELS, type PanelId, type Scale } from "@/components/atlas/TopBar";
 import { useHorizon } from "@/components/atlas/useHorizon";
+import { useTerrainPatch } from "@/components/atlas/useTerrainPatch";
 import { useCatalog } from "@/components/atlas/useCatalog";
 import { PHONE_QUERY, useMediaQuery } from "@/components/atlas/useMediaQuery";
 import { useClock } from "@/components/atlas/useClock";
 import { useRun } from "@/components/atlas/useRun";
+import { useRunRequest, useSiteRuns } from "@/components/atlas/useSiteRuns";
 import { AnalyzeForm } from "@/components/AnalyzeForm";
 import { EvidencePanel } from "@/components/EvidencePanel";
 import { TimeMachineView } from "@/components/TimeMachineView";
@@ -39,6 +41,7 @@ import type { CustomSiteCheck } from "@/lib/api/types";
 import { fromCustomCheck, inTerrainData, MAX_CUSTOM_POINTS, type AtlasSite } from "@/lib/atlas/sites";
 import { utcLabel } from "@/lib/atlas/clock";
 import { cursorAt, eventScopeWords, eventTimesFor } from "@/lib/atlas/run";
+import { mergeRuns, runIdFor, serviceSiteId } from "@/lib/atlas/site-run";
 import { skyScaleLabel } from "@/lib/atlas/sky";
 import { shortId, siteLabel as nameOfSite } from "@/lib/format";
 import type { ViewName } from "@/lib/explore/geometry";
@@ -65,7 +68,11 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
   const phone = useMediaQuery(PHONE_QUERY);
   const [target, setTarget] = useState<RunTarget>(() => targetFromSearch(initialSearch));
   const runLoad = useRun(target);
-  const runData = runLoad.status === "ready" ? runLoad.run : null;
+  // the loaded run, and the sites computed separately for places it does not hold, merged into one view
+  const baseRun = runLoad.status === "ready" ? runLoad.run : null;
+  const baseRequest = useRunRequest(baseRun?.runId ?? null);
+  const siteRuns = useSiteRuns(baseRun?.runId ?? null, baseRun?.window ?? null, baseRequest);
+  const runData = useMemo(() => (baseRun ? mergeRuns(baseRun, siteRuns.extras) : null), [baseRun, siteRuns.extras]);
   const { clock, actions, reducedMotion } = useClock(runData?.window ?? null);
   const [scale, setScale] = useState<Scale>("moon");
   // a link carrying analysis inputs (the classic share link) opens the Analyse panel with them filled in
@@ -82,7 +89,6 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
   const [customs, setCustoms] = useState<AtlasSite[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [placing, setPlacing] = useState(false);
-  const [skyLook, setSkyLook] = useState<SkyLook>("look");
   const [skyK, setSkyK] = useState(1);
   const [skyPaths, setSkyPaths] = useState({ sun_center: true, earth_center: true });
   const [skyYaw, setSkyYaw] = useState(0);
@@ -100,16 +106,16 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
       const pct = runLoad.progress == null ? "" : ` ${Math.round(runLoad.progress * 100)}%`;
       return { kind: "loading", text: `Loading the reference run · ${runLoad.stage}${pct}` };
     }
-    if (runLoad.status === "error") return { kind: "error", text: `No run loaded · ${runLoad.message}` };
+    if (runLoad.status === "error") return { kind: "error", text: `No run loaded · ${runLoad.message}`, retry: runLoad.retry };
     return {
       kind: "ready",
       window: runLoad.run.window,
-      events: eventTimesFor(runLoad.run, selectedId),
-      eventScope: eventScopeWords(runLoad.run, selectedId),
+      events: eventTimesFor(runData ?? runLoad.run, selectedId),
+      eventScope: eventScopeWords(runData ?? runLoad.run, selectedId),
       label: runLoad.reference ?? shortId(runLoad.run.runId),
       synthetic: runLoad.run.resultState === "synthetic_demonstration",
     };
-  }, [runLoad, selectedId]);
+  }, [runLoad, runData, selectedId]);
 
   const tracks = runData && selectedId ? (runData.sites[selectedId] ?? null) : null;
   const rightOpen = RIGHT_PANELS.find((p) => open.includes(p)) ?? null;
@@ -120,7 +126,8 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
   // losing the site (deselected, or not in the run) leaves Site sky for good, so selecting again does not jump back into it
   if (scale === "sky" && !skyReady) setScale("moon");
   const needHorizon = !!tracks && (open.includes("clearance") || open.includes("sky-path") || inSky);
-  const horizon = useHorizon(runData?.runId ?? null, selectedId, needHorizon);
+  const terrain = useTerrainPatch(selected?.latDeg ?? null, selected?.lonEastDeg ?? null, inSky);
+  const horizon = useHorizon(runData && selectedId ? runIdFor(runData, selectedId) : null, runData && selectedId ? serviceSiteId(runData, selectedId) : null, needHorizon);
   const readings = runData && selectedId ? cursorAt(runData, selectedId, clock.t) : null;
 
   /** Why a site panel has nothing to show: no run, no site, or a site the run does not hold. */
@@ -132,7 +139,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
           ? `The run could not be loaded, so nothing is shown. ${runLoad.message}`
           : !selected
             ? "Select a site (a pin on the Moon, or the Sites list) to see its results."
-            : `${selected.label} is not in the loaded run (${runLabel ?? "this run"}), so there is nothing to show for it. Use Analyse this site to compute it.`;
+            : `${selected.label} is not in the loaded run (${runLabel ?? "this run"}), so there is nothing to show for it yet. Press Compute sky for this site on its card.`;
     return (
       <Panel title={title} onClose={onClose} focused>
         <p role="status" className="atlas-prose text-sm text-[var(--ink-dim)]">
@@ -146,10 +153,10 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
     if (runLoad.status === "loading") return { kind: "loading" };
     if (runLoad.status === "error") return { kind: "error", text: runLoad.message };
     if (!selectedId) return { kind: "none" };
-    const readings = cursorAt(runLoad.run, selectedId, clock.t);
+    const readings = cursorAt(runData ?? runLoad.run, selectedId, clock.t);
     if (!readings) return { kind: "not-in-run", runLabel: runLabel ?? "this run" };
     return { kind: "ready", timeLabel: utcLabel(runLoad.run.window, clock.t), runLabel: runLabel ?? "", readings };
-  }, [runLoad, selectedId, clock.t, runLabel]);
+  }, [runLoad, runData, selectedId, clock.t, runLabel]);
 
   /** Load another run into the Atlas, and keep the address in step so the view can be shared. */
   const chooseRun = useCallback((t: RunTarget) => {
@@ -172,6 +179,11 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
     rememberRun({ id: readyRunId, label: ids.length > 1 ? `${nameOfSite(ids[0])} and ${ids.length - 1} more` : nameOfSite(ids[0]), state: readyState, sites: ids });
   }, [readyRunId, readyState, readySites]);
 
+  // the Moon is lit by the Sun at the clock's time (the run's start until a run is loaded, otherwise the present)
+  const sunMs = runData ? runData.window.startMs + clock.t * 1000 : null;
+  useEffect(() => {
+    scene?.setSunTime(sunMs ?? Date.now());
+  }, [scene, sunMs]);
   const onReady = useCallback((h: SceneHandle) => setScene(h), []);
   const onSkyReady = useCallback((h: Sky3DHandle) => {
     skyHandle.current = h;
@@ -310,6 +322,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
                     onRemove={selected.kind === "custom" ? () => removeCustom(selected.id) : undefined}
                     onClose={() => setSelectedId(null)}
                     onEnterSky={tracks ? () => setScale("sky") : undefined}
+                    compute={!tracks ? { canStart: siteRuns.canCompute, state: siteRuns.states[selected.id], onStart: () => siteRuns.compute(selected) } : undefined}
                     onAnalyse={() => {
                       setAnalyseSeed((cur) => ({ draft: analyseDraft(selected), n: (cur?.n ?? 0) + 1 }));
                       setOpen((o) => [...o.filter((x) => !RIGHT_PANELS.includes(x)), "analyse"]);
@@ -390,10 +403,10 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
                       </Panel>
                     ))}
                   {rightOpen === "compare" &&
-                    (runData && Object.keys(runData.sites).length >= 2 ? (
+                    (baseRun && Object.keys(baseRun.sites).length >= 2 ? (
                       <ComparePanel
-                        runId={runData.runId}
-                        siteIds={Object.keys(runData.sites)}
+                        runId={baseRun.runId}
+                        siteIds={Object.keys(baseRun.sites)}
                         nameOf={(id) => sites.find((s) => s.id === id)?.label ?? id}
                         onClose={() => toggle("compare")}
                       />
@@ -419,9 +432,10 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
           siteName={selected.label}
           tracks={tracks}
           horizon={horizon}
+          terrain={terrain}
           window={runData.window}
           t={clock.t}
-          look={skyLook}
+          look="look"
           exaggeration={skyK}
           paths={skyPaths}
           lander={skyLander}
@@ -460,8 +474,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
           {inSky && (
             <div className="pointer-events-auto">
               <SkyControls
-                look={skyLook}
-                onLook={setSkyLook}
+                look="look"
                 exaggeration={skyK}
                 onExaggeration={setSkyK}
                 paths={skyPaths}

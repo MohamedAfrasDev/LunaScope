@@ -103,7 +103,7 @@ describe("SkyControls", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Elevation angles are exaggerated ×3 for legibility. Azimuths and the data are unchanged.");
   });
 
-  it("switches between looking around and viewing from outside, and shows where the view points", () => {
+  it("switches between looking around and viewing from outside when asked to offer both, and shows where the view points", () => {
     const p = base();
     render(<SkyControls {...p} />);
     expect(screen.getByRole("button", { name: "Look around" })).toHaveAttribute("aria-pressed", "true");
@@ -124,6 +124,15 @@ describe("SkyControls", () => {
     expect(onLander).toHaveBeenCalledWith(false);
     rerender(<SkyControls {...props} lander={false} onLander={onLander} />);
     expect(screen.getByRole("button", { name: "Lander" })).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("leaves out the look buttons when none are wanted (the Atlas stands you on the surface)", () => {
+    const { onLook: _unused, ...rest } = base();
+    void _unused;
+    render(<SkyControls {...rest} />);
+    expect(screen.queryByRole("button", { name: "From outside" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Look around" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Face the Sun" })).toBeInTheDocument();
   });
 
   it("offers only the targets the site has", () => {
@@ -169,7 +178,7 @@ describe("MissionWindowPanel", () => {
     expect(region).toHaveTextContent("Whole window: 50.00–52.00% (needs at least 60%)");
     expect(region).toHaveTextContent("Whole window: 100.00% (needs at least 60%)");
     expect(region).toHaveTextContent(/judged separately/);
-    expect(screen.getByTestId("sky-illustration-note")).toHaveTextContent(/ILLUSTRATION.*lander are drawn, not photographed.*Sun and Earth are enlarged/);
+    expect(screen.getByTestId("sky-illustration-note")).toHaveTextContent(/ILLUSTRATION.*lander are drawn, not photographed.*Blue Marble.*SDO photograph.*Both are enlarged.*NASA\/GSFC SVS and NASA\/SDO/);
     expect(region).not.toHaveTextContent(/both visible/i); // no combined figure
   });
 });

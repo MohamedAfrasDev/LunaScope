@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Panel } from "@/components/atlas/Panel";
 import { Tag } from "@/components/atlas/Tag";
+import type { SiteRunState } from "@/components/atlas/useSiteRuns";
 import type { CursorReading } from "@/lib/atlas/run";
 import { INTERVAL } from "@/lib/status";
 import { encodeShare, referenceDraft, SHARE_PARAM, type Draft } from "@/lib/draft";
@@ -51,6 +52,40 @@ export type SiteCursor =
 
 const TARGET_WORDS = { sun_center: "Sun", earth_center: "Earth" } as const;
 
+/** Compute the Sun and Earth paths for a point the loaded run does not hold. Progress and failure are said in words. */
+function ComputeBlock({ compute }: { compute: NonNullable<Parameters<typeof SelectedSitePanel>[0]["compute"]> }) {
+  const st = compute.state;
+  const running = st?.status === "loading";
+  return (
+    <section aria-label="Compute sky for this site" className="space-y-2 border border-[var(--panel-edge)] p-3" data-testid="compute-block">
+      <p className="atlas-prose text-xs text-[var(--ink-dim)]">
+        The science service can compute this point&apos;s Sun and Earth paths for the same window and settings as the loaded run. It starts a
+        one-site run, which can take from seconds to minutes. Then Timeline, Metrics, Clearance, Sky path and Site sky work for it.
+      </p>
+      {running && (
+        <p role="status" className="atlas-label text-[var(--ink)]" data-testid="compute-status">
+          Computing · {st.stage}
+          {st.progress != null ? ` ${Math.round(st.progress * 100)}%` : ""}
+        </p>
+      )}
+      {st?.status === "error" && (
+        <p role="alert" className="atlas-prose text-sm text-[var(--fail)]">
+          {st.message}
+        </p>
+      )}
+      <button
+        type="button"
+        className="atlas-key atlas-label border-[var(--panel-edge)]"
+        disabled={!compute.canStart || running}
+        title={compute.canStart ? undefined : "Needs a loaded run whose settings the service returned"}
+        onClick={compute.onStart}
+      >
+        {running ? "Computing…" : st?.status === "error" ? "Try again" : "Compute sky for this site"}
+      </button>
+    </section>
+  );
+}
+
 function CursorBlock({ cursor }: { cursor: SiteCursor }) {
   if (cursor.kind === "ready") {
     return (
@@ -88,7 +123,7 @@ function CursorBlock({ cursor }: { cursor: SiteCursor }) {
       : cursor.kind === "error"
         ? `The run could not be loaded, so no Sun or Earth result is shown. ${cursor.text}`
         : cursor.kind === "not-in-run"
-          ? `This point is not in the loaded run (${cursor.runLabel}), so there is no Sun or Earth result for it. Use Analyse this site to compute one.`
+          ? `This point is not in the loaded run (${cursor.runLabel}), so there is no Sun or Earth result for it yet.`
           : "No run is loaded, so there is no Sun or Earth result for this point yet. Results arrive with a run.";
   return <p className="atlas-prose text-xs text-[var(--ink-dim)]">{text}</p>;
 }
@@ -105,8 +140,11 @@ export function SelectedSitePanel({
   onClose,
   onEnterSky,
   onAnalyse,
+  compute,
   cursor = { kind: "none" },
 }: {
+  /** For a point the loaded run does not hold: ask the science service for its Sun and Earth paths. */
+  compute?: { canStart: boolean; state: SiteRunState | undefined; onStart: () => void };
   /** Inside the Atlas: opens the Analyse panel with this site filled in, instead of leaving for the classic form. */
   onAnalyse?: () => void;
   /** Present when the loaded run holds this site: enters Site sky. */
@@ -162,6 +200,7 @@ export function SelectedSitePanel({
       </dl>
 
       <CursorBlock cursor={cursor} />
+      {cursor.kind === "not-in-run" && compute && <ComputeBlock compute={compute} />}
 
       <div className="flex flex-wrap gap-2">
         <button type="button" className="atlas-key atlas-label border-[var(--panel-edge)]" onClick={onCentre}>

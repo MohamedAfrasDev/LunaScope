@@ -84,6 +84,20 @@ const ROUTES: RouteDef[] = [
     timeoutMs: 20_000,
   },
   {
+    // Real terrain heights around a site, for drawing the ground (a picture, never a visibility result).
+    method: "GET",
+    re: /^terrain\/patch$/,
+    upstream: () => "terrain/patch",
+    query: {
+      lat_deg: (v) => /^-?\d{1,3}(\.\d{1,6})?$/.test(v),
+      lon_east_deg: (v) => /^\d{1,3}(\.\d{1,6})?$/.test(v),
+      radius_km: (v) => /^\d{1,2}(\.\d{1,2})?$/.test(v),
+      step_m: (v) => /^\d{2,3}(\.\d{1,2})?$/.test(v),
+      dem_profile: (v) => /^[a-z0-9-]{1,40}$/.test(v),
+    },
+    timeoutMs: 30_000,
+  },
+  {
     method: "GET",
     re: new RegExp(`^analyses/(${RUN})/countdown$`),
     upstream: (m) => `analyses/${m[1]}/countdown`,

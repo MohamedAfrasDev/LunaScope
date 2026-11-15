@@ -3,6 +3,7 @@
 import { Minus, Navigation2, Plus } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { sunDirection, subSolarPoint } from "@/lib/atlas/sun-light";
 import {
   CREDIT_TEXT,
   FALLBACK_TEXTURE,
@@ -56,6 +57,8 @@ export type SceneHandle = {
   pick: (x: number, y: number) => { latDeg: number; lonDeg: number } | null;
   onFrame: (cb: () => void) => () => void;
   setClickHandler: (cb: ((x: number, y: number) => void) | null) => void;
+  /** Light the Moon from the Sun at this UTC time (milliseconds): the sunlit half bright, the other half dark. */
+  setSunTime: (utcMs: number) => void;
 };
 
 export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onReady?: (handle: SceneHandle) => void } = {}) {
@@ -136,6 +139,19 @@ export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onR
           if (!e.retry && ++errors === TILE_ERRORS_BEFORE_NOTICE) setLowRes(true);
         });
         v.imageryLayers.addImageryProvider(tiles);
+        if (bleed) {
+          // the Atlas lights the Moon from the Sun: sharper tiles, brighter picture, and an unlit side that stays dark
+          scene.globe.maximumScreenSpaceError = 1;
+          scene.globe.enableLighting = true;
+          for (let i = 0; i < v.imageryLayers.length; i++) {
+            const layer = v.imageryLayers.get(i);
+            layer.brightness = 1.35;
+            layer.contrast = 1.18;
+            layer.gamma = 0.95;
+            layer.nightAlpha = 0.07;
+            layer.dayAlpha = 1;
+          }
+        }
 
         // the Atlas is about the south pole, so it opens there; the explorer page opens on the whole Moon
         const home = bleed ? VIEWS["south-pole"] : VIEWS.moon;
@@ -228,6 +244,11 @@ export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onR
       },
       setClickHandler(cb) {
         clickCb.current = cb;
+      },
+      setSunTime(utcMs) {
+        const [x, y, z] = sunDirection(subSolarPoint(utcMs));
+        v.scene.light = new C.DirectionalLight({ direction: new C.Cartesian3(-x, -y, -z), intensity: 2.6 });
+        v.scene.requestRender();
       },
     });
   }, [state, fly, onReady]);

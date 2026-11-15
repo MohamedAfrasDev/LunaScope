@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { skylineWall, skylineWallUv } from "@/lib/sky3d";
-import { earthCanvas, glowCanvas, regolithCanvas } from "@/lib/atlas/textures";
+import { earthCanvas, glowCanvas, hillsideCanvas, regolithCanvas } from "@/lib/atlas/textures";
 
 describe("skylineWallUv", () => {
   const az = [0, 90, 180, 270];
@@ -83,6 +83,25 @@ describe("procedural pictures", () => {
     expect(Array.from(b[0].data)).toEqual(px);
   });
 
+  it("the hillside is smooth: low contrast, opaque, the same every time, and it tiles sideways", () => {
+    const a = fake();
+    const c = hillsideCanvas(64, 32)!;
+    expect(c.width).toBe(64);
+    expect(c.height).toBe(32);
+    const px = Array.from(a[0].data);
+    const reds = px.filter((_, i) => i % 4 === 0);
+    expect(px.filter((_, i) => i % 4 === 3).every((v) => v === 255)).toBe(true);
+    // calm: no blotches (the ground's mottling spans far more)
+    expect(Math.max(...reds) - Math.min(...reds)).toBeLessThan(70);
+    expect(new Set(reds).size).toBeGreaterThan(8);
+    // it tiles: the first and last columns are close neighbours in the noise, so they differ only a little
+    for (let y = 0; y < 32; y++) expect(Math.abs(px[(y * 64) * 4] - px[(y * 64 + 63) * 4])).toBeLessThan(40);
+    vi.restoreAllMocks();
+    const b = fake();
+    hillsideCanvas(64, 32);
+    expect(Array.from(b[0].data)).toEqual(px);
+  });
+
   it("the glow is a gradient that fades to nothing", () => {
     const a = fake();
     const c = glowCanvas(64, "rgba(255,255,255,1)", "rgba(255,200,120,0.4)");
@@ -94,6 +113,7 @@ describe("procedural pictures", () => {
     vi.spyOn(document, "createElement").mockImplementation((() => ({ getContext: () => null })) as unknown as typeof document.createElement);
     expect(regolithCanvas()).toBeNull();
     expect(earthCanvas()).toBeNull();
+    expect(hillsideCanvas()).toBeNull();
     expect(glowCanvas(8, "red", "blue")).toBeNull();
   });
 });

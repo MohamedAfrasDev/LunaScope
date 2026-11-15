@@ -44,6 +44,18 @@ describe("TimeDock without a run", () => {
     expect(screen.getByText(/Not endorsed by NASA/)).toBeInTheDocument();
   });
 
+  it("offers Try again when the run could not be loaded", () => {
+    const retry = vi.fn();
+    dock({ kind: "error", text: "No run loaded · No run 37b308.", retry });
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(retry).toHaveBeenCalledOnce();
+  });
+
+  it("has no Try again without a retry to call", () => {
+    dock({ kind: "error", text: "No run loaded · x" });
+    expect(screen.queryByRole("button", { name: "Try again" })).toBeNull();
+  });
+
   it("says why when the run failed, and shows no time", () => {
     dock({ kind: "error", text: "No run loaded · Could not reach the web server." });
     expect(screen.getByTestId("dock-status")).toHaveTextContent("Could not reach the web server.");

@@ -38,14 +38,18 @@ from .cards import run_cards
 from .codes import IntervalClass, ResultState
 from .compare import INCOMPATIBLE_RUNS, compare_runs, compare_sites
 from .countdown import countdown as compute_countdown
-from .dem import MANIFESTS, REPO, footprint_coverage
+from .dem import MANIFESTS, REPO, DemTerrain, footprint_coverage
 from .errors import INVALID_INPUT, LunaScopeError
 from .events import Event, Interval
 from .explain import explain_target
 from .jobs import JobRunner
 from .logs import configure_logging, log_event
 from .observer import build_observer
+from .patch import sample_patch
+from .patch import validate as validate_patch
 from .reference import load_definition
+from .stacks import DEM_FILES
+from .terrain import Ridge
 from .registry import check_all
 from .registry import summary as registry_summary
 from .responses import (
@@ -76,7 +80,7 @@ IMMUTABLE_CACHE = "private, max-age=31536000, immutable"
 REVALIDATE_CACHE = "private, no-cache"
 HTTP = {INCOMPATIBLE_RUNS: 422, INVALID_INPUT: 422, NOT_FOUND: 404, QUEUE_FULL: 503, NOT_READY: 409,
         EXPORT_BLOCKED_UNVERIFIED: 409, REPLAY_ONLY: 409, "GEOMETRY_PROVIDER_UNAVAILABLE": 502,
-        "RESOURCE_INTEGRITY_FAILED": 500}
+        "RESOURCE_INTEGRITY_FAILED": 500, "TERRAIN_UNAVAILABLE": 503, "DEM_COVERAGE_INCOMPLETE": 422}
 
 
 def config_from_env() -> ServiceConfig:
@@ -246,6 +250,40 @@ def create_app(cfg: ServiceConfig | None = None, *, runner: JobRunner | None = N
                 "source": c.source, "precision_m": c.precision_m,
                 "source_point_kept_separate": {"lon_deg": c.lon_deg, "lon_direction": c.lon_direction},
                 "dem_coverage_150km": footprint_coverage(o, 150.0)}
+
+    # ------------------------------------------------------------------ terrain patch (a picture, not a result)
+    patch_cache: dict = {}
+
+    @app.get("/api/v1/terrain/patch")
+    def terrain_patch(lat_deg: float, lon_east_deg: float, radius_km: float = 25.0, step_m: float = 100.0,
+                      dem_profile: str = "lola-80s-20m-adj") -> dict:
+        """Heights of the real terrain around a site on a regular grid, for drawing the ground. Never a visibility result."""
+        validate_patch(lat_deg, lon_east_deg, radius_km, step_m)
+        if dem_profile not in DEM_FILES:
+            raise LunaScopeError(INVALID_INPUT, "unknown DEM profile", field="dem_profile")
+        key = (cfg.stack_kind, round(lat_deg, 5), round(lon_east_deg, 5), radius_km, step_m, dem_profile)
+        if key in patch_cache:
+            return patch_cache[key]
+        if cfg.stack_kind == "synthetic":
+            o = build_observer(site_id="patch", lat_deg=lat_deg, lon_deg=lon_east_deg, convention="planetocentric",
+                               lon_direction="east_positive", reference_radius_km=1737.4, ground_height_m=0.0,
+                               ground_height_source="synthetic", observer_height_above_ground_m=0.0)
+            terrain = Ridge(o, az_deg=90.0, half_width_deg=5.0, dist_km=5.0, length_km=1.0, height_m=300.0)
+            label = "synthetic_demonstration"
+        else:
+            rid, source_cls, filename = DEM_FILES[dem_profile]
+            path = Path(cfg.raw_dir) / filename
+            if not path.exists():
+                raise LunaScopeError("TERRAIN_UNAVAILABLE", "this copy of the service has no terrain data to draw from")
+            terrain = DemTerrain(source_cls(path), center_lat_deg=lat_deg, center_lon_east_deg=lon_east_deg,
+                                 radius_km=radius_km, resource_id=rid)
+            label = "real_data_unverified"
+        out = {**sample_patch(terrain, lat_deg, lon_east_deg, radius_km, step_m), "dem_profile": dem_profile,
+               "result_state": label}
+        if len(patch_cache) >= 8:
+            patch_cache.pop(next(iter(patch_cache)))
+        patch_cache[key] = out
+        return out
 
     # ------------------------------------------------------------------ analyses
     @app.post("/api/v1/analyses", response_model=RunSummaryResponse, status_code=202,

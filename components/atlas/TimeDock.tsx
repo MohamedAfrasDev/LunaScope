@@ -21,7 +21,7 @@ import { CREDIT_TEXT } from "@/lib/explore/geometry";
 
 export type DockRun =
   | { kind: "loading"; text: string }
-  | { kind: "error"; text: string }
+  | { kind: "error"; text: string; retry?: () => void }
   | {
       kind: "ready";
       window: RunWindow;
@@ -165,6 +165,11 @@ export function TimeDock({
         <p role="status" className={`atlas-label min-w-0 text-[var(--ink-dim)] ${compact ? "flex-1" : ""}`} data-testid="dock-status">
           {status}
         </p>
+        {run.kind === "error" && run.retry && (
+          <button type="button" className="atlas-key atlas-label border-[var(--panel-edge)]" onClick={run.retry}>
+            Try again
+          </button>
+        )}
         {compact && (
           <button type="button" className="atlas-key atlas-label shrink-0" aria-expanded={more} aria-controls={`${uid}-more`} onClick={() => setMore((m) => !m)} disabled={off}>
             {more ? "Fewer" : "More"}

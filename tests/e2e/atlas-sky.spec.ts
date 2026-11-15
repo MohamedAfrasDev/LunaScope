@@ -66,7 +66,11 @@ test("Face the Sun points the view at the Sun's azimuth, and the compass says so
   await expect(heading(page)).toContainText("0° N");
   const sun = (await page.getByTestId("atlas-readout").innerText()).match(/AZ (\d+\.\d)° · EL/)!;
   await page.getByRole("button", { name: "Face the Sun" }).click();
-  await expect.poll(async () => Number((await heading(page).innerText()).match(/(\d+)°/)![1])).toBe(Math.round(Number(sun[1])) % 360);
+  // the heading is whole degrees; within one degree of the readout (the two may round a half degree differently)
+  await expect.poll(async () => {
+    const d = Math.abs(Number((await heading(page).innerText()).match(/(\d+)°/)![1]) - Number(sun[1]));
+    return Math.min(d, 360 - d) <= 1;
+  }).toBe(true);
   await page.getByRole("button", { name: "Face east" }).click();
   await expect(heading(page)).toContainText("90° E");
   await expect(heading(page)).toContainText("Facing east");
@@ -91,8 +95,9 @@ test("exaggeration is stated on screen and in the scale readout; the paths toggl
   await expect.poll(() => frames(page)).toBeGreaterThan(f0);
   await page.getByRole("button", { name: "All paths" }).click();
   await expect(sun).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: "From outside" }).click();
-  await expect(page.getByRole("button", { name: "From outside" })).toHaveAttribute("aria-pressed", "true");
+  // the outside view is a diagram of the run pages: the Atlas stands you on the surface and does not offer it
+  await expect(page.getByRole("button", { name: "From outside" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Look around" })).toHaveCount(0);
 });
 
 test("Return to Moon brings the pins back, and entering from the Selected site card works", async ({ page }) => {
@@ -126,4 +131,16 @@ test("Site sky with its controls and the Mission window passes axe", async ({ pa
   await enterSky(page);
   const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
   expect(r.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
+});
+
+test("the ground is the service's real terrain heights, fetched when Site sky opens", async ({ page }) => {
+  test.setTimeout(300_000);
+  const asked: string[] = [];
+  page.on("response", (r) => r.url().includes("/api/v1/terrain/patch") && asked.push(`${r.status()} ${new URL(r.url()).search}`));
+  await open(page);
+  expect(asked).toHaveLength(0); // not on the Moon scale
+  await enterSky(page);
+  await expect.poll(() => asked.length).toBeGreaterThan(0);
+  expect(asked[0]).toMatch(/^200 \?lat_deg=-89\.5\d*&lon_east_deg=0\.0*&radius_km=25&step_m=150/);
+  await expect.poll(() => frames(page)).toBeGreaterThan(0);
 });

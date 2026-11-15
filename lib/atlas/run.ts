@@ -27,6 +27,10 @@ export type RunData = {
   window: RunWindow;
   /** site id to the tracks of its targets (terrain-aware). */
   sites: Record<string, Partial<Record<Target, Track>>>;
+  /** For sites computed separately and merged in: the id of the run that holds each (see lib/atlas/site-run.ts). */
+  siteRun?: Record<string, string>;
+  /** For those sites: the id the service gave the site in its own run (a custom point gets one the Atlas did not choose). */
+  siteServiceId?: Record<string, string>;
 };
 
 /** Build the run data from `GET results?include=intervals,events,series`. Null if the service returned no usable window. */

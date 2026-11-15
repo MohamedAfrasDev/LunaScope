@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useMemo } from "react";
 import type { Sky3DHandle, Track3D } from "@/components/Sky3D";
 import type { HorizonLoad } from "@/components/atlas/useHorizon";
+import type { TerrainLoad } from "@/components/atlas/useTerrainPatch";
 import { utcLabel, type RunWindow } from "@/lib/atlas/clock";
 import type { Track } from "@/lib/atlas/run";
 import type { Target } from "@/lib/api/types";
@@ -22,6 +23,7 @@ export function SiteSky({
   siteName,
   tracks,
   horizon,
+  terrain = { status: "idle" },
   window: win,
   t,
   look,
@@ -34,6 +36,8 @@ export function SiteSky({
   siteName: string;
   tracks: Partial<Record<Target, Track>>;
   horizon: HorizonLoad;
+  /** Real ground around the site; when it is not available the skyline wall stands alone. */
+  terrain?: TerrainLoad;
   window: RunWindow;
   t: number;
   look: SkyLook;
@@ -50,6 +54,13 @@ export function SiteSky({
     [tracks],
   );
 
+  if (horizon.status === "ready" && terrain.status === "loading") {
+    return (
+      <div className="absolute inset-0 grid place-items-center bg-[var(--void)]" data-testid="site-sky-wait">
+        <p role="status" className="atlas-panel atlas-prose max-w-md px-4 py-3 text-sm text-[var(--ink)]">Loading the ground around this site…</p>
+      </div>
+    );
+  }
   if (horizon.status !== "ready") {
     return (
       <div className="absolute inset-0 grid place-items-center bg-[var(--void)]" data-testid="site-sky-wait">
@@ -67,6 +78,7 @@ export function SiteSky({
       <Sky3D
         bleed
         profile={horizon.profile}
+        terrain={terrain.status === "ready" ? terrain.patch : null}
         tracks={tracks3d}
         t={t}
         siteName={siteName}
@@ -75,6 +87,7 @@ export function SiteSky({
         exaggeration={exaggeration}
         showPaths={paths}
         showLander={lander}
+        utcMs={win.startMs + t * 1000}
         onReady={onReady}
         onView={onView}
       />

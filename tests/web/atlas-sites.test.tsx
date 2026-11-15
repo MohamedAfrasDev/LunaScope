@@ -117,6 +117,7 @@ function fakeScene(over: Partial<SceneHandle> = {}) {
       };
     }),
     setClickHandler: vi.fn(),
+    setSunTime: vi.fn(),
     ...over,
   };
   return { handle, frame: () => cb?.() };

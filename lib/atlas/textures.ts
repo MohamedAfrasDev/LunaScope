@@ -71,9 +71,9 @@ export function regolithCanvas(size = 512): HTMLCanvasElement | null {
     for (let x = 0; x < size; x++) {
       const u = x / size;
       const v = y / size;
-      const base = 0.8 + 0.3 * (n1(u * 8, v * 8) - 0.5) + 0.18 * (n2(u * 16, v * 16) - 0.5) + 0.08 * (n3(u * 64, v * 64) - 0.5);
+      const base = 0.82 + 0.2 * (n1(u * 8, v * 8) - 0.5) + 0.18 * (n2(u * 16, v * 16) - 0.5) + 0.08 * (n3(u * 64, v * 64) - 0.5);
       const patch = n2(u * 16 + 3.3, v * 16 + 1.7);
-      const shade = patch > 0.6 ? 0.7 + (0.6 - patch) * 0.6 : 1; // darker mottled patches
+      const shade = patch > 0.66 ? 0.84 + (0.66 - patch) * 0.5 : 1; // darker mottled patches
       const g0 = Math.max(0, Math.min(1, base * shade + (grain() - 0.5) * 0.05));
       const o = (y * size + x) * 4;
       img.data[o] = 214 * g0 + 8;
@@ -146,5 +146,51 @@ export function glowCanvas(size: number, core: string, mid: string): HTMLCanvasE
   grad.addColorStop(1, "rgba(0,0,0,0)");
   g.fillStyle = grad;
   g.fillRect(0, 0, size, size);
+  return c;
+}
+
+/** A round picture cut out of a square image (the Sun from a full-frame photograph), so stray text and corners do not show. */
+export function discFromImage(img: CanvasImageSource & { width: number; height: number }, inset = 0.02): HTMLCanvasElement | null {
+  const size = 512;
+  const made = canvas(size, size);
+  if (!made) return null;
+  const { c, g } = made;
+  g.clearRect(0, 0, size, size);
+  g.save();
+  g.beginPath();
+  g.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+  g.clip();
+  const cut = Math.round(img.width * inset);
+  g.drawImage(img, cut, cut, img.width - 2 * cut, img.height - 2 * cut, 0, 0, size, size);
+  g.restore();
+  return c;
+}
+
+/**
+ * A smooth, low-contrast grey for the far terrain wall: gentle mottling stretched sideways and a slow fade from the foot to the
+ * crest, so distant ridges read as plain hills in the same grey as the ground (no blotches). Tiles sideways.
+ */
+export function hillsideCanvas(w = 512, h = 256): HTMLCanvasElement | null {
+  const made = canvas(w, h);
+  if (!made) return null;
+  const { c, g } = made;
+  const n1 = tiledNoise(71, 8);
+  const n2 = tiledNoise(83, 32);
+  const img = g.createImageData(w, h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const u = x / w;
+      const v = y / h;
+      const soft = 0.5 * (n1(u * 8, v * 2) - 0.5) + 0.25 * (n2(u * 32, v * 8) - 0.5); // stretched sideways: long, gentle shading
+      const fade = 0.92 + 0.08 * v; // a little darker at the foot
+      const g0 = Math.max(0, Math.min(1, (0.78 + 0.22 * soft) * fade));
+      const o = (y * w + x) * 4;
+      img.data[o] = 214 * g0 + 8;
+      img.data[o + 1] = 210 * g0 + 8;
+      img.data[o + 2] = 200 * g0 + 8;
+      img.data[o + 3] = 255;
+    }
+  }
+  g.putImageData(img, 0, 0);
   return c;
 }

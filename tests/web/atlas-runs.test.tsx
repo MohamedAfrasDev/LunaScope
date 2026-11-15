@@ -188,6 +188,49 @@ describe("useRun", () => {
     await waitFor(() => expect(down.result.current.status).toBe("error"));
   });
 
+  it("submits a reference again, once, when the service no longer has the run it was given (a restarted or swapped service)", async () => {
+    const { ApiError } = await import("@/lib/api/client");
+    post.mockResolvedValueOnce({ run_id: A, status: "queued" }).mockResolvedValueOnce({ run_id: B, status: "queued" });
+    let statusCalls = 0;
+    get.mockImplementation((path: string) => {
+      if (path.startsWith("references/")) return Promise.resolve(ref);
+      if (path.includes("/results")) return Promise.resolve(results(path.split("/")[1]));
+      statusCalls += 1;
+      if (path === `analyses/${A}`) return Promise.reject(new ApiError(404, "NOT_FOUND", "No run", null));
+      return Promise.resolve({ status: "complete" });
+    });
+    const { result } = renderHook(() => useRun({ kind: "reference", id: "GR-002" }));
+    await waitFor(() => expect(result.current.status).toBe("ready"));
+    expect(post).toHaveBeenCalledTimes(2);
+    const r = result.current;
+    expect(r.status === "ready" && r.run.runId).toBe(B);
+    expect(statusCalls).toBe(2);
+  });
+
+  it("does not loop: a second missing run is an error, and a run opened by id is never resubmitted", async () => {
+    const { ApiError } = await import("@/lib/api/client");
+    post.mockResolvedValue({ run_id: A, status: "queued" });
+    get.mockImplementation((path: string) => (path.startsWith("references/") ? Promise.resolve(ref) : Promise.reject(new ApiError(404, "NOT_FOUND", "No run", null))));
+    const a = renderHook(() => useRun({ kind: "reference", id: "GR-002" }));
+    await waitFor(() => expect(a.result.current.status).toBe("error"));
+    expect(post).toHaveBeenCalledTimes(2);
+    post.mockClear();
+    const b = renderHook(() => useRun({ kind: "run", id: B }));
+    await waitFor(() => expect(b.result.current.status).toBe("error"));
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("an error carries a retry that loads again", async () => {
+    get.mockRejectedValue(new Error("down"));
+    const { result } = renderHook(() => useRun({ kind: "run", id: A }));
+    await waitFor(() => expect(result.current.status).toBe("error"));
+    route(A);
+    const e = result.current;
+    act(() => (e.status === "error" ? e.retry() : undefined));
+    expect(result.current.status).toBe("loading");
+    await waitFor(() => expect(result.current.status).toBe("ready"));
+  });
+
   it("reports progress while the run is queued or running", async () => {
     vi.useFakeTimers();
     try {

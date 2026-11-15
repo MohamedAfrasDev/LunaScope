@@ -3223,6 +3223,87 @@
     },
     "summary": "Custom Site"
    }
+  },
+  "/api/v1/terrain/patch": {
+   "get": {
+    "description": "Heights of the real terrain around a site on a regular grid, for drawing the ground. Never a visibility result.",
+    "operationId": "terrain_patch_api_v1_terrain_patch_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "lat_deg",
+      "required": true,
+      "schema": {
+       "title": "Lat Deg",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "lon_east_deg",
+      "required": true,
+      "schema": {
+       "title": "Lon East Deg",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "radius_km",
+      "required": false,
+      "schema": {
+       "default": 25.0,
+       "title": "Radius Km",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "step_m",
+      "required": false,
+      "schema": {
+       "default": 100.0,
+       "title": "Step M",
+       "type": "number"
+      }
+     },
+     {
+      "in": "query",
+      "name": "dem_profile",
+      "required": false,
+      "schema": {
+       "default": "lola-80s-20m-adj",
+       "title": "Dem Profile",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Terrain Patch Api V1 Terrain Patch Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Terrain Patch"
+   }
   }
  }
 }

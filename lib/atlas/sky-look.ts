@@ -4,7 +4,7 @@
  */
 export const PHOTO_LOOK = {
   sky: "#000000",
-  wall: "#d8d5cd",
+  wall: "#d2cfc7",
   ridge: "#c9a24d",
   compass: "#9aa0b4",
   sunCore: "#fff6dc",
@@ -13,3 +13,7 @@ export const PHOTO_LOOK = {
   landerDark: "#2a2c33",
   landerPanel: "#3a3f52",
 } as const;
+
+/** NASA pictures used in Site sky (public domain, credited in the scene and in docs/submission/LICENCES-AND-CITATIONS.md). */
+export const EARTH_IMAGE = "/atlas/earth-bluemarble-2048.png";
+export const SUN_IMAGE = "/atlas/sun-sdo-hmi-1024.jpg";

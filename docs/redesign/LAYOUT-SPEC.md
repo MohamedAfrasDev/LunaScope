@@ -446,3 +446,28 @@ Production cost measured: landing JS 430 KB and images 459 KB (budgets raised fr
 
 ### Site sky look (after phase I)
 Inside the Atlas the 3D sky is drawn as a lit scene: a grey regolith ground and terrain wall (a seeded procedural picture), a gold skyline, a glowing Sun that the terrain hides, an Earth globe whose phase is lit from the side of the Sun (so it follows the angle between the Sun and Earth directions the service returned), thin path lines, small compass letters and a generic lander with a **Lander** toggle. The Mission window carries an `ILLUSTRATION` note: the ground, the Earth's surface and the lander are drawn, not photographed, and the Sun and Earth are enlarged. The run pages' 3D view keeps the diagram look. The fixed colours live in `lib/atlas/sky-look.ts` so the theme guard on `Sky3D.tsx` still holds. Fixed: the camera near plane clipped the ground under the viewer (a black band at the bottom).
+
+### Sky for any site, and real pictures (after phase I)
+- **Compute sky for this site.** A site the loaded run does not hold (a catalog place such as Haworth or Shackleton, or a custom point) shows **Compute sky for this site** on its card. It submits a one-site run with the loaded run's window, requirements and terrain settings (read from the run's provenance), follows it with progress, and merges the answer in. From then on Timeline, Metrics, Clearance, Sky path, the clock's event jumps, the cursor readout and Site sky work for it. A result whose window does not match the loaded run is refused. A refusal (for example in replay mode) or a failure is said in words and nothing is invented. Everything computed is dropped when another run is loaded. Sites of the loaded run are never replaced. Custom points work the same way (`lib/atlas/site-run.ts`, `useSiteRuns`).
+- **Real Earth and Sun.** Site sky uses NASA's Blue Marble picture for the Earth and an SDO/HMI photograph of the Sun (cut to its disc), stored in `public/atlas/` and credited in the scene and in `docs/submission/LICENCES-AND-CITATIONS.md`. The Earth turns with the clock: the side that faces the Moon at each UTC time is estimated from the sidereal time and a low-precision Moon position (`lib/atlas/earth-orient.ts`, about half a degree), and the globe is lit from the Sun's side so its phase follows the Sun. This is a display estimate, not a service result, and the scene says so. The drawn globe and Sun remain as fallbacks while the pictures load.
+- **Why the paths looked flat.** The three built-in rule points sit at 89.5 degrees south, where the Sun circles the horizon within about one and a half degrees; that is real, not a drawing fault. Places at 80 to 88 degrees south have paths that rise and fall, and show them once computed. The grey block that appeared on the horizon in the synthetic data is the terrain skyline where the synthetic skyline is known; sectors with no skyline data are left open, never drawn as flat ground.
+
+## Real ground in Site sky
+
+The skyline wall alone looked like a cut-out, so Site sky now draws the real ground around the site. `GET /api/v1/terrain/patch`
+(Python: `science/lunascope/patch.py`; BFF allow-list entry in `lib/bff.ts`) returns the LOLA DEM heights on a 25 km, 150 m grid in the
+site's own east/north frame, as little-endian int16 in half-metre units relative to the site (row 0 north, column 0 west, missing
+cells marked NODATA, never guessed). `lib/atlas/terrain.ts` turns it into a mesh (patch radius mapped to the scene's 9.8 units,
+Moon curvature d²/2R subtracted, holes left open); `Sky3D` shades it by how each patch faces the Sun, with no cast shadows, and only
+lights it when the service's classified interval says the Sun is visible. Beyond the patch, and if the patch is unavailable (replay
+copy, no DEM files, slow), the service's skyline wall stands as before. This is a picture: whether the Sun or Earth is visible is
+still read only from the service's skyline and intervals. Synthetic stack: the patch is the demonstration ridge, labelled
+`synthetic_demonstration`; live: `real_data_unverified`.
+
+## Sunlit Moon
+
+On the Moon scale of the Atlas the globe is lit from the Sun at the clock's UTC time: the sunlit half is bright, the other half
+dark (imagery night alpha 0.07), with a clear terminator that moves as the clock runs (about 12.2° of longitude a day).
+`lib/atlas/sun-light.ts` gives the sub-solar point (low precision, about a degree: a display estimate, not a service result; it
+never says whether anything is visible from a site). The imagery is also brightened and given more contrast, and the globe uses a
+finer tile level of detail. The Explorer page keeps its unlit look.

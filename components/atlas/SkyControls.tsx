@@ -40,7 +40,8 @@ export function SkyControls({
   /** Phone width: Return to Moon and the heading stay; the rest folds behind Controls. */
   compact?: boolean;
   look: SkyLook;
-  onLook: (l: SkyLook) => void;
+  /** Offer Look around and From outside. The Atlas leaves it out: seen from outside, the skyline is a ring around a disc, a diagram. */
+  onLook?: (l: SkyLook) => void;
   exaggeration: number;
   onExaggeration: (k: number) => void;
   paths: Record<Target, boolean>;
@@ -103,12 +104,16 @@ export function SkyControls({
         </button>
       </div>
       <div role="group" aria-label="View" className="flex flex-wrap items-center gap-0.5 border-l border-[var(--panel-edge)] pl-2">
-        <button type="button" className="atlas-key atlas-label" aria-pressed={look === "look"} onClick={() => onLook("look")}>
-          Look around
-        </button>
-        <button type="button" className="atlas-key atlas-label" aria-pressed={look === "orbit"} onClick={() => onLook("orbit")}>
-          From outside
-        </button>
+        {onLook && (
+          <>
+            <button type="button" className="atlas-key atlas-label" aria-pressed={look === "look"} onClick={() => onLook("look")}>
+              Look around
+            </button>
+            <button type="button" className="atlas-key atlas-label" aria-pressed={look === "orbit"} onClick={() => onLook("orbit")}>
+              From outside
+            </button>
+          </>
+        )}
         <button type="button" className="atlas-key atlas-label" aria-pressed={exaggeration === 3} onClick={() => onExaggeration(exaggeration === 3 ? 1 : 3)}>
           Exaggerate heights ×3
         </button>
