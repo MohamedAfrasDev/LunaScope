@@ -235,7 +235,7 @@ describe("Evidence layout", () => {
   it("puts the export last and presents it as the primary action", async () => {
     await show();
     const link = screen.getByRole("link", { name: /Download investigative bundle/ });
-    expect(link.className).toContain("btn-primary");
+    expect(link).toHaveAttribute("data-variant", "default"); // shadcn Button, the primary look
     const headings = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
     expect(headings.at(-1)).toBe("Export");
     expect(headings.indexOf("Provenance")).toBeGreaterThan(headings.indexOf("Disc size: centre or edge?"));

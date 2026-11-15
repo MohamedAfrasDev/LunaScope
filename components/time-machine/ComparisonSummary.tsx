@@ -3,8 +3,8 @@ import type { RunComparisonResponse, Target } from "@/lib/api/types";
 import { fieldLabel, fieldValue } from "@/lib/facts";
 import { duration, siteLabel, targetLabel, utc } from "@/lib/format";
 import { OUTCOME } from "@/lib/status";
-import { Card } from "../ui/Card";
-import { Disclosure } from "../ui/Disclosure";
+import { Card } from "../ui/card";
+import { Disclosure } from "../ui/disclosure";
 import { signedDays } from "./format";
 
 const TARGETS: Target[] = ["sun_center", "earth_center"];
@@ -64,7 +64,7 @@ export function ComparisonSummary({ cmp }: { cmp: RunComparisonResponse }) {
       </div>
 
       <div className="mt-3 grid gap-4 lg:grid-cols-2">
-        <Card variant="inset">
+        <Card className="block gap-0 rounded-lg p-3 text-sm">
           <h3 className="font-semibold">Changed</h3>
           <ul className="mt-1 space-y-1">
             {cmp.changed.map((c) => (

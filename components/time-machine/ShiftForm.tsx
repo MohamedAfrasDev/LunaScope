@@ -3,7 +3,9 @@
 import { useId, useState } from "react";
 import { describeError, postJson } from "@/lib/api/client";
 import type { VariantAdmission } from "@/lib/api/types";
-import { Button } from "../ui/Button";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 
 export const MAX_DAYS = 30;
 
@@ -50,10 +52,10 @@ export function ShiftForm({ runId, onShifted }: { runId: string; onShifted: (chi
     <form onSubmit={submit} noValidate className="surface-card grid gap-4 p-4 sm:grid-cols-[auto_1fr] sm:items-end">
       <div>
         <p className="eyebrow mb-1">Step 1 of 3</p>
-        <label htmlFor={`${uid}-days`} className="block text-sm font-semibold">
+        <Label htmlFor={`${uid}-days`} className="font-semibold">
           Shift the start by (days)
-        </label>
-        <input
+        </Label>
+        <Input
           id={`${uid}-days`}
           type="number"
           inputMode="numeric"
@@ -64,7 +66,7 @@ export function ShiftForm({ runId, onShifted }: { runId: string; onShifted: (chi
           onChange={(e) => setDays(e.target.value)}
           aria-invalid={daysErr ? true : undefined}
           aria-describedby={`${uid}-days-help${daysErr ? ` ${uid}-days-err` : ""}`}
-          className="mt-1 w-32 rounded-md border border-input bg-background px-2 py-1.5 tabular-nums"
+          className="mt-1 w-32 tabular-nums"
         />
         <p id={`${uid}-days-help`} className="mt-1 text-xs text-muted-foreground">
           Negative moves it earlier. Up to {MAX_DAYS} days.
@@ -77,7 +79,7 @@ export function ShiftForm({ runId, onShifted }: { runId: string; onShifted: (chi
         )}
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" variant="primary" disabled={submitting || !!daysErr}>
+        <Button type="submit" disabled={submitting || !!daysErr}>
           {submitting ? "Starting…" : "Shift and recompute"}
         </Button>
         {formErr && (

@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { SensitivityVariant } from "@/lib/api/types";
 import { duration, targetLabel } from "@/lib/format";
 import { OUTCOME } from "@/lib/status";
-import { Disclosure } from "./ui/Disclosure";
+import { Disclosure } from "./ui/disclosure";
 
 const NAMES: Record<string, { label: string; what: string }> = {
   azimuth_step_halved: {

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { describeError, getJson, postJson } from "@/lib/api/client";
 import type { ReferenceDefinition, RunSummary } from "@/lib/api/types";
+import { Button } from "./ui/button";
 
 const REF = "GR-001";
 
@@ -41,14 +42,9 @@ export function ReferenceMissionButton() {
   const days = ref ? ref.request.mission.duration_s / 86400 : 7;
   return (
     <div>
-      <button
-        type="button"
-        onClick={start}
-        disabled={busy || !ref}
-        className="btn-primary"
-      >
+      <Button type="button" size="lg" onClick={start} disabled={busy || !ref} className="h-auto min-h-11 whitespace-normal py-2 text-left">
         {busy ? "Starting…" : "Start the reference mission"}
-      </button>
+      </Button>
       <p className="mt-2 text-sm text-muted-foreground">
         {ref
           ? `Reference ${ref.reference_id}: ${days} days from ${ref.request.mission.start_utc.slice(0, 10)} UTC, sunlight at least ` +

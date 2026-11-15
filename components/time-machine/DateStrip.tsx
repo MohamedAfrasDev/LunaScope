@@ -2,7 +2,8 @@ import type { SearchStrip, StripDate } from "@/lib/api/types";
 import { pct, siteLabel, utc } from "@/lib/format";
 import type { Presentation } from "@/lib/status";
 import { StatusChip } from "../StatusChip";
-import { Disclosure } from "../ui/Disclosure";
+import { Disclosure } from "../ui/disclosure";
+import { Button } from "../ui/button";
 
 const VERDICT: Record<"pass" | "fail" | "unknown", Presentation> = {
   pass: { label: "Passes", icon: "✓", tone: "ok", help: "At least one site passes both requirements on this date." },
@@ -85,9 +86,9 @@ export function DateStrip({ strip, onOpenDate }: { strip: SearchStrip; onOpenDat
                     })}
                     <td className="py-1 pr-3">
                       {d.run_id && d.state !== "baseline" && (d.verdict !== null) && (
-                        <button type="button" onClick={() => onOpenDate(d.offset_days, d.run_id as string)} className="tap text-primary underline underline-offset-4">
+                        <Button type="button" variant="link" size="sm" onClick={() => onOpenDate(d.offset_days, d.run_id as string)} className="h-6 px-0 underline">
                           Compare
-                        </button>
+                        </Button>
                       )}
                       {d.state === "baseline" && <span className="text-muted-foreground">baseline</span>}
                       {d.state === "failed" && d.error && <span className="text-xs text-fail">{d.error.code}</span>}

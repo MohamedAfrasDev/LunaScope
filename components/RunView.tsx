@@ -11,8 +11,9 @@ import { ResultStateFrame } from "./ResultStateFrame";
 import { RunVerdict } from "./RunVerdict";
 import { SiteCards } from "./SiteCard";
 import { ExcludedSites, StatusMatrix } from "./StatusMatrix";
-import { Disclosure } from "./ui/Disclosure";
-import { WarningItem } from "./ui/WarningItem";
+import { Disclosure } from "./ui/disclosure";
+import { WarningItem } from "./ui/warning-item";
+import { Progress } from "./ui/progress";
 
 const TERMINAL = new Set(["complete", "complete_with_warnings", "failed"]);
 
@@ -97,8 +98,7 @@ export function RunView({ runId }: { runId: string }) {
               {run.status === "queued" ? "Queued" : "Running"}
               {run.stage && run.status === "running" ? `: ${run.stage}` : ""}
             </p>
-            <progress className="mt-2 w-full" max={1} value={run.progress ?? 0}
-              aria-label="Analysis progress" />
+            <Progress className="mt-2 h-2" value={Math.round((run.progress ?? 0) * 100)} aria-label="Analysis progress" />
             <p className="mt-1 text-xs text-muted-foreground">
               Seven-day runs on real data take roughly 20–60 seconds per site. You can leave and come back to this
               address.

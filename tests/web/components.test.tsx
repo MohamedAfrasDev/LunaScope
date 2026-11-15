@@ -98,7 +98,7 @@ describe("RunView", () => {
     mockFetch(() => ({ body: done({ status: "running", stage: "site 1/3: rule-89.5S-E0", progress: 0.33, matrix: undefined, warnings: undefined }) }));
     render(<RunView runId={RUN} />);
     expect(await screen.findByText(/Running: site 1\/3/)).toBeInTheDocument();
-    expect(screen.getByRole("progressbar", { name: /progress/i })).toHaveAttribute("value", "0.33");
+    expect(screen.getByRole("progressbar", { name: /progress/i })).toHaveAttribute("aria-valuenow", "33");
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
   });
 

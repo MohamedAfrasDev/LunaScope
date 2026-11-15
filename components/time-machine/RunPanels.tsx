@@ -4,10 +4,11 @@ import { duration, pctRange, shortId, siteLabel, targetLabel, utc } from "@/lib/
 import { OUTCOME, SITE_STATUS, WARNING_TEXT } from "@/lib/status";
 import { StatusChip } from "../StatusChip";
 import { IntervalTable, Legend, TimelineChart, type Band } from "../TimelineChart";
-import { SunEarthKey } from "../ui/SunEarthKey";
-import { WarningItem } from "../ui/WarningItem";
+import { SunEarthKey } from "../ui/sun-earth-key";
+import { WarningItem } from "../ui/warning-item";
 import { ChangedSpans } from "./ChangedSpans";
 import { at } from "./format";
+import { NativeSelect } from "../ui/native-select";
 
 const TARGETS: Target[] = ["sun_center", "earth_center"];
 
@@ -56,10 +57,9 @@ export function RunPanels({
         {sites.length > 1 && (
           <label className="text-sm">
             <span className="mr-2 font-medium">Site</span>
-            <select value={siteId} onChange={(e) => onSite(e.target.value)}
-              className="rounded-md border border-input bg-background px-2 py-1">
+            <NativeSelect size="sm" value={siteId} onChange={(e) => onSite(e.target.value)} className="inline-block align-middle">
               {sites.map((s) => <option key={s.site_id} value={s.site_id}>{siteLabel(s.site_id)}</option>)}
-            </select>
+            </NativeSelect>
           </label>
         )}
       </div>

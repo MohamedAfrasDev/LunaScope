@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { shortId, siteLabel } from "@/lib/format";
 import { useRun } from "./RunView";
-import { ResultBadge } from "./ui/ResultBadge";
+import { ResultBadge } from "./ui/result-badge";
 
 const RUN_ID = /^[0-9a-f]{64}$/;
 

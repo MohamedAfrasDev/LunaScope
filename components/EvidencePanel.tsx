@@ -9,8 +9,9 @@ import { duration, pctRange, shortId, siteLabel, targetLabel, utc } from "@/lib/
 import { CARD_STATUS, OUTCOME, WARNING_TEXT } from "@/lib/status";
 import { ResultStateFrame } from "./ResultStateFrame";
 import { StatusChip } from "./StatusChip";
-import { Alert } from "./ui/Alert";
-import { Disclosure } from "./ui/Disclosure";
+import { Alert } from "./ui/alert";
+import { Disclosure } from "./ui/disclosure";
+import { Button } from "./ui/button";
 
 const Hash = ({ v, n = 16 }: { v: string; n?: number }) => (
   <span className="break-all font-mono text-xs" title={v}>
@@ -48,8 +49,7 @@ function GroupCard({ g, cards }: { g: ValidationGroup; cards: ValidationCard[] }
       <p className="mt-2 text-sm tabular-nums">
         {g.counts.met} met, {g.counts.not_met} not met, {g.counts.not_evaluated} not evaluated
       </p>
-      <details className="mt-2 text-sm">
-        <summary className="cursor-pointer font-medium">The {members.length} checks behind this card</summary>
+      <Disclosure summary={<>The {members.length} checks behind this card</>} className="mt-2 text-sm">
         <ul className="mt-2 space-y-2">
           {members.map((c, i) => (
             <li key={`${c.id}-${c.site_id}-${c.target}-${i}`}>
@@ -61,7 +61,7 @@ function GroupCard({ g, cards }: { g: ValidationGroup; cards: ValidationCard[] }
             </li>
           ))}
         </ul>
-      </details>
+      </Disclosure>
     </article>
   );
 }
@@ -135,7 +135,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
     return (
       <div className="grid gap-3">
         {back}
-        <Alert tone="fail">{err}</Alert>
+        <Alert variant="destructive">{err}</Alert>
       </div>
     );
   if (!p) return <div className="grid gap-3">{back}<p className="text-muted-foreground">Loading the evidence…</p></div>;
@@ -318,13 +318,14 @@ export function EvidencePanel({ runId }: { runId: string }) {
               It is designated <strong>investigative</strong>: a verified export is refused until a validation scope
               closes.
             </p>
-            <a
-              href={`/api/v1/analyses/${runId}/export`}
-              download={`lunascope-${shortId(runId)}-investigative.json`}
-              className="btn-primary btn-sm mt-3"
-            >
-              Download investigative bundle (JSON)
-            </a>
+            <Button asChild className="mt-3">
+              <a
+                href={`/api/v1/analyses/${runId}/export`}
+                download={`lunascope-${shortId(runId)}-investigative.json`}
+              >
+                Download investigative bundle (JSON)
+              </a>
+            </Button>
           </section>
         </div>
       </ResultStateFrame>

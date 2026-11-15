@@ -12,8 +12,8 @@ import { RunComparison } from "./time-machine/RunComparison";
 import { ShiftForm } from "./time-machine/ShiftForm";
 import { ShiftedRuns } from "./time-machine/ShiftedRuns";
 import { DONE } from "./time-machine/useComparison";
-import { Alert } from "./ui/Alert";
-import { SectionHeader } from "./ui/SectionHeader";
+import { Alert } from "./ui/alert";
+import { SectionHeader } from "./ui/section-header";
 
 /**
  * Mission Time Machine: what changes if the date slips? Three steps, one question each:
@@ -66,7 +66,7 @@ export function TimeMachineView({ runId }: { runId: string }) {
         </p>
       </div>
 
-      {baseErr && <Alert tone="warn">{baseErr}</Alert>}
+      {baseErr && <Alert variant="warning">{baseErr}</Alert>}
       {!base && !baseErr && <p className="text-muted-foreground">Loading the baseline…</p>}
       {base && !baseReady && (
         <p className="surface-card p-4 text-sm" aria-live="polite">

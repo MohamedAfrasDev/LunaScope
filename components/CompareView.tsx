@@ -10,9 +10,9 @@ import { OUTCOME, SITE_STATUS, WARNING_TEXT } from "@/lib/status";
 import { ResultStateFrame } from "./ResultStateFrame";
 import { StatusChip } from "./StatusChip";
 import { IntervalTable, Legend, TimelineChart, type Band } from "./TimelineChart";
-import { Alert } from "./ui/Alert";
-import { Card } from "./ui/Card";
-import { WarningItem } from "./ui/WarningItem";
+import { Alert } from "./ui/alert";
+import { Card } from "./ui/card";
+import { WarningItem } from "./ui/warning-item";
 
 const TARGETS: Target[] = ["sun_center", "earth_center"];
 
@@ -80,7 +80,7 @@ export function CompareView({ runId }: { runId: string }) {
     return (
       <div className="grid gap-3">
         <Link href={`/runs/${runId}`} className="tap text-sm text-primary underline underline-offset-4">← Back to the status matrix</Link>
-        <Alert tone="fail">{err}</Alert>
+        <Alert variant="destructive">{err}</Alert>
       </div>
     );
   if (!results || !allSites || !selected) return <p className="text-muted-foreground">Loading the comparison…</p>;
@@ -114,7 +114,7 @@ export function CompareView({ runId }: { runId: string }) {
         )}
       </fieldset>
 
-      {cmpErr && <Alert tone="fail">{cmpErr}</Alert>}
+      {cmpErr && <Alert variant="destructive">{cmpErr}</Alert>}
 
       {cmp && selected.length >= 2 && (
         <ResultStateFrame state={cmp.result_state}>
@@ -122,7 +122,7 @@ export function CompareView({ runId }: { runId: string }) {
             <section aria-labelledby={`${uid}-held`}>
               <h2 id={`${uid}-held`} className="type-section">Held constant and changed</h2>
               <div className="mt-2 grid gap-4 lg:grid-cols-2">
-                <Card variant="inset">
+                <Card className="block gap-0 rounded-lg p-3 text-sm">
                   <h3 className="text-sm font-semibold">Held constant (identical for every site)</h3>
                   <dl className="kv mt-2 text-sm">
                     {cmp.held_constant.map((h) => (
@@ -133,7 +133,7 @@ export function CompareView({ runId }: { runId: string }) {
                     ))}
                   </dl>
                 </Card>
-                <Card variant="inset">
+                <Card className="block gap-0 rounded-lg p-3 text-sm">
                   <h3 className="text-sm font-semibold">Changed: the site</h3>
                   <ul className="mt-2 space-y-2 text-sm">
                     {cmp.changed[0].values.map((v) => (

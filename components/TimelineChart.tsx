@@ -2,6 +2,7 @@ import { useId } from "react";
 import type { EventRow, HorizonKind, IntervalClass, IntervalRow, Target } from "@/lib/api/types";
 import { duration, targetLabel, utc } from "@/lib/format";
 import { INTERVAL } from "@/lib/status";
+import { Disclosure } from "./ui/disclosure";
 
 export interface Band {
   target: Target;
@@ -142,11 +143,14 @@ export function TimelineChart({ bands, title }: { bands: Band[]; title: string }
 
 export function IntervalTable({ band }: { band: Band }) {
   return (
-    <details className="rounded-md border border-border">
-      <summary className="cursor-pointer px-3 py-2 text-sm font-medium">
-        {band.label ?? targetLabel(band.target)}, {band.sub ?? (band.horizon === "terrain" ? "terrain-aware" : "flat horizon")}: view as table ({band.intervals.length} intervals)
-      </summary>
-      <div className="overflow-x-auto px-3 pb-3">
+    <Disclosure
+      summary={
+        <>
+          {band.label ?? targetLabel(band.target)}, {band.sub ?? (band.horizon === "terrain" ? "terrain-aware" : "flat horizon")}: view as table ({band.intervals.length} intervals)
+        </>
+      }
+    >
+      <div className="overflow-x-auto">
         <table className="w-full min-w-[34rem] text-left text-sm">
           <thead>
             <tr className="border-b border-border">
@@ -168,7 +172,7 @@ export function IntervalTable({ band }: { band: Band }) {
           </tbody>
         </table>
       </div>
-    </details>
+    </Disclosure>
   );
 }
 

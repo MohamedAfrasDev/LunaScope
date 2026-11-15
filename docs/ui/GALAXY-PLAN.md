@@ -1,6 +1,6 @@
 # LunaScope "Calm Galaxy" redesign: shadcn components and a complete product experience
 
-Status: **plan, revised to a calm, aesthetic direction. G0 (baseline) and G1 (shadcn foundation and calm tokens) are done**; see Appendices A and B. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
+Status: **plan, revised to a calm, aesthetic direction. G0 (baseline), G1 (shadcn foundation and calm tokens) and G2 (shadcn components) are done**; see Appendices A to C. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
 
 ## 1. The ask, and the decisions already made
 
@@ -134,7 +134,7 @@ Small, individually mergeable; each ends with unit tests, e2e, axe in both theme
 |---|---|---|
 | G0 | **Done.** Baseline: all suites, "pre-galaxy" screenshots, inventory of what the token rename touches, hero asset audit | A |
 | G1 | **Done.** shadcn foundation: `init`, `cn`, deps, `components.json`; token migration codemod; **calm twilight palette**; `tokens.test.ts` updated | A |
-| G2 | Replace primitives with shadcn: Button, Card, Badge (status chips), Alert, Separator, Skeleton, Progress, Input, Label, Select, Checkbox, RadioGroup; restyle native Disclosure | B |
+| G2 | **Done.** Replace primitives with shadcn: Button, Card, Badge (status chips), Alert, Separator, Skeleton, Progress, Input, Label, native Select; restyle native Disclosure. Checkbox and RadioGroup deliberately stay native (Appendix C.3) | B |
 | G3 | Calm visual system: twilight backdrop (gradient, nebula washes, still stars), soft elevation, hairline borders, spacing and type rhythm, optional slow drift with Pause, reduced-motion/transparency/contrast fallbacks | C |
 | G4 | App shell: Sidebar, Sheet on mobile, breadcrumbs, recent runs, ToggleGroup for the view mode, status pill relocated | D |
 | G5 | Command palette: Command dialog, entries, shortcuts, tests | D |
@@ -288,3 +288,67 @@ Result: lowest text pair **4.99:1** (light) and **6.46:1** (dark); lowest contro
 - **Not yet done by design.** No shadcn component is used yet (that is G2), shadows and the calm elevation are G3, and the **3D sky view** still draws with hard-coded
   hex colours (it does not follow either theme, and its Sun and Earth hues differ slightly from the tokens): its palette moves onto the tokens in G9.
 - **Prerequisite for G2.** The `dark:` variant was verified by test (the string) and by the build; it will be exercised for real once shadcn components that use `dark:` classes are added.
+
+## Appendix C. G2: shadcn components
+
+### C.1 What is now shadcn
+
+Added with `shadcn add ... -o` (Radix base, Nova preset), then adapted (the code is ours to edit):
+
+| Component | Used for | Adaptation |
+|---|---|---|
+| `button` | Every button, and the export link (`asChild`) | `type="button"` unless a caller says otherwise; sizes `sm` 32 px, default 36 px, `lg` 44 px; long call-to-action labels may wrap |
+| `alert` | Failed or warning messages | New tones `destructive`, `warning`, `info` in the status colours (soft fill, tinted edge); `role="alert"` by default, overridable |
+| `badge` | The status chips (`StatusChip`, `ResultBadge`) | New tones `ok`, `fail`, `warn`, `info`, `muted`; icon and word always inside; a little larger text than shadcn's default |
+| `card` | The three nested boxes that used my own Card | Flex column and spacing switched off at the call site so content keeps its flow |
+| `progress` | The running-run progress bars | **Bug fixed**, see C.4 |
+| `input`, `label`, `native-select` | All text inputs (form, Time Machine, dates search), field labels, and all 6 selects | Input and select are 40 px tall; `native-select` keeps a real `<select>` |
+| `separator` | The rule on Home | none |
+| `skeleton` | Added, **not used yet** (loading states are G6) | none |
+
+Kept hand-written, because shadcn has no equivalent: `Disclosure` (restyled, below), `SectionHeader`, `Stat`, `SunEarthKey`, `WarningItem`, and `tone.ts`.
+
+**Disclosure** stays a native `<details>`/`<summary>` (13 test files and the keyboard sweep depend on it) but now looks like the rest: a soft border and muted fill, a thin
+Lucide chevron that turns when open, and a hover state. The three remaining hand-rolled `<details>` (interval tables, changed spans, the evidence-card checks) now use it, so every
+disclosure shares one look. The Advanced settings section and the status pill keep their own markup.
+
+### C.2 Mechanics
+
+- The nine hand-written primitives were renamed to lower-case with a two-step `git mv` (`Button.tsx` to `button.tsx` and so on) and every import updated, so the repo is
+  the same on Windows and on Linux. shadcn's files replaced three of them in place.
+- Call sites: 13 buttons (including the former `btn-primary` ones), 12 inputs, 6 selects, 2 progress bars, 1 separator, 7 alerts and every chip. The old `btn-primary` and
+  `btn-sm` CSS was deleted. `.surface-card` keeps its place but takes the shadcn card's corner (`1.4 x radius`).
+- Verified in the build: shadcn's `dark:` classes compile to `@media not all and (prefers-color-scheme: light)`, so they apply in the default dark theme and are off in light, as designed in G1.
+
+### C.3 Deliberate non-adoptions
+
+| shadcn component | Decision | Why |
+|---|---|---|
+| `select` (Radix listbox) | Use `native-select` instead | A real `<select>` keeps `fireEvent.change`, `selectOption`, the platform picker on phones and screen-reader behaviour; the Radix select needs polyfills in jsdom and breaks the e2e keyboard flow |
+| `checkbox`, `radio-group` | Stay native, styled with `accent-color` | They render as buttons plus hidden inputs; tests count checked inputs, the e2e flow moves a radio group with the arrow keys, and the site lists are native checkboxes inside selectable cards. Revisit only with a reason |
+| `card` for every panel | `.surface-card` restyled; `Card` used for new work | The shadcn Card is a flex column with built-in spacing; swapping it into ~22 existing panels would shift their layouts for no gain |
+
+### C.4 Findings
+
+- **shadcn `Progress` drops its value.** The generated component takes `value` for the bar's width but never passes it to the Radix root, so the bar had no
+  `aria-valuenow` and a screen reader would hear no progress. Fixed in the file and pinned by a test. Worth remembering when adding other generated components: read them.
+- **The layout sweep caught a real regression.** shadcn's button never wraps its label; the large "Compare the Artemis III features" button made Home 3 px too wide at 320 px. The
+  two call-to-action buttons now wrap (`whitespace-normal`, minimum height instead of a fixed one).
+- **Operational:** a verification server must be a fresh `next start` on an unused port after every build; an old one keeps serving stale files.
+
+### C.5 Tests
+
+`tests/web/ui-primitives.test.tsx` was rewritten for the shadcn APIs (Alert tones, Button default type, variants and `asChild`, Badge tones, Card, Progress with `aria-valuenow`);
+`components.test.tsx` now asserts `aria-valuenow="33"` instead of the old native `value`; `phase2.test.tsx` asserts the export link is the primary Button (`data-variant="default"`).
+No other test changed: they find things by role, name and text.
+
+### C.6 Verification (production build)
+
+| Check | Result |
+|---|---|
+| `vitest` | 26 files, 273 tests pass |
+| `tsc`, `eslint` | clean |
+| `next build` | passes |
+| Playwright e2e | 14 pass (after the wrap fix; the first run caught the 320 px overflow); fallback e2e 1 passes |
+| axe, dark and light, 9 routes | 0 violations |
+| Visual | 30 views re-captured: forms, chips, buttons, alerts and disclosures reviewed in both themes |
