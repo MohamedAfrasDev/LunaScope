@@ -36,6 +36,12 @@ export function DataStatusProvider({ children }: { children: ReactNode }) {
   return <Ctx.Provider value={s}>{children}</Ctx.Provider>;
 }
 
+/** True when the service is an offline copy that only holds saved runs (it cannot compute anything new). */
+export function useReplayMode(): boolean {
+  const s = useContext(Ctx);
+  return s.kind === "ok" && s.h.mode === "replay";
+}
+
 const SYNTHETIC_TEXT = "Synthetic demonstration data: values are invented test fixtures, not lunar results.";
 const REAL_TEXT =
   "Real data, unverified: no validation gate has closed. Screening and education only, not flight-qualified.";

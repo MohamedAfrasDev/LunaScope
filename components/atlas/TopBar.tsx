@@ -43,6 +43,7 @@ export function TopBar({
   onView,
   placing,
   onTogglePlacing,
+  canPlace = true,
   runLabel,
   skyReady = false,
   compact = false,
@@ -60,6 +61,8 @@ export function TopBar({
   onView: (v: ViewName) => void;
   placing: boolean;
   onTogglePlacing: () => void;
+  /** False on an offline copy, which cannot compute a new point. */
+  canPlace?: boolean;
 }) {
   const menuId = useId();
   const [menu, setMenu] = useState(false);
@@ -126,7 +129,14 @@ export function TopBar({
             {VIEWS[v].label}
           </button>
         ))}
-        <button type="button" className="atlas-key atlas-label" aria-pressed={placing} onClick={() => closing(onTogglePlacing)()}>
+        <button
+          type="button"
+          className="atlas-key atlas-label"
+          aria-pressed={placing}
+          disabled={!canPlace}
+          title={canPlace ? undefined : "This copy is offline and cannot compute a new point"}
+          onClick={() => closing(onTogglePlacing)()}
+        >
           Place a point
         </button>
       </div>

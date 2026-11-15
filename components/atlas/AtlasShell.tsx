@@ -26,6 +26,7 @@ import { useTerrainPatch } from "@/components/atlas/useTerrainPatch";
 import { useCatalog } from "@/components/atlas/useCatalog";
 import { PHONE_QUERY, useMediaQuery } from "@/components/atlas/useMediaQuery";
 import { useClock } from "@/components/atlas/useClock";
+import { useReplayMode } from "@/components/DataStatusBanner";
 import { useRun } from "@/components/atlas/useRun";
 import { useRunRequest, useSiteRuns } from "@/components/atlas/useSiteRuns";
 import { AnalyzeForm } from "@/components/AnalyzeForm";
@@ -126,6 +127,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
   // losing the site (deselected, or not in the run) leaves Site sky for good, so selecting again does not jump back into it
   if (scale === "sky" && !skyReady) setScale("moon");
   const needHorizon = !!tracks && (open.includes("clearance") || open.includes("sky-path") || inSky);
+  const offline = useReplayMode();
   const terrain = useTerrainPatch(selected?.latDeg ?? null, selected?.lonEastDeg ?? null, inSky);
   const horizon = useHorizon(runData && selectedId ? runIdFor(runData, selectedId) : null, runData && selectedId ? serviceSiteId(runData, selectedId) : null, needHorizon);
   const readings = runData && selectedId ? cursorAt(runData, selectedId, clock.t) : null;
@@ -322,7 +324,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
                     onRemove={selected.kind === "custom" ? () => removeCustom(selected.id) : undefined}
                     onClose={() => setSelectedId(null)}
                     onEnterSky={tracks ? () => setScale("sky") : undefined}
-                    compute={!tracks ? { canStart: siteRuns.canCompute, state: siteRuns.states[selected.id], onStart: () => siteRuns.compute(selected) } : undefined}
+                    compute={!tracks ? { offline, canStart: siteRuns.canCompute, state: siteRuns.states[selected.id], onStart: () => siteRuns.compute(selected) } : undefined}
                     onAnalyse={() => {
                       setAnalyseSeed((cur) => ({ draft: analyseDraft(selected), n: (cur?.n ?? 0) + 1 }));
                       setOpen((o) => [...o.filter((x) => !RIGHT_PANELS.includes(x)), "analyse"]);
@@ -367,6 +369,12 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
                   {rightOpen === "runs" && <RunsPanel current={target} onChoose={chooseRun} onClose={() => toggle("runs")} />}
                   {rightOpen === "analyse" && (
                     <Panel title="Analyse" onClose={() => toggle("analyse")} focused className="max-h-full" bodyClassName="atlas-prose">
+                      {offline ? (
+                        <p data-testid="analyse-offline">
+                          This copy of LunaScope is offline: it shows the saved reference runs and cannot compute a new analysis. Open GR-001, GR-002
+                          or GR-003 from the Runs panel.
+                        </p>
+                      ) : (
                       <AnalyzeForm
                         key={analyseSeed?.n ?? 0}
                         seed={analyseSeed?.draft ?? null}
@@ -376,6 +384,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
                           setOpen((o) => o.filter((x) => x !== "analyse"));
                         }}
                       />
+                      )}
                     </Panel>
                   )}
                   {rightOpen === "dates" &&
@@ -466,6 +475,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
               onView={onView}
               placing={placing}
               onTogglePlacing={() => setPlacing((p) => !p)}
+              canPlace={!offline}
               runLabel={runLabel ? `Run ${runLabel}` : undefined}
               compact={phone}
             />
