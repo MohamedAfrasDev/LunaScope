@@ -288,7 +288,7 @@ Shifting the start by five days gives Earth **100%** at 0°E and 240°E, and the
 3. **A check must be able to fail.** Each safeguard was tested by deliberately breaking what it guards (a corrupted skyline, a wrong unit, a mirrored azimuth, a stale reply) and confirming it notices.
 4. **Labels everywhere.** `synthetic_demonstration`, `real_data_unverified` and `validated` are separate, and nothing is `validated`. The public demo says **REPLAY MODE**.
 5. **Display only.** The web app draws what the service decided. In the 3D view an unknown skyline sector is left open, not drawn as flat ground, and enlarged markers and exaggerated heights are stated on screen.
-6. **Reproducible by fingerprint.** A run's id is a hash of its inputs, data checksums and algorithm version; a finished result is stored under the hash of its own content and re-checked on every read.
+6. **Reproducible by fingerprint.** A run's id is a hash of its inputs, data checksums and algorithm version; a finished result is stored under the hash of its own content and re-checked on every read. 
 
 ---
 

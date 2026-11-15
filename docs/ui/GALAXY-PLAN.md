@@ -1,6 +1,6 @@
 # LunaScope "Calm Galaxy" redesign: shadcn components and a complete product experience
 
-Status: **plan, revised to a calm, aesthetic direction. G0 (baseline), G1 (shadcn foundation and calm tokens) and G2 (shadcn components) and G3 (calm visual system) are done**; see Appendices A to D. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
+Status: **plan, revised to a calm, aesthetic direction. G0 (baseline), G1 (shadcn foundation and calm tokens) and G2 (shadcn components) and G3 (calm visual system) and G4 (app shell) are done**; see Appendices A to E. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
 
 ## 1. The ask, and the decisions already made
 
@@ -136,7 +136,7 @@ Small, individually mergeable; each ends with unit tests, e2e, axe in both theme
 | G1 | **Done.** shadcn foundation: `init`, `cn`, deps, `components.json`; token migration codemod; **calm twilight palette**; `tokens.test.ts` updated | A |
 | G2 | **Done.** Replace primitives with shadcn: Button, Card, Badge (status chips), Alert, Separator, Skeleton, Progress, Input, Label, native Select; restyle native Disclosure. Checkbox and RadioGroup deliberately stay native (Appendix C.3) | B |
 | G3 | **Done.** Calm visual system: twilight backdrop (gradient, nebula washes, still stars), soft elevation, hairline borders, spacing and type rhythm, optional slow drift with Pause, reduced-motion/transparency/contrast fallbacks | C |
-| G4 | App shell: Sidebar, Sheet on mobile, breadcrumbs, recent runs, ToggleGroup for the view mode, status pill relocated | D |
+| G4 | **Done.** App shell: Sidebar, Sheet on mobile, breadcrumbs, recent runs, ToggleGroup for the view mode, status pill relocated | D |
 | G5 | Command palette: Command dialog, entries, shortcuts, tests | D |
 | G6 | Polished states: skeletons, Sonner toasts, Empty/error/not-found, a short page fade | E |
 | G7 | Onboarding: tour, tooltips, glossary | F |
@@ -391,3 +391,37 @@ No other test changed: they find things by role, name and text.
 | `next build` | passes |
 | Playwright e2e | 16 pass (new: `backdrop.spec.ts`: drifts by default, stops when paused and stays paused after a reload, is inert, and does not run under reduced motion) |
 | Visual | Home reviewed in the browser: faint stars, soft wash, readable |
+
+## Appendix E. G4: app shell
+
+### E.1 What changed
+
+| Part | Behaviour |
+|---|---|
+| **Side navigation** (`components/shell/AppSidebar.tsx`, shadcn `Sidebar`) | `<nav aria-label="Main">` with three groups: **Mission** (Home, New analysis), **Recent runs**, **Learn** (Why the south pole is hard). An icon-collapsible rail with a tooltip per item; current page marked with `aria-current="page"` (read from the URL behind Suspense, so a static list of links renders first). Docked from 1280 px; below that it is a **sheet** opened from the bar's sidebar button, and it closes after a link is chosen |
+| **Top bar** (`components/shell/ShellBar.tsx`) | Sidebar button, **breadcrumbs** (Home, New analysis, Why the south pole is hard, Analysis `<short id>` and its view), and, always in view, the **data-status pill** and the Guided/Technical switch. The pill did not move into the sidebar: it is the trust label and must be visible on every screen, including a phone with the sheet closed |
+| **Guided / Technical** | Now shadcn `Toggle` buttons (still `aria-pressed`, same names), inside a labelled group |
+| **Recent runs** (`lib/recent-runs.ts`) | Kept in `localStorage` only: run id, when it was opened, and a label built from the site names the service returned for that run ("Shackleton rim and 2 more"), plus its result state badge. Recorded once the service has answered for the run (by `RunNav`), newest first, one entry per run, at most 8, ids validated, corrupt storage ignored, a "Clear recent runs" button. With storage blocked the list is empty or lasts for the page. No backend change |
+
+### E.2 Decisions
+
+- **Why 1280 px, not 768 px.** The first version docked the sidebar from 768 px; the layout sweep caught the Timeline page at 813 px wide in a 768 px window (the sidebar took 256 px). A sheet below 1280 px keeps every page's width unchanged on phones and tablets, and the docked sidebar still leaves 1184 px of content at 1440 px.
+- **One `<main>`.** shadcn's `SidebarInset` renders a `<main>`; it is a `div` here, so the page keeps its single `<main id="main">` and the skip link still works.
+- **`ToggleGroup` not used.** It renders radio buttons; the e2e tests and users know Guided and Technical as buttons with `aria-pressed`. The group is a plain `role="group"` of `Toggle`s.
+- **Not generated as-is.** The shadcn `useIsMobile` hook set state in an effect (lint error); it is now `useSyncExternalStore`. `-o` also overwrote `button.tsx` and `input.tsx` with the generated versions; both were restored from git (the product's adaptations from G2 stay).
+- **Sidebar state cookie.** shadcn writes a `sidebar_state` cookie on toggle. It holds only open/closed, is first-party, and is not read by the server.
+
+### E.3 Findings from the tests
+
+- The sweep caught two real problems before they shipped: the 768 px overflow above, and breadcrumb links that were 20 px tall (now a 24 px minimum). The sidebar's "clear" button was also widened from 20 to 24 px.
+- A click on the sidebar button before the page hydrates does nothing (the sheet is client state); a click after hydration opens it. The e2e test waits for the button, as a user would.
+
+### E.4 Verification (production build)
+
+| Check | Result |
+|---|---|
+| `vitest` | 28 files, 281 tests pass (new: `shell.test.tsx`: breadcrumbs, recent runs, sidebar) |
+| `tsc`, `eslint` | clean |
+| `next build` | passes |
+| Playwright e2e | 18 pass (new: `shell.spec.ts`: desktop shell, recent runs survive a reload and clear; phone sheet opens and closes with Escape, status stays in view); axe clean on every route with the shell; fallback e2e 1 passes |
+| Visual | Desktop (1440) and phone (375, sheet open) reviewed in the browser |

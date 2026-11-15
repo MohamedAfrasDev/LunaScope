@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { Toggle } from "@/components/ui/toggle";
 
 /**
  * Guided / Technical view (FR-14). Guided adds plain-language sentences built from fixed templates;
@@ -60,15 +61,15 @@ export function ViewModeToggle() {
   return (
     <div role="group" aria-label="Explanation style" className="flex items-center gap-0.5 rounded-lg border border-border bg-muted p-0.5 text-xs">
       {(["guided", "technical"] as const).map((m) => (
-        <button
+        <Toggle
           key={m}
-          type="button"
-          aria-pressed={mode === m}
-          onClick={() => setViewMode(m)}
-          className={`rounded-md border px-2.5 py-1 ${mode === m ? "border-border bg-card font-semibold text-foreground shadow-sm" : "border-transparent text-muted-foreground"}`}
+          size="sm"
+          pressed={mode === m}
+          onPressedChange={() => setViewMode(m)}
+          className={mode === m ? "bg-card font-semibold text-foreground shadow-sm" : "text-muted-foreground"}
         >
           {m === "guided" ? "Guided" : "Technical"}
-        </button>
+        </Toggle>
       ))}
     </div>
   );
