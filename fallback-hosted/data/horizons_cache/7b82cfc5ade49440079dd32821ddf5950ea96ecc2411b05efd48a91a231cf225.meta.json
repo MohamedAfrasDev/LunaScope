@@ -1,0 +1,27 @@
+{
+  "retrieved_utc": "2026-11-14T06:08:41Z",
+  "http_status": 200,
+  "endpoint": "https://ssd.jpl.nasa.gov/api/horizons.api",
+  "params": {
+    "format": "json",
+    "COMMAND": "'399'",
+    "OBJ_DATA": "'NO'",
+    "MAKE_EPHEM": "'YES'",
+    "EPHEM_TYPE": "'OBSERVER'",
+    "CENTER": "'coord@301'",
+    "COORD_TYPE": "'GEODETIC'",
+    "SITE_COORD": "'0,-89.5,-0.719964506073'",
+    "START_TIME": "'2027-01-16 00:00'",
+    "STOP_TIME": "'2027-01-16 06:00'",
+    "STEP_SIZE": "'1 m'",
+    "QUANTITIES": "'4'",
+    "ANG_FORMAT": "'DEG'",
+    "APPARENT": "'AIRLESS'",
+    "CSV_FORMAT": "'YES'",
+    "EXTRA_PREC": "'YES'",
+    "TIME_DIGITS": "'SECONDS'"
+  },
+  "provider": "jpl-horizons",
+  "user_agent": "LunaScope/0.2.0-phase1 (contact: https://github.com/MohamedAfrasDev)",
+  "sha256": "c14d588cabf95d3dec8bc5b88246cfe7d78de5f9206af23673f5c38ff0e3d632"
+}

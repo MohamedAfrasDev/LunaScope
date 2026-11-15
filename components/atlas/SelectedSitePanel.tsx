@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Panel } from "@/components/atlas/Panel";
+import { RUN_LOCALLY_URL } from "@/lib/atlas/offline";
 import { Tag } from "@/components/atlas/Tag";
 import type { SiteRunState } from "@/components/atlas/useSiteRuns";
 import type { CursorReading } from "@/lib/atlas/run";
@@ -61,7 +62,12 @@ function ComputeBlock({ compute }: { compute: NonNullable<Parameters<typeof Sele
       {compute.offline || (st?.status === "error" && st.offline) ? (
         <p className="atlas-prose text-xs text-[var(--ink-dim)]" data-testid="compute-offline">
           This copy of LunaScope is offline: it shows the saved reference runs (GR-001, GR-002, GR-003) and cannot compute a sky for a new point.
-          Open a saved run from the Runs panel, or choose a site that is already in the loaded run.
+          Open a saved run from the Runs panel, or choose a site that is already in the loaded run. To compute your own points, run LunaScope on
+          your computer:{" "}
+          <a href={RUN_LOCALLY_URL} target="_blank" rel="noreferrer" className="text-[var(--ink)] underline underline-offset-4">
+            how to run it locally
+          </a>
+          .
         </p>
       ) : (
       <p className="atlas-prose text-xs text-[var(--ink-dim)]">
@@ -148,8 +154,11 @@ export function SelectedSitePanel({
   onEnterSky,
   onAnalyse,
   compute,
+  savedRun,
   cursor = { kind: "none" },
 }: {
+  /** A saved reference run that holds this site: opening it is how the site gets its Sun and Earth results without computing. */
+  savedRun?: { label: string; onOpen: () => void };
   /** For a point the loaded run does not hold: ask the science service for its Sun and Earth paths. */
   compute?: { canStart: boolean; state: SiteRunState | undefined; onStart: () => void; /** An offline copy: saved runs only. */ offline?: boolean };
   /** Inside the Atlas: opens the Analyse panel with this site filled in, instead of leaving for the classic form. */
@@ -207,7 +216,15 @@ export function SelectedSitePanel({
       </dl>
 
       <CursorBlock cursor={cursor} />
-      {cursor.kind === "not-in-run" && compute && <ComputeBlock compute={compute} />}
+      {cursor.kind === "not-in-run" && savedRun && (
+        <section aria-label="Open the saved run for this site" className="space-y-2 border border-[var(--panel-edge)] p-3" data-testid="saved-run">
+          <p className="atlas-prose text-xs text-[var(--ink-dim)]">This site is in a saved reference run, so its Sun and Earth results are already computed.</p>
+          <button type="button" className="atlas-key atlas-label border-[var(--panel-edge)]" onClick={savedRun.onOpen}>
+            Open {savedRun.label}
+          </button>
+        </section>
+      )}
+      {cursor.kind === "not-in-run" && compute && !savedRun && <ComputeBlock compute={compute} />}
 
       <div className="flex flex-wrap gap-2">
         <button type="button" className="atlas-key atlas-label border-[var(--panel-edge)]" onClick={onCentre}>

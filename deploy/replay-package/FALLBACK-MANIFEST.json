@@ -1,16 +1,16 @@
 {
  "algorithm_version": "0.2.0-phase1",
- "built_utc": "2026-11-14T17:18:02Z",
- "commit": "1a31b7c1ef4f456360e637a37cc23340cc809515",
+ "built_utc": "2026-11-15T13:56:51Z",
+ "commit": "2b0b28c460687c3e106603f938dae1505e8f364e",
  "dirty": true,
  "extra_references": [
   "GR-002",
   "GR-003"
  ],
  "horizons_responses": {
-  "in_package": 342,
+  "in_package": 348,
   "newly_fetched": 0,
-  "seeded_from_cache": 342
+  "seeded_from_cache": 348
  },
  "reference_definition_sha256": "0be977245ec9407e324a8b9bc4bcffdb8188b53818e18c4ba1a56268890be7d0",
  "reference_status": "frozen",
@@ -19,7 +19,7 @@
  ],
  "runs": [
   {
-   "analysis_artifact_sha256": "2bb44468cd57c60683146776b345c2071d44e91fb2721fcfcab56c8814e78b76",
+   "analysis_artifact_sha256": "b459f065246ef27e87568f423167e395347daf1ba4c320cf33ddf8d9b7d3b5fa",
    "kind": "reference",
    "name": "GR-001",
    "result_id": "00044a07694a567b4a47ce659398b95cccdcd4eac8da6f7ee7a360d732d6572b",
@@ -28,7 +28,7 @@
    "status": "complete_with_warnings"
   },
   {
-   "analysis_artifact_sha256": "89991fa2c18b359a55df04311121e0fb5a8d86ebd8ca7f106c55003a403ae860",
+   "analysis_artifact_sha256": "b14b8a5b08cd5604945768f1e68e257c9c0db9e2ab04ac4e36e8faab392c9afd",
    "kind": "date_shift",
    "name": "GR-001 +5 d",
    "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
@@ -38,7 +38,7 @@
    "status": "complete_with_warnings"
   },
   {
-   "analysis_artifact_sha256": "a6a721263bceaca841a22f8f741b0cf321ae48ee1aa8e4da55ebe175bd4b37ec",
+   "analysis_artifact_sha256": "37a764fbbefa01d12ddffaf40bfa62e3d75a4b8eca6ad5b461488fb81a4e35c2",
    "kind": "reference_extra",
    "name": "GR-002",
    "reference_id": "GR-002",
@@ -48,7 +48,7 @@
    "status": "complete_with_warnings"
   },
   {
-   "analysis_artifact_sha256": "21c211546ea4d7ff1c441622e30cfa3db61cab0fee6660d246eda5826f68c774",
+   "analysis_artifact_sha256": "e006f260da0d905c4c55e1c6bb361b6d5a7f2c7fc4a582996801122364f6c3f5",
    "kind": "reference_extra",
    "name": "GR-003",
    "reference_id": "GR-003",
@@ -58,7 +58,7 @@
    "status": "complete_with_warnings"
   },
   {
-   "analysis_artifact_sha256": "e896e35a40515978c767b539d21ca971e3d7f55665f4208e15baee16711fa289",
+   "analysis_artifact_sha256": "f2e4ca19f99f26995c86996abe7a24acac8b4dd27c71d4b525d1e663fca2862e",
    "kind": "search_date",
    "name": "GR-001 +1 d (search)",
    "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
@@ -68,7 +68,7 @@
    "status": "complete_with_warnings"
   },
   {
-   "analysis_artifact_sha256": "04ae987f759cc23d5c35dae24e6e978825482028ede6158a40411652820cf562",
+   "analysis_artifact_sha256": "1e3efa620a287240634052db14447f6d572f01794d299d7054dfb6e352cebd5b",
    "kind": "search_date",
    "name": "GR-001 +2 d (search)",
    "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
@@ -78,7 +78,7 @@
    "status": "complete_with_warnings"
   },
   {
-   "analysis_artifact_sha256": "531c07386c4ab34d1d8bd57db1f7ff3f92abbb846813cbd5f34408b1339d9087",
+   "analysis_artifact_sha256": "2752761dcb5b8107654d9a5fc0c0405a166849e823155b5a035e9ca272bfc099",
    "kind": "search_date",
    "name": "GR-001 +3 d (search)",
    "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
@@ -88,7 +88,7 @@
    "status": "complete_with_warnings"
   },
   {
-   "analysis_artifact_sha256": "c14f576015b845539c6f790987a8e2a6437f3e58158ab0230c098f08589c601d",
+   "analysis_artifact_sha256": "dd3f6bb27a5c13f97666ad739817c9848b01f723e874d8dcb1c8e6aabc719a7e",
    "kind": "search_date",
    "name": "GR-001 +4 d (search)",
    "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
@@ -98,7 +98,7 @@
    "status": "complete_with_warnings"
   },
   {
-   "analysis_artifact_sha256": "5d11cafb32bcf241cffc4175f3a954082e1d6930ec55aa8bb04b0f4d42733d8b",
+   "analysis_artifact_sha256": "87bc404a34049e414add135af66cbe59b55d5ab2308a93adb965ae007f29669f",
    "kind": "search_date",
    "name": "GR-001 +6 d (search)",
    "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
@@ -108,7 +108,7 @@
    "status": "complete_with_warnings"
   },
   {
-   "analysis_artifact_sha256": "c0aa626118e4fe48d51513db5f0d8c9a9fa77b38e115add2d3e5f9a2ab27ca3a",
+   "analysis_artifact_sha256": "d7968832f60b70d8c078755e71d078458e3a561db064442d1b7a0e1b1739d15d",
    "kind": "search_date",
    "name": "GR-001 +7 d (search)",
    "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",

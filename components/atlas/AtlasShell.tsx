@@ -27,6 +27,8 @@ import { useCatalog } from "@/components/atlas/useCatalog";
 import { PHONE_QUERY, useMediaQuery } from "@/components/atlas/useMediaQuery";
 import { useClock } from "@/components/atlas/useClock";
 import { useReplayMode } from "@/components/DataStatusBanner";
+import { RUN_LOCALLY_URL } from "@/lib/atlas/offline";
+import { referenceFor } from "@/lib/atlas/reference-sites";
 import { useRun } from "@/components/atlas/useRun";
 import { useRunRequest, useSiteRuns } from "@/components/atlas/useSiteRuns";
 import { AnalyzeForm } from "@/components/AnalyzeForm";
@@ -324,6 +326,10 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
                     onRemove={selected.kind === "custom" ? () => removeCustom(selected.id) : undefined}
                     onClose={() => setSelectedId(null)}
                     onEnterSky={tracks ? () => setScale("sky") : undefined}
+                    savedRun={(() => {
+                      const ref = referenceFor(selected.id);
+                      return ref ? { label: ref.label, onOpen: () => chooseRun({ kind: "reference", id: ref.id }) } : undefined;
+                    })()}
                     compute={!tracks ? { offline, canStart: siteRuns.canCompute, state: siteRuns.states[selected.id], onStart: () => siteRuns.compute(selected) } : undefined}
                     onAnalyse={() => {
                       setAnalyseSeed((cur) => ({ draft: analyseDraft(selected), n: (cur?.n ?? 0) + 1 }));
@@ -372,7 +378,11 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
                       {offline ? (
                         <p data-testid="analyse-offline">
                           This copy of LunaScope is offline: it shows the saved reference runs and cannot compute a new analysis. Open GR-001, GR-002
-                          or GR-003 from the Runs panel.
+                          or GR-003 from the Runs panel. To analyse your own sites and dates, run LunaScope on your computer:{" "}
+                          <a href={RUN_LOCALLY_URL} target="_blank" rel="noreferrer" className="text-[var(--ink)] underline underline-offset-4">
+                            how to run it locally
+                          </a>
+                          .
                         </p>
                       ) : (
                       <AnalyzeForm

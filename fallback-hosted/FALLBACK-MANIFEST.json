@@ -1,0 +1,130 @@
+{
+ "algorithm_version": "0.2.0-phase1",
+ "built_utc": "2026-11-15T13:56:51Z",
+ "commit": "2b0b28c460687c3e106603f938dae1505e8f364e",
+ "dirty": true,
+ "extra_references": [
+  "GR-002",
+  "GR-003"
+ ],
+ "horizons_responses": {
+  "in_package": 348,
+  "newly_fetched": 0,
+  "seeded_from_cache": 348
+ },
+ "reference_definition_sha256": "0be977245ec9407e324a8b9bc4bcffdb8188b53818e18c4ba1a56268890be7d0",
+ "reference_status": "frozen",
+ "result_states": [
+  "real_data_unverified"
+ ],
+ "runs": [
+  {
+   "analysis_artifact_sha256": "b459f065246ef27e87568f423167e395347daf1ba4c320cf33ddf8d9b7d3b5fa",
+   "kind": "reference",
+   "name": "GR-001",
+   "result_id": "00044a07694a567b4a47ce659398b95cccdcd4eac8da6f7ee7a360d732d6572b",
+   "result_state": "real_data_unverified",
+   "run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+   "status": "complete_with_warnings"
+  },
+  {
+   "analysis_artifact_sha256": "b14b8a5b08cd5604945768f1e68e257c9c0db9e2ab04ac4e36e8faab392c9afd",
+   "kind": "date_shift",
+   "name": "GR-001 +5 d",
+   "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+   "result_id": "8c8f7b368cf59ed020fb952d0ad18362a63bfaa447496febb18882886c01614f",
+   "result_state": "real_data_unverified",
+   "run_id": "cca199d9cd48b767944e648272fdce82142457177abf8297d74966a676eec337",
+   "status": "complete_with_warnings"
+  },
+  {
+   "analysis_artifact_sha256": "37a764fbbefa01d12ddffaf40bfa62e3d75a4b8eca6ad5b461488fb81a4e35c2",
+   "kind": "reference_extra",
+   "name": "GR-002",
+   "reference_id": "GR-002",
+   "result_id": "0e3b444ec5b51cbcab169521cf2699396b4df68d22586fd4bb4d3dcf2e262f61",
+   "result_state": "real_data_unverified",
+   "run_id": "47709fb639c46c9d88b3a1724e65a03c334fe116ed4de7fe86a35cc98be418d3",
+   "status": "complete_with_warnings"
+  },
+  {
+   "analysis_artifact_sha256": "e006f260da0d905c4c55e1c6bb361b6d5a7f2c7fc4a582996801122364f6c3f5",
+   "kind": "reference_extra",
+   "name": "GR-003",
+   "reference_id": "GR-003",
+   "result_id": "50c9a06ae2694fb0fc32974e4468752731c1d73db990b4ec4f9e41f413c669d4",
+   "result_state": "real_data_unverified",
+   "run_id": "29fecaeba7bd2a89247eb37f7856f2e33d958d3a6472c1133e4f8b523a44edf9",
+   "status": "complete_with_warnings"
+  },
+  {
+   "analysis_artifact_sha256": "f2e4ca19f99f26995c86996abe7a24acac8b4dd27c71d4b525d1e663fca2862e",
+   "kind": "search_date",
+   "name": "GR-001 +1 d (search)",
+   "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+   "result_id": "5ddf163f83f74d6493d331d1804dec5927dd6358f0452cf208e06f9c6e11e6a3",
+   "result_state": "real_data_unverified",
+   "run_id": "8f335dcf16b39705f13f9437897b2d57790c6fa7268e16a31d28f7492b91aca1",
+   "status": "complete_with_warnings"
+  },
+  {
+   "analysis_artifact_sha256": "1e3efa620a287240634052db14447f6d572f01794d299d7054dfb6e352cebd5b",
+   "kind": "search_date",
+   "name": "GR-001 +2 d (search)",
+   "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+   "result_id": "8069ccb684de5b8657ce31dddabf05b8d4f77d44bf2a761242f38d0f76d8dee0",
+   "result_state": "real_data_unverified",
+   "run_id": "bdaf55c21c659d60aeadee9fa82824386beb84e3887098796aa3fa72066858b4",
+   "status": "complete_with_warnings"
+  },
+  {
+   "analysis_artifact_sha256": "2752761dcb5b8107654d9a5fc0c0405a166849e823155b5a035e9ca272bfc099",
+   "kind": "search_date",
+   "name": "GR-001 +3 d (search)",
+   "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+   "result_id": "774e050c18b49ff605d753851d4add808f87e290c7c07da3bb47ed5b767cea26",
+   "result_state": "real_data_unverified",
+   "run_id": "cb97a035337aafdb7422eae9dc5e932707a4f654586155872dd5adba9ffe91ce",
+   "status": "complete_with_warnings"
+  },
+  {
+   "analysis_artifact_sha256": "dd3f6bb27a5c13f97666ad739817c9848b01f723e874d8dcb1c8e6aabc719a7e",
+   "kind": "search_date",
+   "name": "GR-001 +4 d (search)",
+   "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+   "result_id": "c2f0892b71cc2f833e03dad40dadee4e0cd2d1ea5affdaaafb40aeeb947ac76c",
+   "result_state": "real_data_unverified",
+   "run_id": "7e4828d654bdb007f813f53a73ae6e8843d801447c29ec81375d09de11f6f1dc",
+   "status": "complete_with_warnings"
+  },
+  {
+   "analysis_artifact_sha256": "87bc404a34049e414add135af66cbe59b55d5ab2308a93adb965ae007f29669f",
+   "kind": "search_date",
+   "name": "GR-001 +6 d (search)",
+   "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+   "result_id": "ee9129569a146cf65b59fb19aa2e8e296506bd0616d6296afca754803e2509f7",
+   "result_state": "real_data_unverified",
+   "run_id": "d44bc9f9dbb23c4ba8960d9c99710ca23d2fc9550ba8373b20dfe3d25303c14e",
+   "status": "complete_with_warnings"
+  },
+  {
+   "analysis_artifact_sha256": "d7968832f60b70d8c078755e71d078458e3a561db064442d1b7a0e1b1739d15d",
+   "kind": "search_date",
+   "name": "GR-001 +7 d (search)",
+   "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+   "result_id": "70b1590a00fc9951b7d4c5a7c81207fac20652e8567c7e9bd91c41af14077897",
+   "result_state": "real_data_unverified",
+   "run_id": "5da9776fb814e49e46b68057ad803ee65925f5fe6d4680bf56e195a204347e0e",
+   "status": "complete_with_warnings"
+  }
+ ],
+ "schema": "lunascope.fallback/1",
+ "search": {
+  "from_days": 1,
+  "parent_run_id": "a06f944012c87465d86a82fb899398e567aab07c9febfbf545bb1f9ff2b241cf",
+  "search_id": "7e17e879d2b14651281ad4f2cbec87f6",
+  "step_days": 1,
+  "to_days": 7
+ },
+ "stack": "live"
+}

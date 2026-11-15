@@ -25,6 +25,10 @@ LunaScope is a **screening and education tool**. It is not a certification of la
 - `data/` — resource manifests and site catalog
 - `docs/` — specs and decision records
 
+## Hosted site and running it yourself
+
+The hosted site shows pre-built results (the saved reference runs, Site sky, Timeline, Evidence). To compute your own analyses and points, run it on your computer: [docs/RUN-LOCALLY.md](docs/RUN-LOCALLY.md). The default local stack is synthetic and needs no downloads.
+
 ## Web app
 
 ```bash
