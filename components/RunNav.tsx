@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
+import { useEffect } from "react";
 import { shortId, siteLabel } from "@/lib/format";
+import { rememberRun } from "@/lib/recent-runs";
 import { useRun } from "./RunView";
 import { ResultBadge } from "./ui/result-badge";
 
@@ -38,6 +40,14 @@ export function RunNav() {
 function RunNavFor({ runId }: { runId: string }) {
   const pathname = usePathname() ?? "";
   const { run, notFound } = useRun(runId);
+  const first = run?.matrix?.[0]?.site_id;
+  const count = run?.matrix?.length ?? 0;
+  const state = run?.result_state;
+  useEffect(() => {
+    if (!first) return; // nothing the service has said about this run yet
+    const label = count > 1 ? `${siteLabel(first)} and ${count - 1} more` : siteLabel(first);
+    rememberRun({ id: runId, label, state });
+  }, [runId, first, count, state]);
   if (notFound) return null; // the page itself says the run does not exist
 
   const base = `/runs/${runId}`;
