@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { Fragment, useEffect } from "react";
 import { shortId, siteLabel } from "@/lib/format";
 import { rememberRun } from "@/lib/recent-runs";
 import { useRun } from "./RunView";
 import { ResultBadge } from "./ui/result-badge";
 
 const RUN_ID = /^[0-9a-f]{64}$/;
+/** The tabs that need the run's sites. Until the run arrives they hold their place (invisible, same words), so nothing jumps. */
+const PENDING = ["Timeline", "Sky", "Compare"];
 
 type Kind = "matrix" | "timeline" | "sky" | "compare" | "time-machine" | "evidence";
 
@@ -71,9 +73,12 @@ function RunNavFor({ runId }: { runId: string }) {
       <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-b border-border">
         <nav aria-label="Analysis views" className="-mb-px flex max-w-full overflow-x-auto">
           {tabs.map((t) => (
-            <Link key={t.kind} href={t.href} className={tab(view.kind === t.kind)} aria-current={view.kind === t.kind ? "page" : undefined}>
-              {t.label}
-            </Link>
+            <Fragment key={t.kind}>
+              {t.kind === "time-machine" && !run && PENDING.map((w) => <span key={w} aria-hidden="true" className={`${tab(false)} select-none text-transparent`}>{w}</span>)}
+              <Link href={t.href} className={tab(view.kind === t.kind)} aria-current={view.kind === t.kind ? "page" : undefined}>
+                {t.label}
+              </Link>
+            </Fragment>
           ))}
         </nav>
         <p className="flex items-center gap-2 pb-2 text-xs text-muted-foreground">

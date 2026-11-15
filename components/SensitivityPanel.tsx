@@ -3,6 +3,7 @@ import type { SensitivityVariant } from "@/lib/api/types";
 import { duration, targetLabel } from "@/lib/format";
 import { OUTCOME } from "@/lib/status";
 import { Disclosure } from "./ui/disclosure";
+import { ScrollRegion } from "@/components/ui/scroll-region";
 
 const NAMES: Record<string, { label: string; what: string }> = {
   azimuth_step_halved: {
@@ -56,7 +57,7 @@ export function SensitivityPanel({ variants }: { variants: SensitivityVariant[] 
             </h3>
             {meta.what && <p className="mt-1 text-muted-foreground">{meta.what}</p>}
             <Disclosure summary="Differences from the base run" className="mt-2">
-            <div className="overflow-x-auto">
+            <ScrollRegion label="Sensitivity table">
               <table className="w-full min-w-[34rem] text-left">
                 <caption className="sr-only">{meta.label}: differences from the base run</caption>
                 <thead>
@@ -86,7 +87,7 @@ export function SensitivityPanel({ variants }: { variants: SensitivityVariant[] 
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ScrollRegion>
             </Disclosure>
             <p className="mt-1 text-xs text-muted-foreground">
               Flagged if an outcome changes, the number of events changes, or availability moves by more than{" "}

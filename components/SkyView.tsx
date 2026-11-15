@@ -22,6 +22,7 @@ import { Button } from "./ui/button";
 import { Disclosure } from "./ui/disclosure";
 import { NativeSelect } from "./ui/native-select";
 import { LoadingState } from "@/components/ui/loading-state";
+import { ScrollRegion } from "@/components/ui/scroll-region";
 
 const TARGETS: Target[] = ["sun_center", "earth_center"];
 const SPEEDS = [
@@ -360,7 +361,7 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
           </div>
 
           <Disclosure summary="View sky positions as a table (every 6 hours)">
-            <div className="overflow-x-auto">
+            <ScrollRegion label="Sky readout table">
               <table className="w-full min-w-[40rem] text-left text-sm">
                 <thead>
                   <tr className="border-b border-border">
@@ -384,7 +385,7 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
               <Button variant="outline" onClick={csv} className="mt-3">
                 Download all positions (CSV)
               </Button>
-            </div>
+            </ScrollRegion>
           </Disclosure>
         </div>
       </ResultStateFrame>

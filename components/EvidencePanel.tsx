@@ -13,6 +13,7 @@ import { Alert } from "./ui/alert";
 import { Disclosure } from "./ui/disclosure";
 import { Button } from "./ui/button";
 import { LoadingState } from "@/components/ui/loading-state";
+import { ScrollRegion } from "@/components/ui/scroll-region";
 
 const Hash = ({ v, n = 16 }: { v: string; n?: number }) => (
   <span className="break-all font-mono text-xs" title={v}>
@@ -85,7 +86,7 @@ function DiskEdgeTable({ siteId, d }: { siteId: string; d: DiskEdge }) {
           <span><span aria-hidden="true">✓ </span>no outcome changes between the upper limb, the centre and the whole disc.</span>
         )}
       </p>
-      <div className="mt-1 overflow-x-auto">
+      <ScrollRegion label="Evidence table" className="mt-1">
         <table className="w-full min-w-[40rem] text-left text-sm">
           <caption className="sr-only">{siteLabel(siteId)}: availability and outcome by disc reading</caption>
           <thead>
@@ -117,7 +118,7 @@ function DiskEdgeTable({ siteId, d }: { siteId: string; d: DiskEdge }) {
             ))}
           </tbody>
         </table>
-      </div>
+      </ScrollRegion>
     </div>
   );
 }

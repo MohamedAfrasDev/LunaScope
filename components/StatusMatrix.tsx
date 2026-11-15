@@ -3,6 +3,7 @@ import type { HorizonKind, MatrixCell, MatrixRow, Target } from "@/lib/api/types
 import { pctRange, siteLabel } from "@/lib/format";
 import { OUTCOME, SITE_STATUS } from "@/lib/status";
 import { StatusChip } from "./StatusChip";
+import { ScrollRegion } from "@/components/ui/scroll-region";
 
 const COLS: { target: Target; horizon: HorizonKind; head: string; sub: string }[] = [
   { target: "sun_center", horizon: "terrain", head: "Sun", sub: "terrain-aware (decides)" },
@@ -72,7 +73,7 @@ export function StatusMatrix({
   const rows = all.filter((r) => r.site_status !== "UNKNOWN_COVERAGE");
   const excluded = all.filter((r) => r.site_status === "UNKNOWN_COVERAGE");
   return (
-    <div className="overflow-x-auto">
+    <ScrollRegion label="Status matrix table">
       {showCompareLink && all.length >= 2 && (
         <p className="mb-3 text-sm">
           <Link href={`/runs/${runId}/compare`} className="tap font-medium text-primary underline underline-offset-4">
@@ -132,6 +133,6 @@ export function StatusMatrix({
       </table>
       {rows.length === 0 && <p className="mt-2 text-sm text-muted-foreground">No site in this run could be decided.</p>}
       {showExcluded && <ExcludedSites runId={runId} rows={excluded} />}
-    </div>
+    </ScrollRegion>
   );
 }

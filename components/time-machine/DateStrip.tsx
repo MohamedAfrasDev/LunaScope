@@ -4,6 +4,7 @@ import type { Presentation } from "@/lib/status";
 import { StatusChip } from "../StatusChip";
 import { Disclosure } from "../ui/disclosure";
 import { Button } from "../ui/button";
+import { ScrollRegion } from "@/components/ui/scroll-region";
 
 const VERDICT: Record<"pass" | "fail" | "unknown", Presentation> = {
   pass: { label: "Passes", icon: "✓", tone: "ok", help: "At least one site passes both requirements on this date." },
@@ -56,7 +57,7 @@ export function DateStrip({ strip, onOpenDate }: { strip: SearchStrip; onOpenDat
         })}
       </ol>
       <Disclosure summary="View the tested dates as a table">
-        <div className="overflow-x-auto">
+        <ScrollRegion label="Date strip table">
           <table className="w-full min-w-[40rem] text-left text-sm">
             <caption className="sr-only">Each tested start date and the result for every site</caption>
             <thead>
@@ -98,7 +99,7 @@ export function DateStrip({ strip, onOpenDate }: { strip: SearchStrip; onOpenDat
               })}
             </tbody>
           </table>
-        </div>
+        </ScrollRegion>
       </Disclosure>
       <div className="text-xs text-muted-foreground">
         <p><span className="font-medium">Objective, stated:</span> {strip.objective}</p>

@@ -1,5 +1,9 @@
 # LunaScope UI redesign: the design record
 
+> **Superseded in part by [UI-GALAXY.md](UI-GALAXY.md).** The colours, the "no gradients, no glow, no heavy shadow" rule, the header-based
+> navigation, the `Button`/`Card`/`Alert` primitives and the `btn-primary` classes described below were replaced by the galaxy phases
+> (calm twilight tokens, shadcn components, a sidebar shell). The structure, the result-first screens and the honesty rules are unchanged.
+
 Status: shipped (phases 0 to 14 of [UI-REDESIGN-PLAN.md](UI-REDESIGN-PLAN.md)). This page is the short, current
 description of what the interface is and why. The plan holds the per-phase history and measurements;
 [UI-POLISH.md](UI-POLISH.md) is the earlier token-and-consistency pass this work builds on.

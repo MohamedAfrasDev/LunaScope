@@ -148,19 +148,22 @@ Each state has its own **pattern** on the timeline (solid, hatched, dotted, cros
 
 ## 4. A tour, page by page
 
-Pages are reached through the header (**LunaScope** home, **New analysis**, **Why the south pole is hard**, the data-status pill, the **Guided / Technical** switch) and, inside a run, through a tab bar (see 4.4) and links on each result page.
+Pages are reached through the **side navigation** (**Home**, **New analysis**, your **Recent runs**, **Why the south pole is hard**), the **top bar** (breadcrumbs, **Search**, the data-status pill, the **Guided / Technical** switch) and, inside a run, a tab bar (see 4.4) and links on each result page.
 
 ### 4.1 Header, footer and global controls
 
 - **Skip to content** link: the first thing a keyboard user tabs to.
-- The header stays at the top as you scroll. It holds the [data-status pill](#the-data-status-pill-top-of-every-page) and the **Guided / Technical** switch. On a phone it takes three rows: brand and switch, the two links, then the status.
+- **Side navigation.** On a wide window it sits on the left and can be folded to a narrow icon rail (the sidebar button, or Ctrl/Cmd+B). On a phone or a narrow window it is a sheet that opens from the sidebar button and closes with Escape. **Recent runs** lists the analyses you have opened in this browser (a label from the sites the service returned, the short id and the result state); it is kept only on this device, holds eight, and has a **Clear recent runs** button.
+- **Top bar.** It stays at the top as you scroll and holds the sidebar button, **breadcrumbs** (where you are), a **Search** button, the [data-status pill](#the-data-status-pill-top-of-every-page) and the **Guided / Technical** switch. The status pill is always in view, including on a phone.
+- **Search (command palette).** Press **Ctrl+K** (**Cmd+K** on a Mac), press **/** when you are not typing in a field, or use the **Search** button. Type to filter, Enter to choose, Escape to close. It offers the pages, the **views of the run you are on** (matrix, timeline and sky for each site, compare, Time Machine, evidence), your recent runs, **Key terms**, **Take the page tour**, switching Guided/Technical, pausing the background motion, copying the link to the page and clearing recent runs. Everything it does is also available from a visible control.
 - **Guided / Technical** switch: chooses how explanations are worded. It is remembered in your browser. At present it changes the explanation text on the **Timeline** page (see 4.6); other pages read the same in both modes. See [section 7](#7-keyboard-accessibility-and-the-small-things).
 - **Footer**: "Not flight-qualified. Does not certify landing safety, electrical power, link performance or mission feasibility. Not endorsed by NASA." with the data credits (JPL Horizons, LRO LOLA, NAIF SPICE).
-- The look is dark by default and follows your system if it prefers light.
+- The look is a calm dark twilight by default and follows your system if it prefers light. A faint starfield drifts very slowly behind the page; **Pause background motion** (in the footer, or in Search) stops it and is remembered, and it never moves if your system asks for reduced motion.
+- A page that does not exist shows a plain "This page is not here" screen (with Home and New analysis); an unexpected failure shows a calm "Something went wrong on this page" screen with **Try again**. While a page loads, soft placeholder blocks and a line saying what is loading appear.
 
 ### 4.2 Home (`/`)
 
-- The question and why a flat horizon can mislead, beside a small **sketch**: a low site, a ridge, a flat horizon, a Sun that is above that horizon but hidden, and an Earth with a clear line of sight. Under it: "Illustration only: not to scale, and not taken from any data." It is a picture of the idea, not a result.
+- The introduction sits on a night picture. **It is an illustration only: a label on it says "Background: illustration only. Not NASA imagery, not data."** The question and why a flat horizon can mislead appear beside a small **sketch**: a low site, a ridge, a flat horizon, a Sun that is above that horizon but hidden, and an Earth with a clear line of sight. Under it: "Illustration only: not to scale, and not taken from any data." It is a picture of the idea, not a result.
 - **Start the reference mission**: submits **GR-001**, the frozen reference scenario, exactly as the service stores it, then opens its run page. The sentence beneath it states the scenario read from the service (days, start date, requirements, number of sites, whether sensitivity checks are on) and says **GR-001 is frozen: its inputs and settings cannot change, and any change would be a new reference version. Its three sites are rule-chosen points, not candidate landing sites.**
 - **Compare notable south-polar places**: two cards, **Artemis III candidate-region features** (GR-002) and **Well-known south-polar craters** (GR-003), each listing its six places and opening a saved comparison over the same week and requirements as the reference mission. The places are named features at the IAU's official centre points (not NASA's 15 km landing areas, and not recommendations); a crater centre is its floor, not its rim.
 - Links: **Or set up your own analysis** and **Why the south pole is hard**.
@@ -237,6 +240,8 @@ The run id is a 64-character fingerprint of the request, the data pins and the a
   - **Full comparison table (terrain-aware and flat horizon)**: the status matrix (4.5), closed until you open it.
   - **Warnings carried with these results (N)**: closed until you open it; each code comes with a plain-words explanation (see [section 5](#5-reading-a-result)).
   - An **Evidence** summary: the three validation cards as icon-and-word chips, with a link to the Evidence page.
+
+**Key terms and the page tour.** Under the results, a line of dotted-underlined words (**Terrain-aware**, **Flat horizon**, **Availability range**, **Unresolved**, **Excluded**) opens each term's plain-language meaning when you press it (Enter, Space or a tap; Escape closes it). The same six terms, with *Unknown*, are listed under **Key terms** on the explainer page. The first time you open a finished run, a quiet line offers a one-minute **tour** of the page (the verdict, the site cards, the views, the folded detail, the data label); it outlines each part as it explains it, can be ended any time with Escape, is never offered again once you answer, and can be started again from Search (**Take the page tour**).
 
 ### 4.5 Site cards and the status matrix
 
@@ -450,7 +455,7 @@ Screening and education only; centre-of-disc visibility (bracketed above); no re
 
 ## 7. Keyboard, accessibility and the small things
 
-**Keyboard.** Every control is reachable with Tab and operable from the keyboard: forms, switches, radio groups (arrow keys), the run tabs and site switcher, the folded sections (Enter or Space on their heading), the data-status pill (Enter opens it, Escape closes it and returns focus to it), the date and shift controls, tables and downloads. The core flow (Home → run → Time Machine → Evidence → download) was tested with keyboard only. The **Skip to content** link and visible focus rings are provided. Sky-player shortcuts are in 4.7.
+**Keyboard.** Every control is reachable with Tab and operable from the keyboard (wide tables that scroll sideways on a small screen become focusable, so the arrow keys scroll them): forms, switches, radio groups (arrow keys), the run tabs and site switcher, the folded sections (Enter or Space on their heading), the data-status pill (Enter opens it, Escape closes it and returns focus to it), the date and shift controls, tables and downloads. The core flow (Home → run → Time Machine → Evidence → download) was tested with keyboard only. The **Skip to content** link and visible focus rings are provided. Sky-player shortcuts are in 4.7.
 
 **Not colour alone.** Every status is an icon *and* a word. Timeline states have patterns; sky states have line styles; Sun and Earth have different marker shapes (a dot and a diamond) as well as hues.
 
