@@ -18,8 +18,9 @@ import { ResultStateFrame } from "./ResultStateFrame";
 import { PolarSky, SkyLegend, UnrolledSky, type Track } from "./SkyPlots";
 import dynamic from "next/dynamic";
 import { StatusChip } from "./StatusChip";
-import { Button } from "./ui/Button";
-import { Disclosure } from "./ui/Disclosure";
+import { Button } from "./ui/button";
+import { Disclosure } from "./ui/disclosure";
+import { NativeSelect } from "./ui/native-select";
 
 const TARGETS: Target[] = ["sun_center", "earth_center"];
 const SPEEDS = [
@@ -286,21 +287,20 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
                   aria-keyshortcuts="Space , . ArrowLeft ArrowRight"
                   className="grid gap-3 border-t border-border bg-muted p-3">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Button variant="primary" disabled={reduced} onClick={() => (t >= total && setT(0), setPlaying((p) => !p))}>
+                    <Button disabled={reduced} onClick={() => (t >= total && setT(0), setPlaying((p) => !p))}>
                       {playing ? "Pause" : "Play"}
                     </Button>
-                    <Button onClick={() => jump(prevEvent(events, t))} disabled={prevEvent(events, t) === null}>
+                    <Button variant="outline" onClick={() => jump(prevEvent(events, t))} disabled={prevEvent(events, t) === null}>
                       Previous event
                     </Button>
-                    <Button onClick={() => jump(nextEvent(events, t))} disabled={nextEvent(events, t) === null}>
+                    <Button variant="outline" onClick={() => jump(nextEvent(events, t))} disabled={nextEvent(events, t) === null}>
                       Next event
                     </Button>
                     <label className="ml-auto flex items-center gap-2 text-sm">
                       Speed
-                      <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))}
-                        className="rounded-md border border-input bg-card px-2 py-1">
+                      <NativeSelect size="sm" value={speed} onChange={(e) => setSpeed(Number(e.target.value))}>
                         {SPEEDS.map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}
-                      </select>
+                      </NativeSelect>
                     </label>
                   </div>
                   {reduced && (
@@ -380,7 +380,7 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
                   ))}
                 </tbody>
               </table>
-              <Button onClick={csv} className="mt-3">
+              <Button variant="outline" onClick={csv} className="mt-3">
                 Download all positions (CSV)
               </Button>
             </div>

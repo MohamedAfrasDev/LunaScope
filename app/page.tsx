@@ -2,6 +2,7 @@ import Link from "next/link";
 import { HeroSkyline } from "@/components/HeroSkyline";
 import { ReferenceMissionButton } from "@/components/ReferenceMissionButton";
 import { ReferenceRunCard } from "@/components/ReferenceRunCard";
+import { Separator } from "@/components/ui/separator";
 
 export default function Home() {
   return (
@@ -84,7 +85,7 @@ export default function Home() {
             </p>
           </li>
         </ol>
-        <hr className="my-5 border-border" />
+        <Separator className="my-5" />
         <h2 className="text-base font-semibold">What it is not</h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
           Not a landing-safety, power, link-budget or mission-feasibility assessment. Sunlight percentage is

@@ -8,9 +8,9 @@ import { degrees, duration, pctRange, siteLabel, targetLabel, utc } from "@/lib/
 import { OUTCOME, SITE_STATUS, WARNING_TEXT } from "@/lib/status";
 import { ResultStateFrame } from "./ResultStateFrame";
 import { StatusChip } from "./StatusChip";
-import { Button } from "./ui/Button";
-import { Disclosure } from "./ui/Disclosure";
-import { WarningItem } from "./ui/WarningItem";
+import { Button } from "./ui/button";
+import { Disclosure } from "./ui/disclosure";
+import { WarningItem } from "./ui/warning-item";
 import { plainFact } from "@/lib/guided";
 import { SensitivityPanel } from "./SensitivityPanel";
 import { useViewMode } from "./ViewMode";
@@ -141,7 +141,7 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
             <TimelineChart bands={bands} title={`Visibility timeline for ${siteLabel(siteId)}`} />
             <div className="mt-2 flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
               <Legend />
-              <Button onClick={download}>Download intervals (CSV)</Button>
+              <Button variant="outline" onClick={download}>Download intervals (CSV)</Button>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
               Black ticks are predicted rise or set times under this terrain model. The bracket above a

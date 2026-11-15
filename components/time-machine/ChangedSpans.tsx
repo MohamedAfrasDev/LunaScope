@@ -2,6 +2,7 @@ import type { RunComparisonResponse, Target } from "@/lib/api/types";
 import { duration, siteLabel, targetLabel } from "@/lib/format";
 import { INTERVAL } from "@/lib/status";
 import { at } from "./format";
+import { Disclosure } from "../ui/disclosure";
 
 const TARGETS: Target[] = ["sun_center", "earth_center"];
 
@@ -19,12 +20,16 @@ export function ChangedSpans({ cmp, siteId }: { cmp: RunComparisonResponse; site
       {TARGETS.map((t) => {
         const spans = s.targets[t].changed_intervals;
         return (
-          <details key={t} className="rounded-md border border-border">
-            <summary className="px-3 py-2 text-sm font-medium">
-              {targetLabel(t)} at {siteLabel(siteId)}: {spans.length} span(s) where the state differs
-            </summary>
+          <Disclosure
+            key={t}
+            summary={
+              <>
+                {targetLabel(t)} at {siteLabel(siteId)}: {spans.length} span(s) where the state differs
+              </>
+            }
+          >
             {spans.length > 0 && (
-              <div className="overflow-x-auto px-3 pb-3">
+              <div className="overflow-x-auto">
                 <table className="w-full min-w-[48rem] text-left text-sm">
                   <thead>
                     <tr className="border-b border-border">
@@ -49,7 +54,7 @@ export function ChangedSpans({ cmp, siteId }: { cmp: RunComparisonResponse; site
                 </table>
               </div>
             )}
-          </details>
+          </Disclosure>
         );
       })}
     </div>

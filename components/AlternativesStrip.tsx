@@ -4,7 +4,8 @@ import { useCallback, useEffect, useId, useState } from "react";
 import { describeError, getJson, postJson } from "@/lib/api/client";
 import type { SearchAdmission, SearchStrip } from "@/lib/api/types";
 import { DateStrip } from "./time-machine/DateStrip";
-import { Button } from "./ui/Button";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 
 const MAX_DATES = 15;
 
@@ -92,7 +93,6 @@ export function AlternativesStrip({ runId, onOpenDate }: { runId: string; onOpen
     }
   }
 
-  const input = "mt-1 w-24 rounded-md border border-input bg-background px-2 py-1.5 tabular-nums";
   return (
     <section aria-labelledby={`${uid}-h`} className="surface-card p-4">
       <p className="eyebrow mb-1">Step 2 of 3</p>
@@ -105,11 +105,11 @@ export function AlternativesStrip({ runId, onOpenDate }: { runId: string; onOpen
         {([["From (days)", from, setFrom], ["To (days)", to, setTo], ["Step (days)", step, setStep]] as const).map(([label, val, set]) => (
           <label key={label} className="text-sm font-medium">
             {label}
-            <input className={input} inputMode="numeric" value={val} onChange={(e) => set(e.target.value)}
+            <Input className="mt-1 w-24 tabular-nums" inputMode="numeric" value={val} onChange={(e) => set(e.target.value)}
               aria-invalid={formErr ? true : undefined} aria-describedby={formErr ? `${uid}-err` : undefined} />
           </label>
         ))}
-        <Button type="submit" variant="primary" disabled={busy || !!formErr}>
+        <Button type="submit" disabled={busy || !!formErr}>
           {busy ? "Starting…" : count > 0 ? `Test ${count} date${count === 1 ? "" : "s"}` : "Test dates"}
         </Button>
       </form>

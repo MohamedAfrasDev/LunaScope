@@ -1,47 +1,91 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { Alert } from "@/components/ui/Alert";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Disclosure } from "@/components/ui/Disclosure";
-import { ResultBadge } from "@/components/ui/ResultBadge";
-import { SectionHeader } from "@/components/ui/SectionHeader";
-import { Stat } from "@/components/ui/Stat";
-import { SunEarthKey } from "@/components/ui/SunEarthKey";
-import { WarningItem } from "@/components/ui/WarningItem";
+import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Disclosure } from "@/components/ui/disclosure";
+import { Progress } from "@/components/ui/progress";
+import { ResultBadge } from "@/components/ui/result-badge";
+import { SectionHeader } from "@/components/ui/section-header";
+import { Stat } from "@/components/ui/stat";
+import { SunEarthKey } from "@/components/ui/sun-earth-key";
+import { WarningItem } from "@/components/ui/warning-item";
 
-describe("Alert", () => {
+describe("Alert (shadcn, with the product's status tones)", () => {
   it("is announced as an alert by default and carries its tone", () => {
-    render(<Alert tone="warn">Heads up</Alert>);
+    render(<Alert variant="warning">Heads up</Alert>);
     const a = screen.getByRole("alert");
     expect(a).toHaveTextContent("Heads up");
     expect(a.className).toContain("text-warn");
+    expect(a).toHaveAttribute("data-slot", "alert");
+  });
+  it("has a destructive tone in the status colours, and an info tone", () => {
+    const { rerender } = render(<Alert variant="destructive">Failed</Alert>);
+    expect(screen.getByRole("alert").className).toContain("text-fail");
+    rerender(<Alert variant="info">FYI</Alert>);
+    expect(screen.getByRole("alert").className).toContain("text-info");
   });
   it("can be a status for non-urgent notes", () => {
-    render(<Alert tone="info" role="status">Saved</Alert>);
+    render(<Alert variant="info" role="status">Saved</Alert>);
     expect(screen.getByRole("status")).toHaveTextContent("Saved");
     expect(screen.queryByRole("alert")).toBeNull();
   });
 });
 
-describe("Button", () => {
+describe("Button (shadcn)", () => {
   it("defaults to type=button so it never submits a form by accident", () => {
     render(<Button>Go</Button>);
     expect(screen.getByRole("button", { name: "Go" })).toHaveAttribute("type", "button");
   });
   it("can be a submit and can be disabled", () => {
-    render(<Button type="submit" variant="primary" disabled>Run</Button>);
+    render(<Button type="submit" disabled>Run</Button>);
     const b = screen.getByRole("button", { name: "Run" });
     expect(b).toHaveAttribute("type", "submit");
     expect(b).toBeDisabled();
   });
+  it("is the primary look by default and has an outline variant for everything else", () => {
+    render(<><Button>Main</Button><Button variant="outline">Other</Button></>);
+    expect(screen.getByRole("button", { name: "Main" })).toHaveAttribute("data-variant", "default");
+    expect(screen.getByRole("button", { name: "Other" })).toHaveAttribute("data-variant", "outline");
+  });
+  it("can render a link as a button without adding a type to the anchor", () => {
+    render(<Button asChild><a href="/x">Download</a></Button>);
+    const a = screen.getByRole("link", { name: "Download" });
+    expect(a).toHaveAttribute("data-slot", "button");
+    expect(a).not.toHaveAttribute("type");
+  });
 });
 
-describe("Card", () => {
+describe("Badge (status chips)", () => {
+  it("renders every status tone with its colour classes", () => {
+    render(
+      <>
+        {(["ok", "fail", "warn", "info", "muted"] as const).map((t) => (
+          <Badge key={t} variant={t}>{t}</Badge>
+        ))}
+      </>,
+    );
+    for (const t of ["ok", "fail", "warn", "info"]) expect(screen.getByText(t).className).toContain(`text-${t}`);
+    expect(screen.getByText("muted").className).toContain("text-muted-foreground");
+  });
+});
+
+describe("Card (shadcn)", () => {
   it("renders children and forwards props", () => {
-    render(<Card variant="inset" aria-label="Box">content</Card>);
+    render(<Card aria-label="Box">content</Card>);
     expect(screen.getByLabelText("Box")).toHaveTextContent("content");
+    expect(screen.getByLabelText("Box")).toHaveAttribute("data-slot", "card");
+  });
+});
+
+describe("Progress (shadcn)", () => {
+  it("is a named progress bar with its value as a percentage", () => {
+    render(<Progress value={33} aria-label="Analysis progress" />);
+    const bar = screen.getByRole("progressbar", { name: "Analysis progress" });
+    expect(bar).toHaveAttribute("aria-valuenow", "33");
+    expect(bar).toHaveAttribute("aria-valuemax", "100");
   });
 });
 

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { describeError, getJson, postJson } from "@/lib/api/client";
 import type { ReferenceDefinition, RunSummary } from "@/lib/api/types";
 import { siteLabel } from "@/lib/format";
+import { Button } from "./ui/button";
 
 /**
  * One precomputed comparison of named places (a reference definition such as GR-002): shows what it holds and
@@ -46,9 +47,9 @@ export function ReferenceRunCard({ refId, buttonLabel }: { refId: string; button
           {ref.request.sites.map((s) => ("site_id" in s ? siteLabel(s.site_id) : "custom")).join(", ")}
         </p>
       )}
-      <button type="button" onClick={start} disabled={busy || !ref} className="btn-primary mt-3">
+      <Button type="button" size="lg" onClick={start} disabled={busy || !ref} className="mt-3 h-auto min-h-11 whitespace-normal py-2 text-left">
         {busy ? "Opening…" : buttonLabel}
-      </button>
+      </Button>
       {ref && (
         <p className="mt-2 text-xs text-muted-foreground">
           {ref.reference_id} is a {ref.status} definition: named places at the IAU&rsquo;s official centre points, not landing

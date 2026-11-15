@@ -2,7 +2,7 @@ import type { RunComparisonResponse, Target } from "@/lib/api/types";
 import { duration, pctRange, siteLabel, targetLabel } from "@/lib/format";
 import { OUTCOME } from "@/lib/status";
 import { StatusChip } from "../StatusChip";
-import { Disclosure } from "../ui/Disclosure";
+import { Disclosure } from "../ui/disclosure";
 import { pp } from "./format";
 
 const TARGETS: Target[] = ["sun_center", "earth_center"];
