@@ -52,6 +52,15 @@ export function nowStart(now: Date = new Date()): { startDate: string; startTime
   return { startDate: iso.slice(0, 10), startTime: `${iso.slice(11, 13)}:00` };
 }
 
+/**
+ * The sites a fresh form starts with: the reference mission's demonstration points only. The catalog also holds the
+ * named places (15 sites in all), and a run allows at most MAX_SITES, so ticking everything would start the form invalid.
+ */
+export function defaultSiteIds(sites: { site_id: string; kind: string }[]): string[] {
+  const demo = sites.filter((s) => s.kind === "demonstration_rule").map((s) => s.site_id);
+  return (demo.length ? demo : sites.map((s) => s.site_id)).slice(0, MAX_SITES);
+}
+
 /** The reference mission: 7 days, 60% Sun, 50% Earth, terrain on, the three rule-chosen points. */
 export function referenceDraft(siteIds: string[]): Draft {
   return {

@@ -10,6 +10,7 @@ import {
   STEP_CHOICES,
   clearDraft,
   customBody,
+  defaultSiteIds,
   customErrors,
   decodeShare,
   emptyCustom,
@@ -120,7 +121,7 @@ export function AnalyzeForm() {
         }
         const saved = shared ?? loadDraft();
         // a saved draft survives navigation in this tab; preset ids no longer in the catalog are dropped
-        setD(saved ? { ...saved, siteIds: saved.siteIds.filter((x) => known.has(x)) } : referenceDraft([...known]));
+        setD(saved ? { ...saved, siteIds: saved.siteIds.filter((x) => known.has(x)) } : referenceDraft(defaultSiteIds(c.sites)));
       })
       .catch((e) => setLoadErr(describeError(e)));
   }, []);
@@ -141,7 +142,7 @@ export function AnalyzeForm() {
   };
   const reset = () => {
     clearDraft();
-    setD(referenceDraft(catalog.sites.map((s) => s.site_id)));
+    setD(referenceDraft(defaultSiteIds(catalog.sites)));
     setErrors({});
     setFormErr(null);
     setNotice(null);
