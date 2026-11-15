@@ -201,7 +201,7 @@ export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onR
   const fly = useCallback((name: ViewName) => {
     const v = viewer.current;
     const C = cesium.current;
-    if (!v || !C) return;
+    if (!v || !C || v.isDestroyed()) return;
     const t = VIEWS[name];
     v.camera.flyTo({
       destination: C.Cartesian3.fromDegrees(t.lon, t.lat, t.heightM, C.Ellipsoid.MOON),
@@ -216,9 +216,12 @@ export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onR
     const C = cesium.current;
     if (!v || !C) return;
     const moon = C.Ellipsoid.MOON;
+    // a handle outlives its viewer when the viewer is rebuilt (hot reload, remount): every method then does nothing
+    const dead = () => v.isDestroyed();
     onReady?.({
       fly,
       flyToSite(latDeg, lonDeg) {
+        if (dead()) return;
         v.camera.flyTo({
           destination: C.Cartesian3.fromDegrees(lonDeg, latDeg, 900_000, moon),
           orientation: { heading: 0, pitch: C.Math.toRadians(-90), roll: 0 },
@@ -226,18 +229,21 @@ export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onR
         });
       },
       project(latDeg, lonDeg) {
+        if (dead()) return null;
         const p = C.Cartesian3.fromDegrees(lonDeg, latDeg, 0, moon);
         const w = C.SceneTransforms.worldToWindowCoordinates(v.scene, p);
         if (!w) return null;
         return { x: w.x, y: w.y, visible: new C.EllipsoidalOccluder(moon, v.camera.positionWC).isPointVisible(p) };
       },
       pick(x, y) {
+        if (dead()) return null;
         const hit = v.camera.pickEllipsoid(new C.Cartesian2(x, y), moon);
         if (!hit) return null;
         const c = C.Cartographic.fromCartesian(hit, moon);
         return { latDeg: C.Math.toDegrees(c.latitude), lonDeg: C.Math.toDegrees(c.longitude) };
       },
       onFrame(cb) {
+        if (dead()) return () => {};
         const off = v.scene.postRender.addEventListener(cb);
         v.scene.requestRender();
         return off;
@@ -246,6 +252,7 @@ export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onR
         clickCb.current = cb;
       },
       setSunTime(utcMs) {
+        if (dead()) return;
         const [x, y, z] = sunDirection(subSolarPoint(utcMs));
         v.scene.light = new C.DirectionalLight({ direction: new C.Cartesian3(-x, -y, -z), intensity: 2.6 });
         v.scene.requestRender();
