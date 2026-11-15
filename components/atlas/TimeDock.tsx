@@ -55,7 +55,10 @@ export function TimeDock({
   clock,
   actions,
   reducedMotion,
+  compact = false,
 }: {
+  /** Phone width: the play button, the scrubber and the time stay; the rest folds behind More controls. */
+  compact?: boolean;
   run: DockRun;
   clock: ClockState;
   actions: ClockActions;
@@ -114,26 +117,13 @@ export function TimeDock({
     actions.seek(r.t);
   }
 
+  const [more, setMore] = useState(false);
   const status = ready ? statusLine(clock) : run.text;
   const off = !ready;
 
-  return (
-    <section aria-label="Time dock" className="atlas-panel px-3 py-2" data-testid="time-dock" data-playing={clock.playing}>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2" onKeyDown={undefined}>
-        <button
-          type="button"
-          disabled={off || reducedMotion}
-          onClick={actions.toggle}
-          aria-label={off ? "Play (no run is loaded)" : clock.playing ? "Pause" : "Play"}
-          className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--ink)] text-[var(--void)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--select)] disabled:opacity-40"
-        >
-          {clock.playing ? <Pause aria-hidden="true" className="size-4 fill-current" /> : <Play aria-hidden="true" className="size-4 fill-current" />}
-        </button>
-        <p role="status" className="atlas-label min-w-0 text-[var(--ink-dim)]" data-testid="dock-status">
-          {status}
-        </p>
-
-        <div role="group" aria-label="Speed, per second of real time" className="flex flex-wrap items-center gap-0.5">
+  const groups = (
+    <>
+      <div role="group" aria-label="Speed, per second of real time" className="flex flex-wrap items-center gap-0.5">
           {SPEEDS.map((s) => (
             <button key={s.id} type="button" disabled={off} aria-pressed={clock.speed === s.id} onClick={() => actions.setSpeed(s.id)} className="atlas-key atlas-label">
               {s.label}
@@ -157,6 +147,31 @@ export function TimeDock({
           </button>
         </div>
 
+    </>
+  );
+
+  return (
+    <section aria-label="Time dock" className="atlas-panel px-3 py-2" data-testid="time-dock" data-playing={clock.playing}>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2" onKeyDown={undefined}>
+        <button
+          type="button"
+          disabled={off || reducedMotion}
+          onClick={actions.toggle}
+          aria-label={off ? "Play (no run is loaded)" : clock.playing ? "Pause" : "Play"}
+          className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--ink)] text-[var(--void)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--select)] disabled:opacity-40"
+        >
+          {clock.playing ? <Pause aria-hidden="true" className="size-4 fill-current" /> : <Play aria-hidden="true" className="size-4 fill-current" />}
+        </button>
+        <p role="status" className={`atlas-label min-w-0 text-[var(--ink-dim)] ${compact ? "flex-1" : ""}`} data-testid="dock-status">
+          {status}
+        </p>
+        {compact && (
+          <button type="button" className="atlas-key atlas-label shrink-0" aria-expanded={more} aria-controls={`${uid}-more`} onClick={() => setMore((m) => !m)} disabled={off}>
+            {more ? "Fewer" : "More"}
+          </button>
+        )}
+
+        {!compact && groups}
         <div className="flex min-w-48 flex-1 items-center gap-3">
           <input
             type="range"
@@ -183,7 +198,13 @@ export function TimeDock({
         </div>
       </div>
 
-      {ready && win && (
+      {compact && (
+        <div id={`${uid}-more`} hidden={!more} className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+          {groups}
+        </div>
+      )}
+
+      {ready && win && (!compact || more) && (
         <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-[var(--ink-dim)]">
           <form onSubmit={onGo} noValidate className="flex flex-wrap items-center gap-2" aria-label="Go to a time">
             <label htmlFor={`${uid}-goto`} className="atlas-label">
@@ -220,7 +241,7 @@ export function TimeDock({
             {run.synthetic && <Tag kind="synthetic" />}
           </span>
         )}
-        <p className="atlas-prose min-w-0 flex-1 text-xs text-[var(--ink-dim)]">{CREDIT_TEXT}</p>
+        <p className={`atlas-prose min-w-0 flex-1 text-[var(--ink-dim)] ${compact ? "basis-full text-[0.6875rem] leading-snug" : "text-xs"}`}>{CREDIT_TEXT}</p>
       </div>
     </section>
   );

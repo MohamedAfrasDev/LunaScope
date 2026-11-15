@@ -1,6 +1,7 @@
 "use client";
 
 import { Navigation2 } from "lucide-react";
+import { useId, useState } from "react";
 import type { SkyLook } from "@/components/atlas/SiteSky";
 import { facingWords, headingLabel } from "@/lib/atlas/sky";
 import type { Target } from "@/lib/api/types";
@@ -29,7 +30,10 @@ export function SkyControls({
   onReturn,
   yaw,
   has,
+  compact = false,
 }: {
+  /** Phone width: Return to Moon and the heading stay; the rest folds behind Controls. */
+  compact?: boolean;
   look: SkyLook;
   onLook: (l: SkyLook) => void;
   exaggeration: number;
@@ -43,11 +47,19 @@ export function SkyControls({
   has: Record<Target, boolean>;
 }) {
   const both = paths.sun_center && paths.earth_center;
+  const id = useId();
+  const [more, setMore] = useState(false);
   return (
     <div role="group" aria-label="Site sky controls" className="atlas-panel flex flex-wrap items-center gap-x-1 gap-y-1 px-2 py-1.5" data-testid="sky-controls">
       <button type="button" className="atlas-key atlas-label border-[var(--panel-edge)]" onClick={onReturn}>
         ← Return to Moon
       </button>
+      {compact && (
+        <button type="button" className="atlas-key atlas-label" aria-expanded={more} aria-controls={`${id}-more`} onClick={() => setMore((m) => !m)}>
+          {more ? "Fewer controls" : "Controls"}
+        </button>
+      )}
+      <div id={`${id}-more`} hidden={compact && !more} className={compact ? "flex w-full flex-wrap items-center gap-x-1 gap-y-1" : "contents"}>
       <div role="group" aria-label="Where to look" className="flex flex-wrap items-center gap-0.5 border-l border-[var(--panel-edge)] pl-2">
         {has.sun_center && (
           <button type="button" className="atlas-key atlas-label" onClick={() => onFaceTarget("sun_center")}>
@@ -90,6 +102,7 @@ export function SkyControls({
         <button type="button" className="atlas-key atlas-label" aria-pressed={exaggeration === 3} onClick={() => onExaggeration(exaggeration === 3 ? 1 : 3)}>
           Exaggerate heights ×3
         </button>
+      </div>
       </div>
       <p className="atlas-label ml-auto flex items-center gap-2 pr-1 text-[var(--ink)]" data-testid="sky-heading" aria-live="off">
         <Navigation2 aria-hidden="true" className="size-4 text-[var(--select)]" style={{ transform: `rotate(${Math.round(yaw)}deg)` }} />

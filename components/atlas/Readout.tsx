@@ -16,9 +16,9 @@ export function ReadoutRow({ label, tag, children }: { label: string; tag?: TagK
 
 export type ExtraRow = { label: string; tag?: TagKind; value: string };
 
-export function Readout({ scaleLabel, timeLabel, extra = [] }: { scaleLabel: string; timeLabel: string; extra?: ExtraRow[] }) {
+export function Readout({ scaleLabel, timeLabel, extra = [], compact = false }: { scaleLabel: string; timeLabel: string; extra?: ExtraRow[]; compact?: boolean }) {
   return (
-    <div className="pointer-events-none flex flex-col items-end gap-2 [text-shadow:0_1px_8px_rgb(0_0_0/0.9)]" data-testid="atlas-readout">
+    <div className={`pointer-events-none flex flex-col items-end [text-shadow:0_1px_8px_rgb(0_0_0/0.9)] ${compact ? "gap-0.5 [&_.atlas-number]:text-sm" : "gap-2"}`} data-testid="atlas-readout">
       <ReadoutRow label="Time">{timeLabel}</ReadoutRow>
       {extra.map((r) => (
         <ReadoutRow key={r.label} label={r.label} tag={r.tag}>

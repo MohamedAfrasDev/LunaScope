@@ -1,6 +1,7 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Menu, Search, X } from "lucide-react";
+import { useId, useState } from "react";
 import Link from "next/link";
 import { openCommandPalette } from "@/components/shell/CommandPalette";
 import { VIEWS, type ViewName } from "@/lib/explore/geometry";
@@ -44,7 +45,10 @@ export function TopBar({
   onTogglePlacing,
   runLabel,
   skyReady = false,
+  compact = false,
 }: {
+  /** Phone width: the groups fold behind a Menu button and the run chip moves up beside the name. */
+  compact?: boolean;
   /** The open run, as the chip says it. Without one the chip reads "Runs". */
   runLabel?: string;
   /** Site sky needs a run and a selected site that the run holds. */
@@ -57,14 +61,42 @@ export function TopBar({
   placing: boolean;
   onTogglePlacing: () => void;
 }) {
+  const menuId = useId();
+  const [menu, setMenu] = useState(false);
+  const chip = (
+    <button
+      type="button"
+      className={`atlas-key atlas-label ${compact ? "ml-auto" : "ml-auto border-l border-[var(--panel-edge)]"}`}
+      data-testid="run-chip"
+      aria-pressed={open.includes("runs")}
+      aria-label={runLabel ? `${runLabel}: choose another run` : "Runs: choose a run"}
+      onClick={() => onTogglePanel("runs")}
+    >
+      {runLabel ?? "Runs"}
+    </button>
+  );
+  // choosing something in the folded menu closes it, so the globe is visible again
+  const closing = <T extends unknown[]>(fn: (...a: T) => void) => (...a: T) => {
+    fn(...a);
+    if (compact) setMenu(false);
+  };
   return (
-    <nav aria-label="Atlas" className="atlas-panel flex flex-wrap items-center gap-x-1 gap-y-1 px-2 py-1.5">
+    <nav aria-label="Atlas" className="atlas-panel flex flex-wrap items-center gap-x-1 gap-y-1 px-2 py-1.5" data-compact={compact}>
       <Link href="/" className="atlas-label-lg mr-2 flex items-center gap-2 px-2 text-[var(--ink)]" aria-label="LunaScope home">
         <span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--select)]" />
         LunaScope
       </Link>
+      {compact && chip}
+      {compact && (
+        <button type="button" className="atlas-key atlas-label flex items-center gap-1.5" aria-expanded={menu} aria-controls={menuId} onClick={() => setMenu((m) => !m)}>
+          {menu ? <X aria-hidden="true" className="size-3.5" /> : <Menu aria-hidden="true" className="size-3.5" />}
+          Menu
+        </button>
+      )}
 
-      <div role="group" aria-label="Scale" className="flex items-center gap-0.5 border-l border-[var(--panel-edge)] pl-2">
+      <div id={menuId} hidden={compact && !menu} className={compact ? "flex w-full flex-wrap items-center gap-x-1 gap-y-1 border-t border-[var(--panel-edge)] pt-1.5" : "contents"}>
+
+      <div role="group" aria-label="Scale" className="flex flex-wrap items-center gap-0.5 border-l border-[var(--panel-edge)] pl-2">
         {SCALES.map((s) => (
           <button
             key={s.id}
@@ -73,51 +105,43 @@ export function TopBar({
             aria-pressed={scale === s.id}
             disabled={s.id === "sky" ? !skyReady && scale !== "sky" : !s.ready}
             title={s.id === "sky" ? (skyReady || scale === "sky" ? undefined : "Select a site that is in the loaded run") : s.ready ? undefined : s.note}
-            onClick={() => onScale(s.id)}
+            onClick={() => closing(onScale)(s.id)}
           >
             {s.label}
           </button>
         ))}
       </div>
 
-      <div role="group" aria-label="Panels" className="flex items-center gap-0.5 border-l border-[var(--panel-edge)] pl-2">
+      <div role="group" aria-label="Panels" className="flex flex-wrap items-center gap-0.5 border-l border-[var(--panel-edge)] pl-2">
         {PANELS.map((p) => (
-          <button key={p.id} type="button" className="atlas-key atlas-label" aria-pressed={open.includes(p.id)} onClick={() => onTogglePanel(p.id)}>
+          <button key={p.id} type="button" className="atlas-key atlas-label" aria-pressed={open.includes(p.id)} onClick={() => closing(onTogglePanel)(p.id)}>
             {p.label}
           </button>
         ))}
       </div>
 
-      <div role="group" aria-label="View" className="flex items-center gap-0.5 border-l border-[var(--panel-edge)] pl-2">
+      <div role="group" aria-label="View" className="flex flex-wrap items-center gap-0.5 border-l border-[var(--panel-edge)] pl-2">
         {(Object.keys(VIEWS) as ViewName[]).map((v) => (
-          <button key={v} type="button" className="atlas-key atlas-label" onClick={() => onView(v)}>
+          <button key={v} type="button" className="atlas-key atlas-label" onClick={() => closing(onView)(v)}>
             {VIEWS[v].label}
           </button>
         ))}
-        <button type="button" className="atlas-key atlas-label" aria-pressed={placing} onClick={onTogglePlacing}>
+        <button type="button" className="atlas-key atlas-label" aria-pressed={placing} onClick={() => closing(onTogglePlacing)()}>
           Place a point
         </button>
       </div>
 
-      <button
-        type="button"
-        className="atlas-key atlas-label ml-auto border-l border-[var(--panel-edge)]"
-        data-testid="run-chip"
-        aria-pressed={open.includes("runs")}
-        aria-label={runLabel ? `${runLabel}: choose another run` : "Runs: choose a run"}
-        onClick={() => onTogglePanel("runs")}
-      >
-        {runLabel ?? "Runs"}
-      </button>
+      {!compact && chip}
       <button
         type="button"
         className="atlas-key atlas-label flex items-center gap-2"
-        onClick={openCommandPalette}
+        onClick={() => closing(openCommandPalette)()}
         aria-keyshortcuts="Control+K Meta+K"
       >
         <Search aria-hidden="true" className="size-3.5" />
         Search
       </button>
+      </div>
     </nav>
   );
 }

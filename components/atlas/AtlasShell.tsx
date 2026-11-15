@@ -23,6 +23,7 @@ import { analyseDraft } from "@/components/atlas/SelectedSitePanel";
 import { RIGHT_PANELS, TopBar, WIDE_PANELS, type PanelId, type Scale } from "@/components/atlas/TopBar";
 import { useHorizon } from "@/components/atlas/useHorizon";
 import { useCatalog } from "@/components/atlas/useCatalog";
+import { PHONE_QUERY, useMediaQuery } from "@/components/atlas/useMediaQuery";
 import { useClock } from "@/components/atlas/useClock";
 import { useRun } from "@/components/atlas/useRun";
 import { AnalyzeForm } from "@/components/AnalyzeForm";
@@ -61,6 +62,7 @@ const PLACED_PRECISION_M = 1000;
  */
 export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = {}) {
   const catalog = useCatalog();
+  const phone = useMediaQuery(PHONE_QUERY);
   const [target, setTarget] = useState<RunTarget>(() => targetFromSearch(initialSearch));
   const runLoad = useRun(target);
   const runData = runLoad.status === "ready" ? runLoad.run : null;
@@ -68,6 +70,12 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
   const [scale, setScale] = useState<Scale>("moon");
   // a link carrying analysis inputs (the classic share link) opens the Analyse panel with them filled in
   const [open, setOpen] = useState<PanelId[]>(() => (new URLSearchParams(initialSearch).has(SHARE_PARAM) ? ["sites", "analyse"] : ["sites"]));
+  // on a phone nothing opens on its own, so the Moon is the first thing seen (adjusted once, during render, not in an effect)
+  const [phoneSeen, setPhoneSeen] = useState(false);
+  if (phone && !phoneSeen) {
+    setPhoneSeen(true);
+    setOpen((o) => (o.length > 1 ? [o[o.length - 1]] : o.filter((x) => x !== "sites")));
+  }
   const [analyseSeed, setAnalyseSeed] = useState<{ draft: Draft; n: number } | null>(null);
   const [hidden, setHidden] = useState(false);
   const [scene, setScene] = useState<SceneHandle | null>(null);
@@ -174,18 +182,20 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
     (p: PanelId) =>
       setOpen((o) => {
         if (o.includes(p)) return o.filter((x) => x !== p);
+        if (phone) return [p]; // a phone shows one sheet at a time
         return RIGHT_PANELS.includes(p) ? [...o.filter((x) => !RIGHT_PANELS.includes(x)), p] : [...o, p];
       }),
-    [],
+    [phone],
   );
 
   const select = useCallback(
     (id: string) => {
       setSelectedId(id);
+      if (phone) setOpen((o) => o.filter((x) => x !== "sites")); // the card replaces the list on a phone
       const s = sites.find((x) => x.id === id);
       if (s) scene?.flyToSite(s.latDeg, s.lonEastDeg);
     },
-    [sites, scene],
+    [sites, scene, phone],
   );
 
   /** Add a custom point after the service has checked it. Returns a sentence when it could not be added. */
@@ -243,74 +253,35 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
-  return (
-    <div className="atlas absolute inset-0 overflow-hidden" data-testid="atlas" data-scale={effScale} data-hidden={hidden} data-placing={placing}>
-      <h1 className="sr-only">LunaScope Atlas: the lunar south pole</h1>
-      <ExploreLoader bleed onReady={onReady} />
-      {!inSky && <PinLayer scene={scene} sites={sites} selectedId={selectedId} onSelect={select} />}
-      {inSky && tracks && runData && selected && (
-        <SiteSky
-          siteName={selected.label}
-          tracks={tracks}
-          horizon={horizon}
-          window={runData.window}
-          t={clock.t}
-          look={skyLook}
-          exaggeration={skyK}
-          paths={skyPaths}
-          onReady={onSkyReady}
-          onView={onSkyView}
-        />
-      )}
-
-      <p role="status" className="sr-only">
-        {hidden ? "Interface hidden. Press H to show it." : ""}
-      </p>
-      {hidden && (
-        <p aria-hidden="true" className="atlas-label pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 text-[var(--ink-dim)]">
-          Press H to show the interface
-        </p>
-      )}
-
-      {!hidden && (
-        <div className="pointer-events-none absolute inset-0 flex flex-col gap-3 p-3">
-          {/* only the instruments take the mouse; everything between them is the globe (drag, zoom, click a pin) */}
-          <div className="pointer-events-auto">
-            <TopBar
-              scale={effScale}
-              onScale={setScale}
-              skyReady={skyReady}
-              open={open}
-              onTogglePanel={toggle}
-              onView={onView}
-              placing={placing}
-              onTogglePlacing={() => setPlacing((p) => !p)}
-              runLabel={runLabel ? `Run ${runLabel}` : undefined}
-            />
-          </div>
-
-          {inSky && (
-            <div className="pointer-events-auto">
-              <SkyControls
-                look={skyLook}
-                onLook={setSkyLook}
-                exaggeration={skyK}
-                onExaggeration={setSkyK}
-                paths={skyPaths}
-                onPaths={setSkyPaths}
-                onFaceTarget={(t) => skyHandle.current?.faceTarget(t)}
-                onFace={(az) => skyHandle.current?.face(az)}
-                onReturn={() => setScale("moon")}
-                yaw={skyYaw}
-                has={{ sun_center: !!tracks?.sun_center, earth_center: !!tracks?.earth_center }}
+  // the pieces of the middle of the screen, so the desktop columns and the phone sheet use the same ones
+  const readoutEl = (
+              <Readout compact={phone}
+                scaleLabel={inSky ? skyScaleLabel(skyK) : SCALE_LABEL[effScale]}
+                timeLabel={runData ? utcLabel(runData.window, clock.t) : "NO RUN LOADED"}
+                extra={
+                  inSky && readings
+                    ? readings.map((r) => ({
+                        label: r.target === "sun_center" ? "Sun" : "Earth",
+                        tag: "derived" as const,
+                        value: `AZ ${r.azDeg.toFixed(1)}° · EL ${r.elDeg >= 0 ? "+" : "−"}${Math.abs(r.elDeg).toFixed(2)}°`,
+                      }))
+                    : []
+                }
               />
-            </div>
-          )}
-
-          <div className="pointer-events-none flex min-h-0 flex-1 items-start justify-between gap-3">
-            <div className="pointer-events-none flex h-full min-h-0 w-[min(24rem,100%)] flex-col gap-3 [&>*]:pointer-events-auto">
-              {inSky && tracks && runData && (
-                <div className="flex max-h-[45%] shrink-0 flex-col">
+  );
+  const placingEl = (
+    <>
+              {placing && (
+                <p role="status" className="atlas-panel atlas-label pointer-events-auto px-3 py-2 text-[var(--ink)]">
+                  Click the Moon to place a point · latitude −90 to −80
+                </p>
+              )}
+    </>
+  );
+  const leftStack = (
+    <>
+              {inSky && tracks && runData && (!phone || open.length === 0) && (
+                <div className={phone ? "flex min-h-0 flex-col" : "flex max-h-[45%] shrink-0 flex-col"}>
                   <MissionWindowPanel window={runData.window} t={clock.t} tracks={tracks} readings={readings} onClose={() => setScale("moon")} />
                 </div>
               )}
@@ -327,8 +298,8 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
                   />
                 </div>
               )}
-              {selected && (
-                <div className="flex max-h-[40%] shrink-0 flex-col">
+              {selected && (!phone || open.length === 0) && (
+                <div className={phone ? "flex min-h-0 flex-col" : "flex max-h-[40%] shrink-0 flex-col"}>
                   <SelectedSitePanel
                     key={selected.id}
                     site={selected}
@@ -346,7 +317,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
                 </div>
               )}
               {open.includes("timeline") && (
-                <div className="flex max-h-[62%] shrink-0 flex-col">
+                <div className={phone ? "flex min-h-0 flex-col" : "flex max-h-[62%] shrink-0 flex-col"}>
                   {tracks && runData && selected ? (
                     <TimelinePanel siteLabel={selected.label} tracks={tracks} window={runData.window} t={clock.t} onSeek={actions.seek} onClose={() => toggle("timeline")} />
                   ) : (
@@ -354,26 +325,10 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
                   )}
                 </div>
               )}
-            </div>
-            <div className={`pointer-events-none flex h-full min-h-0 ${rightOpen && WIDE_PANELS.includes(rightOpen) ? "w-[min(44rem,100%)]" : "w-[min(26rem,100%)]"} flex-col items-end gap-3`} data-wide={!!rightOpen && WIDE_PANELS.includes(rightOpen)}>
-              <Readout
-                scaleLabel={inSky ? skyScaleLabel(skyK) : SCALE_LABEL[effScale]}
-                timeLabel={runData ? utcLabel(runData.window, clock.t) : "NO RUN LOADED"}
-                extra={
-                  inSky && readings
-                    ? readings.map((r) => ({
-                        label: r.target === "sun_center" ? "Sun" : "Earth",
-                        tag: "derived" as const,
-                        value: `AZ ${r.azDeg.toFixed(1)}° · EL ${r.elDeg >= 0 ? "+" : "−"}${Math.abs(r.elDeg).toFixed(2)}°`,
-                      }))
-                    : []
-                }
-              />
-              {placing && (
-                <p role="status" className="atlas-panel atlas-label pointer-events-auto px-3 py-2 text-[var(--ink)]">
-                  Click the Moon to place a point · latitude −90 to −80
-                </p>
-              )}
+    </>
+  );
+  const rightPanelEl = (
+    <>
               {rightOpen && (
                 <div className="pointer-events-auto flex min-h-0 w-full flex-1 flex-col" data-testid="right-panel" data-panel={rightOpen}>
                   {rightOpen === "learn" && <LearnPanel onClose={() => toggle("learn")} />}
@@ -450,11 +405,100 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
                     ))}
                 </div>
               )}
-            </div>
+    </>
+  );
+
+  return (
+    <div className="atlas absolute inset-0 overflow-hidden" data-testid="atlas" data-scale={effScale} data-hidden={hidden} data-placing={placing}>
+      <h1 className="sr-only">LunaScope Atlas: the lunar south pole</h1>
+      <ExploreLoader bleed onReady={onReady} />
+      {!inSky && <PinLayer scene={scene} sites={sites} selectedId={selectedId} onSelect={select} />}
+      {inSky && tracks && runData && selected && (
+        <SiteSky
+          siteName={selected.label}
+          tracks={tracks}
+          horizon={horizon}
+          window={runData.window}
+          t={clock.t}
+          look={skyLook}
+          exaggeration={skyK}
+          paths={skyPaths}
+          onReady={onSkyReady}
+          onView={onSkyView}
+        />
+      )}
+
+      <p role="status" className="sr-only">
+        {hidden ? "Interface hidden. Press H to show it." : ""}
+      </p>
+      {hidden && (
+        <p aria-hidden="true" className="atlas-label pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 text-[var(--ink-dim)]">
+          Press H to show the interface
+        </p>
+      )}
+
+      {!hidden && (
+        <div className="pointer-events-none absolute inset-0 flex flex-col gap-3 p-3">
+          {/* only the instruments take the mouse; everything between them is the globe (drag, zoom, click a pin) */}
+          <div className="pointer-events-auto">
+            <TopBar
+              scale={effScale}
+              onScale={setScale}
+              skyReady={skyReady}
+              open={open}
+              onTogglePanel={toggle}
+              onView={onView}
+              placing={placing}
+              onTogglePlacing={() => setPlacing((p) => !p)}
+              runLabel={runLabel ? `Run ${runLabel}` : undefined}
+              compact={phone}
+            />
           </div>
 
+          {inSky && (
+            <div className="pointer-events-auto">
+              <SkyControls
+                look={skyLook}
+                onLook={setSkyLook}
+                exaggeration={skyK}
+                onExaggeration={setSkyK}
+                paths={skyPaths}
+                onPaths={setSkyPaths}
+                onFaceTarget={(t) => skyHandle.current?.faceTarget(t)}
+                onFace={(az) => skyHandle.current?.face(az)}
+                onReturn={() => setScale("moon")}
+                yaw={skyYaw}
+                has={{ sun_center: !!tracks?.sun_center, earth_center: !!tracks?.earth_center }}
+                compact={phone}
+              />
+            </div>
+          )}
+
+          {phone ? (
+            /* phone: one bottom sheet at a time, the time and scale on a line above it */
+            <div className="pointer-events-none flex min-h-0 flex-1 flex-col justify-between gap-2" data-testid="phone-layout">
+              <div className="flex justify-end">{readoutEl}</div>
+              <div className="pointer-events-none flex min-h-0 max-h-[min(66%,34rem)] flex-col gap-2 [&>*]:pointer-events-auto">
+                {placingEl}
+                {leftStack}
+                {rightPanelEl}
+              </div>
+            </div>
+          ) : (
+            <div className="pointer-events-none flex min-h-0 flex-1 items-start justify-between gap-3">
+              <div className="pointer-events-none flex h-full min-h-0 w-[min(24rem,100%)] flex-col gap-3 [&>*]:pointer-events-auto">
+                {leftStack}
+              </div>
+              <div className={`pointer-events-none flex h-full min-h-0 ${rightOpen && WIDE_PANELS.includes(rightOpen) ? "w-[min(44rem,100%)]" : "w-[min(26rem,100%)]"} flex-col items-end gap-3`} data-wide={!!rightOpen && WIDE_PANELS.includes(rightOpen)}>
+                {readoutEl}
+                {placingEl}
+                {rightPanelEl}
+              </div>
+            </div>
+          )}
+
           <div className="pointer-events-auto">
-            <TimeDock run={dockRun} clock={clock} actions={actions} reducedMotion={reducedMotion} />
+            <TimeDock run={dockRun} clock={clock} actions={actions} reducedMotion={reducedMotion} compact={phone} />
           </div>
         </div>
       )}
