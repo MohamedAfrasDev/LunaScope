@@ -1,6 +1,6 @@
 # LunaScope "Calm Galaxy" redesign: shadcn components and a complete product experience
 
-Status: **plan, revised to a calm, aesthetic direction**. No code yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
+Status: **plan, revised to a calm, aesthetic direction. G0 (baseline) is done**; see Appendix A. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
 
 ## 1. The ask, and the decisions already made
 
@@ -79,7 +79,7 @@ Palette direction (final values chosen and contrast-checked in G1, then locked b
 | Background | A deep, slightly blue twilight (around `#0b1020`), not black; a very faint vertical gradient toward a hint of violet at the horizon |
 | Panels / cards | One step lighter and opaque, with a hairline border at low contrast and a soft, wide, low-opacity shadow |
 | Primary | A soft lavender-periwinkle; used sparingly (primary action, links, focus) |
-| Secondary accents | Dusty teal and a trace of muted rose, only for emphasis and tiny illustration details |
+| Secondary accents | Dusty teal for emphasis. The one warm accent is the **Sun's gold**, which also echoes the sunrise in the supplied hero image (Appendix A.3); a trace of muted rose at most |
 | Sun / Earth | Same meaning as today, slightly softened (a warm gold and a gentle sky blue), still passing contrast on panels |
 | Status | Pastel-leaning ok, fail, warn, info, always with icon and word, still passing 4.5:1 on their soft fills |
 | Light theme | "Lunar day": a warm, paper-like pale palette with the same lavender primary and no starfield, for users who prefer light |
@@ -120,13 +120,19 @@ illustration). It starts as a still and fades in. Caps device pixel ratio, pause
 pre-rendered still when WebGL is unavailable, the user prefers reduced motion or has paused animation, or the device is low-power
 (`prefers-reduced-data` or `hardwareConcurrency <= 2`).
 
+**D10a. The supplied hero image** (`app/images/hero-bg.jpg`, added in `8f83020`; see Appendix A.3). It is the Home hero's backdrop, treated to
+stay calm: a dark, blue-tinted scrim over the bright left side so text always reads, a soft vignette, no motion on the photograph itself,
+and the optional 3D layer sitting quietly in front or not at all. It must never be served at full size: an optimised responsive set
+(AVIF and WebP with a JPEG fallback, with a blur placeholder) through `next/image`, and the 22.7 MB original stays out of the page. Because it is a
+photoreal picture on a science tool, it carries the same label as the home sketch ("Illustration only") and is never placed inside a result frame.
+
 ## 6. Phases
 
 Small, individually mergeable; each ends with unit tests, e2e, axe in both themes, a before/after screenshot, and a pass against the section 2 checklist.
 
 | Phase | Title | PR |
 |---|---|---|
-| G0 | Baseline: run all suites, capture "pre-galaxy" screenshots, list pinned selectors affected by the token rename | A |
+| G0 | **Done.** Baseline: all suites, "pre-galaxy" screenshots, inventory of what the token rename touches, hero asset audit | A |
 | G1 | shadcn foundation: `init`, `cn`, deps, `components.json`; token migration codemod; **calm twilight palette**; update `tokens.test.ts` | A |
 | G2 | Replace primitives with shadcn: Button, Card, Badge (status chips), Alert, Separator, Skeleton, Progress, Input, Label, Select, Checkbox, RadioGroup; restyle native Disclosure | B |
 | G3 | Calm visual system: twilight backdrop (gradient, nebula washes, still stars), soft elevation, hairline borders, spacing and type rhythm, optional slow drift with Pause, reduced-motion/transparency/contrast fallbacks | C |
@@ -134,7 +140,7 @@ Small, individually mergeable; each ends with unit tests, e2e, axe in both theme
 | G5 | Command palette: Command dialog, entries, shortcuts, tests | D |
 | G6 | Polished states: skeletons, Sonner toasts, Empty/error/not-found, a short page fade | E |
 | G7 | Onboarding: tour, tooltips, glossary | F |
-| G8 | Gentle 3D galaxy hero with fallbacks and a performance guard | G |
+| G8 | Calm hero: the supplied image (optimised, with a scrim), plus an optional gentle 3D layer, fallbacks and a performance guard | G |
 | G9 | Re-skin each route on the new system (Home, Run, Timeline, Sky, Compare, Time Machine, Evidence, Analyze, Explainer, notable sites) | H |
 | G10 | Verification and docs: sweep, perf budget, update `UI-REDESIGN.md` and the user guide, after screenshots | H |
 
@@ -162,3 +168,60 @@ Suggested first release: A, B, C (the look), then D to F (the product feel), the
 3. Sidebar on desktop: **icon-collapsible rail** or a fixed full-width sidebar?
 4. Recent runs only in this browser (**yes**), or is a server-side run list wanted (that would be a backend change)?
 5. Ambient motion: **a very slow star drift with a Pause control**, or completely still (stars and hero static)?
+
+## Appendix A. G0 baseline (2026-11-15, `main` at `3d04960`)
+
+### A.1 Suites, all green on a production build
+
+| Check | Result |
+|---|---|
+| `vitest` | 26 files, 260 tests pass |
+| `tsc --noEmit`, `eslint`, `npm run check:api` | clean |
+| `next build` | passes; the run routes are still partially prerendered |
+| Playwright e2e (synthetic stack, production build on its own port) | 14 pass: core flow, extras, phone layout, a11y sweep (5), **3D sky view (3)** |
+| Playwright fallback e2e (live stack) | 1 passes |
+| axe, dark and light, 9 routes | 0 violations |
+
+Note: run the e2e suite against a production build, on a port nothing else is using. A long-running dev server or an old `next start` can serve stale
+stylesheets after a rebuild (this produced an unstyled screenshot set once already).
+
+### A.2 Pre-galaxy screenshots
+
+`docs/ui/screenshots/pre-galaxy/`: 30 images, 10 views x (dark and light at 1280 px, light at 375 px). The views are the 9 routes plus the **3D sky view**.
+They include the new Home "Compare notable south-polar places" cards. The after-galaxy set will be captured with the same script and names.
+
+### A.3 The supplied hero image
+
+| Fact | Value |
+|---|---|
+| File | `app/images/hero-bg.jpg`, 5459 x 3059, JPEG, **22.7 MB**; committed in `8f83020`; not yet referenced by any code |
+| Content | A photoreal view of the Earth's limb from orbit at sunrise: a warm gold-orange glow at the upper left, deep blue Earth below, dark space at the upper right |
+| Palette it suggests | Deep blue plus warm gold, which are the product's own Earth blue and Sun gold. This is why the plan's one warm accent is the Sun's gold |
+| Brightness | Mean luminance about 140 on the left and 77 on the right (0 to 255), with highlights near white: text placed on it needs a scrim |
+| Problems to solve | (1) **Size**: 22.7 MB cannot ship; it needs an optimised responsive set via `next/image`. The original is already in git history; keeping it out of future builds is a decision for the team (a smaller committed copy, or Git LFS). (2) **Provenance**: it looks like a rendered or AI-style illustration, not a NASA photograph. Its **source and licence are not recorded**, and `docs/submission/LICENCES-AND-CITATIONS.md` currently says "No images are used", which becomes false when it ships. Please confirm where it came from and under what licence, and whether `DISCLOSURES.md` needs an entry. (3) **Honesty**: label it "Illustration only", and never imply it is NASA imagery or data |
+
+### A.4 What the token rename touches (G1 input)
+
+CSS variables referenced directly in components, by name: `--muted` 17, `--foreground` 16, `--surface` 9, `--border` 9, `--earth` 6, `--sun` 5, `--surface-2` 4,
+`--fail` 4, `--warn` 2, `--ok` 2, `--warn-soft` 1, `--fail-soft` 1, `--border-strong` 1 (SVG fills and strokes, mostly).
+
+Tailwind colour classes in `components/` and `app/`: `muted` 118, `border` 80, `fail` 43, `surface` 33, `accent` 31, `surface-2` 17, `fail-soft` 11,
+`warn` 11, `border-strong` 11, `info` 8, `ok` 7, `foreground` 5, `sun` 5, `earth` 5, `background` 4, `info-soft` 3, `ok-soft` 2, `warn-soft` 2.
+Heaviest files: `EvidencePanel` 24, `AnalyzeForm` 20, `SkyView` 17, `TimelineView` 12, `StatusMatrix` 10.
+
+Custom classes in `globals.css` to rework: `btn-primary`, `surface-card`, `nav-link`, `eyebrow`, `kv`, `tap`, `tap-block`, `readout*`, `type-*`, and the hero and reveal
+animation classes. (`.grid`'s base rule stays.)
+
+**Tests that assert on a class or token (5 assertions, 4 files):** `compare.test.tsx` (`has-[:checked]:border-accent`), `phase2.test.tsx` (`btn-primary`),
+`run-verdict.test.tsx` (`.bg-surface-2.rounded-full`), `ui-primitives.test.tsx` (`text-warn`, `readout`). Every other test finds things by role, name and
+text, so it is unaffected by a rename. The e2e suite asserts on no class.
+
+**Not covered by the CSS tokens:** the **3D sky view** (`components/Sky3D.tsx`) draws with hard-coded hex colours (background `0x0a0f1c`, ground, wall, ridge,
+label colours; Sun `0xf5a524`, Earth `0x5aa9ff`), so it does not follow the theme at all today. G1 or G9 should route those through the palette, and the
+light theme needs its own set. The Sun and Earth hues also differ slightly between the 3D view and the tokens (`#f5a524` vs `#f2b84b`, `#5aa9ff` vs `#6aa8ff`).
+
+### A.5 Decisions G0 surfaces for you
+
+1. Hero image: confirm its **source and licence**, and whether to keep the 22.7 MB original in the repo (a smaller committed copy or Git LFS are the options).
+2. Update `LICENCES-AND-CITATIONS.md` ("No images are used") and, if the image was AI-generated, `DISCLOSURES.md`, when the hero ships.
+3. Unify the Sun and Earth hues across the tokens, the SVGs and the 3D view in G1.
