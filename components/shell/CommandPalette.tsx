@@ -100,6 +100,7 @@ export function CommandPalette() {
   const pages: Entry[] = [
     { id: "home", label: "Home", icon: House, run: go("/") },
     { id: "analyze", label: "New analysis", icon: Plus, run: go("/analyze") },
+    { id: "atlas", label: "Open the Atlas", icon: Globe, run: go("/atlas"), keywords: "moon globe sites time clock" },
     { id: "explore", label: "Explore the Moon", icon: Globe, run: go("/explore") },
     { id: "why", label: "Why the south pole is hard", icon: Mountain, run: go("/why-the-south-pole-is-hard"), keywords: "learn explainer" },
     { id: "terms", label: "Key terms", icon: BookOpen, run: go("/why-the-south-pole-is-hard#key-terms"), keywords: "glossary words meaning terrain-aware flat horizon" },

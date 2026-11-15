@@ -84,6 +84,9 @@ function RunNavFor({ runId }: { runId: string }) {
         <p className="flex items-center gap-2 pb-2 text-xs text-muted-foreground">
           <span className="readout">{shortId(runId)}</span>
           {run?.result_state && <ResultBadge state={run.result_state} />}
+          <Link href={`/atlas?run=${runId}`} className="tap text-primary underline underline-offset-4">
+            Open in the Atlas
+          </Link>
         </p>
       </div>
       {showSites && (

@@ -18,11 +18,19 @@ import { MetricsPanel } from "@/components/atlas/MetricsPanel";
 import { Panel } from "@/components/atlas/Panel";
 import { SkyPathPanel } from "@/components/atlas/SkyPathPanel";
 import { TimelinePanel } from "@/components/atlas/TimelinePanel";
-import { RIGHT_PANELS, TopBar, type PanelId, type Scale } from "@/components/atlas/TopBar";
+import { RunsPanel } from "@/components/atlas/RunsPanel";
+import { analyseDraft } from "@/components/atlas/SelectedSitePanel";
+import { RIGHT_PANELS, TopBar, WIDE_PANELS, type PanelId, type Scale } from "@/components/atlas/TopBar";
 import { useHorizon } from "@/components/atlas/useHorizon";
 import { useCatalog } from "@/components/atlas/useCatalog";
 import { useClock } from "@/components/atlas/useClock";
 import { useRun } from "@/components/atlas/useRun";
+import { AnalyzeForm } from "@/components/AnalyzeForm";
+import { EvidencePanel } from "@/components/EvidencePanel";
+import { TimeMachineView } from "@/components/TimeMachineView";
+import { searchFor, targetFromSearch, type RunTarget } from "@/lib/atlas/run-target";
+import { SHARE_PARAM, type Draft } from "@/lib/draft";
+import { rememberRun } from "@/lib/recent-runs";
 import { ExploreLoader } from "@/components/explore/ExploreLoader";
 import type { SceneHandle } from "@/components/explore/ExploreViewer";
 import { describeError, postJson } from "@/lib/api/client";
@@ -31,7 +39,7 @@ import { fromCustomCheck, inTerrainData, MAX_CUSTOM_POINTS, type AtlasSite } fro
 import { utcLabel } from "@/lib/atlas/clock";
 import { cursorAt, eventScopeWords, eventTimesFor } from "@/lib/atlas/run";
 import { skyScaleLabel } from "@/lib/atlas/sky";
-import { shortId } from "@/lib/format";
+import { shortId, siteLabel as nameOfSite } from "@/lib/format";
 import type { ViewName } from "@/lib/explore/geometry";
 
 function typing(t: EventTarget | null): boolean {
@@ -51,13 +59,16 @@ const PLACED_PRECISION_M = 1000;
  * Phase C adds the sites: pins on the Moon, a Sites list, the selected-site card and custom points. The clock and the
  * result panels arrive in later phases. H hides the interface (for screenshots) and shows it again.
  */
-export function AtlasShell() {
+export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = {}) {
   const catalog = useCatalog();
-  const runLoad = useRun();
+  const [target, setTarget] = useState<RunTarget>(() => targetFromSearch(initialSearch));
+  const runLoad = useRun(target);
   const runData = runLoad.status === "ready" ? runLoad.run : null;
   const { clock, actions, reducedMotion } = useClock(runData?.window ?? null);
   const [scale, setScale] = useState<Scale>("moon");
-  const [open, setOpen] = useState<PanelId[]>(["sites"]);
+  // a link carrying analysis inputs (the classic share link) opens the Analyse panel with them filled in
+  const [open, setOpen] = useState<PanelId[]>(() => (new URLSearchParams(initialSearch).has(SHARE_PARAM) ? ["sites", "analyse"] : ["sites"]));
+  const [analyseSeed, setAnalyseSeed] = useState<{ draft: Draft; n: number } | null>(null);
   const [hidden, setHidden] = useState(false);
   const [scene, setScene] = useState<SceneHandle | null>(null);
   const [customs, setCustoms] = useState<AtlasSite[]>([]);
@@ -130,6 +141,27 @@ export function AtlasShell() {
     if (!readings) return { kind: "not-in-run", runLabel: runLabel ?? "this run" };
     return { kind: "ready", timeLabel: utcLabel(runLoad.run.window, clock.t), runLabel: runLabel ?? "", readings };
   }, [runLoad, selectedId, clock.t, runLabel]);
+
+  /** Load another run into the Atlas, and keep the address in step so the view can be shared. */
+  const chooseRun = useCallback((t: RunTarget) => {
+    setTarget(t);
+    try {
+      const q = searchFor(t, window.location.search);
+      window.history.replaceState(null, "", `${window.location.pathname}${q ? `?${q}` : ""}`);
+    } catch {
+      /* the address is a convenience */
+    }
+  }, []);
+
+  // runs the person opens are remembered on this device, with a label from the site names the service returned
+  const readyRunId = runLoad.status === "ready" ? runLoad.run.runId : null;
+  const readyState = runLoad.status === "ready" ? runLoad.run.resultState : undefined;
+  const readySites = runLoad.status === "ready" ? Object.keys(runLoad.run.sites).join("|") : "";
+  useEffect(() => {
+    const ids = readySites ? readySites.split("|") : [];
+    if (!readyRunId || !ids.length) return;
+    rememberRun({ id: readyRunId, label: ids.length > 1 ? `${nameOfSite(ids[0])} and ${ids.length - 1} more` : nameOfSite(ids[0]), state: readyState, sites: ids });
+  }, [readyRunId, readyState, readySites]);
 
   const onReady = useCallback((h: SceneHandle) => setScene(h), []);
   const onSkyReady = useCallback((h: Sky3DHandle) => {
@@ -306,6 +338,10 @@ export function AtlasShell() {
                     onRemove={selected.kind === "custom" ? () => removeCustom(selected.id) : undefined}
                     onClose={() => setSelectedId(null)}
                     onEnterSky={tracks ? () => setScale("sky") : undefined}
+                    onAnalyse={() => {
+                      setAnalyseSeed((cur) => ({ draft: analyseDraft(selected), n: (cur?.n ?? 0) + 1 }));
+                      setOpen((o) => [...o.filter((x) => !RIGHT_PANELS.includes(x)), "analyse"]);
+                    }}
                   />
                 </div>
               )}
@@ -319,7 +355,7 @@ export function AtlasShell() {
                 </div>
               )}
             </div>
-            <div className="pointer-events-none flex h-full min-h-0 w-[min(26rem,100%)] flex-col items-end gap-3">
+            <div className={`pointer-events-none flex h-full min-h-0 ${rightOpen && WIDE_PANELS.includes(rightOpen) ? "w-[min(44rem,100%)]" : "w-[min(26rem,100%)]"} flex-col items-end gap-3`} data-wide={!!rightOpen && WIDE_PANELS.includes(rightOpen)}>
               <Readout
                 scaleLabel={inSky ? skyScaleLabel(skyK) : SCALE_LABEL[effScale]}
                 timeLabel={runData ? utcLabel(runData.window, clock.t) : "NO RUN LOADED"}
@@ -358,6 +394,44 @@ export function AtlasShell() {
                       <SkyPathPanel siteLabel={selected.label} tracks={tracks} t={clock.t} horizon={horizon} onClose={() => toggle("sky-path")} />
                     ) : (
                       gate("Sky path", () => toggle("sky-path"))
+                    ))}
+                  {rightOpen === "runs" && <RunsPanel current={target} onChoose={chooseRun} onClose={() => toggle("runs")} />}
+                  {rightOpen === "analyse" && (
+                    <Panel title="Analyse" onClose={() => toggle("analyse")} focused className="max-h-full" bodyClassName="atlas-prose">
+                      <AnalyzeForm
+                        key={analyseSeed?.n ?? 0}
+                        seed={analyseSeed?.draft ?? null}
+                        onStarted={(id) => {
+                          chooseRun({ kind: "run", id });
+                          toast.success("Run started. It opens here when it finishes.");
+                          setOpen((o) => o.filter((x) => x !== "analyse"));
+                        }}
+                      />
+                    </Panel>
+                  )}
+                  {rightOpen === "dates" &&
+                    (runData ? (
+                      <Panel title="Dates" onClose={() => toggle("dates")} focused className="max-h-full" bodyClassName="atlas-prose">
+                        <TimeMachineView key={runData.runId} runId={runData.runId} embedded />
+                      </Panel>
+                    ) : (
+                      <Panel title="Dates" onClose={() => toggle("dates")} focused>
+                        <p role="status" className="atlas-prose text-sm text-[var(--ink-dim)]">
+                          {runLoad.status === "loading" ? "Loading the run, so there is nothing to shift yet." : "No run is loaded, so there are no dates to test."}
+                        </p>
+                      </Panel>
+                    ))}
+                  {rightOpen === "evidence" &&
+                    (runData ? (
+                      <Panel title="Evidence" onClose={() => toggle("evidence")} focused className="max-h-full" bodyClassName="atlas-prose">
+                        <EvidencePanel key={runData.runId} runId={runData.runId} embedded />
+                      </Panel>
+                    ) : (
+                      <Panel title="Evidence" onClose={() => toggle("evidence")} focused>
+                        <p role="status" className="atlas-prose text-sm text-[var(--ink-dim)]">
+                          {runLoad.status === "loading" ? "Loading the run, so there is no evidence to show yet." : "No run is loaded, so there is no evidence to show."}
+                        </p>
+                      </Panel>
                     ))}
                   {rightOpen === "compare" &&
                     (runData && Object.keys(runData.sites).length >= 2 ? (

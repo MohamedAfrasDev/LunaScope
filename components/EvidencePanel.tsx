@@ -124,7 +124,7 @@ function DiskEdgeTable({ siteId, d }: { siteId: string; d: DiskEdge }) {
 }
 
 /** Evidence workspace (FR-09, FR-13): can I trust and reproduce this? */
-export function EvidencePanel({ runId }: { runId: string }) {
+export function EvidencePanel({ runId, embedded = false }: { runId: string; embedded?: boolean }) {
   const uid = useId();
   const { p, v, err } = useEvidence(runId);
 
@@ -167,7 +167,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="type-title">Evidence</h1>
+        {embedded ? <h2 className="text-base font-medium">Evidence</h2> : <h1 className="type-title">Evidence</h1>}
         <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
           What was used, what was checked against what, and what was not checked. Every number in this run
           traces to the inputs below.

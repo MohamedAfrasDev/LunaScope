@@ -410,3 +410,30 @@ Production cost measured: landing JS 430 KB and images 459 KB (budgets raised fr
 - **Readout:** time, the Sun's and Earth's azimuth and elevation (tagged `DERIVED`), and the scale. **Mission window** panel: day N of M, time left, and for each target the service's state now and its availability over the whole window. No combined "both visible" figure (rule 3).
 - **Not built:** the generic lander model. It is decoration the spec marked `ILLUSTRATION`, and it adds nothing the data shows; the observer pin of the 3D sky stays.
 - Fixed on the way: the compass uses the eight points the reference uses (151 degrees is SE), not sixteen.
+
+### Phase G (run tools), done
+- **Runs** (the run chip in the top bar): the three reference missions (GR-001, GR-002, GR-003, each submitted exactly as the service holds it), the runs opened on this device, and any run by its id. The choice is written to the address (`?run=<id>` or `?ref=GR-002`) so a view can be shared, and the Atlas reads it on a first load and on a link from another page. The page passes the address to the Atlas as props, because reading `window.location` during a client navigation gave the previous address.
+- **Analyse:** the analysis form inside the Atlas. **Analyse this site** on the Selected site card opens it with that site filled in (inputs only, nothing starts). Starting a run hands it to the Atlas, which loads it when it finishes. A classic share link `?d=` opens the panel with the inputs filled in.
+- **Dates** (the Time Machine and the dates search) and **Evidence** (validation cards, disc-size check, provenance, export) are the run pages' own components, embedded for the loaded run, with a section heading instead of a second `h1`.
+- The wide panels (Analyse, Dates, Evidence) take a wider right column.
+- **Old routes:** they are **not** redirected. Every classic run page now has an **Open in the Atlas** link, and Search has **Open the Atlas**. A redirect would remove the pages the parity tests and the pitch version of the product rely on; it is a one-line decision for the end (D6).
+
+#### Feature map, as built
+| Today | Atlas | Status |
+|---|---|---|
+| Home hero, rules, "what it is not" | Landing, then Learn | done |
+| Reference mission and notable-place cards | Runs panel (GR-001, GR-002, GR-003) | done |
+| `/analyze` form, share link, coverage check | Analyse panel; coverage check on the Sites panel | done |
+| Run verdict and site cards | Selected site card, Metrics, Mission window | done (the matrix and cards stay on the classic run page) |
+| Full comparison table and status matrix | Compare panel | partial: the matrix is classic only |
+| Timeline page | Timeline, Metrics, Clearance | done |
+| Local sky (polar, unrolled, 3D) | Sky path panel and Site sky | done |
+| Compare | Compare panel | done |
+| Time Machine and dates search | Dates panel | done (the A/B clock switch is not built) |
+| Evidence and export | Evidence panel | done |
+| Why the south pole is hard | Learn panel and `/why-the-south-pole-is-hard` | done (the page stays) |
+| Data-status pill, replay badge, no-service strip | Dock status line and the top strip | done |
+| Guided / Technical switch | not in the Atlas | open |
+| Recent runs | Runs panel | done |
+| Page tour | not in the Atlas | open |
+| System scale | not built (needs service geometry, D4) | open |

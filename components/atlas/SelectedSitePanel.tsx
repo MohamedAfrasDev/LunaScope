@@ -5,7 +5,7 @@ import { Panel } from "@/components/atlas/Panel";
 import { Tag } from "@/components/atlas/Tag";
 import type { CursorReading } from "@/lib/atlas/run";
 import { INTERVAL } from "@/lib/status";
-import { encodeShare, referenceDraft, SHARE_PARAM } from "@/lib/draft";
+import { encodeShare, referenceDraft, SHARE_PARAM, type Draft } from "@/lib/draft";
 import { coverageWords, formatEastLon, formatLat, kindWords, type AtlasSite } from "@/lib/atlas/sites";
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
@@ -17,11 +17,10 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
-/** A link to the analysis form with just this site filled in. It carries inputs only, and starts nothing. */
-export function analyseHref(site: AtlasSite): string {
+/** The analysis inputs for just this site. It carries inputs only, and starts nothing. */
+export function analyseDraft(site: AtlasSite): Draft {
   const base = referenceDraft(site.kind === "custom" ? [] : [site.id]);
-  const draft =
-    site.kind === "custom"
+  return site.kind === "custom"
       ? {
           ...base,
           custom: [
@@ -35,7 +34,11 @@ export function analyseHref(site: AtlasSite): string {
           ],
         }
       : base;
-  return `/analyze?${SHARE_PARAM}=${encodeShare(draft)}`;
+}
+
+/** A link to the classic analysis form with just this site filled in. */
+export function analyseHref(site: AtlasSite): string {
+  return `/analyze?${SHARE_PARAM}=${encodeShare(analyseDraft(site))}`;
 }
 
 /** What the loaded run says about this site at the clock time. Everything here came from the science service. */
@@ -101,8 +104,11 @@ export function SelectedSitePanel({
   onRemove,
   onClose,
   onEnterSky,
+  onAnalyse,
   cursor = { kind: "none" },
 }: {
+  /** Inside the Atlas: opens the Analyse panel with this site filled in, instead of leaving for the classic form. */
+  onAnalyse?: () => void;
   /** Present when the loaded run holds this site: enters Site sky. */
   onEnterSky?: () => void;
   site: AtlasSite;
@@ -173,9 +179,15 @@ export function SelectedSitePanel({
         >
           Enter site sky
         </button>
-        <Link href={analyseHref(site)} className="atlas-key atlas-label inline-flex items-center border border-[var(--panel-edge)]">
-          Analyse this site
-        </Link>
+        {onAnalyse ? (
+          <button type="button" className="atlas-key atlas-label border-[var(--panel-edge)]" onClick={onAnalyse}>
+            Analyse this site
+          </button>
+        ) : (
+          <Link href={analyseHref(site)} className="atlas-key atlas-label inline-flex items-center border border-[var(--panel-edge)]">
+            Analyse this site
+          </Link>
+        )}
         {onRemove && (
           <button type="button" className="atlas-key atlas-label border-[var(--panel-edge)]" onClick={onRemove}>
             Remove point

@@ -6,10 +6,13 @@ import { openCommandPalette } from "@/components/shell/CommandPalette";
 import { VIEWS, type ViewName } from "@/lib/explore/geometry";
 
 export type Scale = "moon" | "system" | "sky";
-export type PanelId = "sites" | "timeline" | "metrics" | "clearance" | "sky-path" | "compare" | "learn";
+export type PanelId = "sites" | "timeline" | "metrics" | "clearance" | "sky-path" | "compare" | "dates" | "evidence" | "analyse" | "runs" | "learn";
 
 /** Panels that share the right-hand column: opening one closes the others. */
-export const RIGHT_PANELS: PanelId[] = ["metrics", "clearance", "sky-path", "compare", "learn"];
+export const RIGHT_PANELS: PanelId[] = ["metrics", "clearance", "sky-path", "compare", "dates", "evidence", "analyse", "runs", "learn"];
+
+/** Panels that need more room than the narrow right column. */
+export const WIDE_PANELS: PanelId[] = ["dates", "evidence", "analyse"];
 
 const SCALES: { id: Scale; label: string; ready: boolean; note: string }[] = [
   { id: "moon", label: "Moon", ready: true, note: "" },
@@ -24,6 +27,9 @@ const PANELS: { id: PanelId; label: string }[] = [
   { id: "clearance", label: "Clearance" },
   { id: "sky-path", label: "Sky path" },
   { id: "compare", label: "Compare" },
+  { id: "dates", label: "Dates" },
+  { id: "evidence", label: "Evidence" },
+  { id: "analyse", label: "Analyse" },
   { id: "learn", label: "Learn" },
 ];
 
@@ -39,6 +45,7 @@ export function TopBar({
   runLabel,
   skyReady = false,
 }: {
+  /** The open run, as the chip says it. Without one the chip reads "Runs". */
   runLabel?: string;
   /** Site sky needs a run and a selected site that the run holds. */
   skyReady?: boolean;
@@ -92,14 +99,19 @@ export function TopBar({
         </button>
       </div>
 
-      {runLabel && (
-        <span className="atlas-label ml-auto border-l border-[var(--panel-edge)] pl-3 text-[var(--ink-dim)]" data-testid="run-chip">
-          {runLabel}
-        </span>
-      )}
       <button
         type="button"
-        className={`atlas-key atlas-label ${runLabel ? "" : "ml-auto"} flex items-center gap-2`}
+        className="atlas-key atlas-label ml-auto border-l border-[var(--panel-edge)]"
+        data-testid="run-chip"
+        aria-pressed={open.includes("runs")}
+        aria-label={runLabel ? `${runLabel}: choose another run` : "Runs: choose a run"}
+        onClick={() => onTogglePanel("runs")}
+      >
+        {runLabel ?? "Runs"}
+      </button>
+      <button
+        type="button"
+        className="atlas-key atlas-label flex items-center gap-2"
         onClick={openCommandPalette}
         aria-keyshortcuts="Control+K Meta+K"
       >
