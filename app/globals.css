@@ -124,6 +124,66 @@
   }
 }
 
+/*
+ * A scope that always uses the night palette (the Home hero stage sits on a dark photograph in both themes). It repeats
+ * the dark tokens above; tests/web/hero-stage.test.tsx keeps the two copies identical.
+ */
+.theme-night {
+  color-scheme: dark;
+  --background: #0b1020;
+  --foreground: #e9edfa;
+  --card: #111830;
+  --card-foreground: #e9edfa;
+  --popover: #151d38;
+  --popover-foreground: #e9edfa;
+  --primary: #a5b4ff;
+  --primary-foreground: #0b1020;
+  --secondary: #1b2448;
+  --secondary-foreground: #e9edfa;
+  --muted: #182142;
+  --muted-foreground: #a9b2d3;
+  --accent: #212b57;
+  --accent-foreground: #e9edfa;
+  --destructive: #ff9aa5;
+  --border: #2a3560;
+  --input: #6d7bb0;
+  --ring: #a5b4ff;
+  --chart-1: #a5b4ff;
+  --chart-2: #86b8ff;
+  --chart-3: #f4c873;
+  --chart-4: #7dd3c8;
+  --chart-5: #e8a0bf;
+  --sidebar: #0e1530;
+  --sidebar-foreground: #e9edfa;
+  --sidebar-primary: #a5b4ff;
+  --sidebar-primary-foreground: #0b1020;
+  --sidebar-accent: #212b57;
+  --sidebar-accent-foreground: #e9edfa;
+  --sidebar-border: #2a3560;
+  --sidebar-ring: #a5b4ff;
+  /* The two protagonists, and the status colours (each with a soft fill for its chip). */
+  --sun: #f4c873;
+  --sun-soft: #2c2410;
+  --earth: #86b8ff;
+  --earth-soft: #122342;
+  --ok: #86dcae;
+  --ok-soft: #10281f;
+  --fail: #ff9aa5;
+  --fail-soft: #34161f;
+  --warn: #f4d27e;
+  --warn-soft: #2e2610;
+  --info: #9db7ff;
+  --info-soft: #161f40;
+  --shadow-sm: 0 1px 2px rgb(2 4 16 / 0.35), 0 10px 28px -14px rgb(2 4 16 / 0.6);
+  --radius: 0.75rem;
+}
+
+.hero-scrim {
+  background:
+    linear-gradient(90deg, rgb(8 12 28 / 0.9) 0%, rgb(8 12 28 / 0.86) 55%, rgb(8 12 28 / 0.72) 100%),
+    radial-gradient(120% 90% at 50% 50%, transparent 55%, rgb(5 8 20 / 0.55) 100%);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

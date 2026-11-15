@@ -26,7 +26,7 @@ The two MPL-2.0 packages are used for testing only and are not part of the shipp
 
 ## Images and logos
 
-No images are used. The five scaffold SVGs left by Create Next App (including a Vercel logo) were unused and have been removed. **No NASA logo, insignia or mission patch is used, generated or altered.** The explainer's diagram is an original schematic drawn in the repository.
+One photographic image is used: a decorative night view of the Earth's limb behind the Home introduction (`app/images/hero-2400.jpg`, a 2400 px copy of `app/images/hero-bg.jpg`). It is not data and is labelled on the page as an illustration, **not NASA imagery**. **Its source and licence are not recorded in this repository and must be confirmed by the project owner before submission** (see the open item in `docs/ui/GALAXY-PLAN.md`, Appendix I); if they cannot be, remove the image (the hero falls back to the plain night background by deleting `HeroStage`'s `Image`). The five scaffold SVGs left by Create Next App (including a Vercel logo) were unused and have been removed. **No NASA logo, insignia or mission patch is used, generated or altered.** The explainer's diagram is an original schematic drawn in the repository.
 
 ## Required statements (already in the product footer)
 

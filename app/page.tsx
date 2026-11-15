@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HeroSkyline } from "@/components/HeroSkyline";
+import { HeroStage } from "@/components/HeroStage";
 import { ReferenceMissionButton } from "@/components/ReferenceMissionButton";
 import { ReferenceRunCard } from "@/components/ReferenceRunCard";
 import { Separator } from "@/components/ui/separator";
@@ -7,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 export default function Home() {
   return (
     <div className="grid gap-14 sm:gap-16">
+      <HeroStage>
       <div className="grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-14">
         <section>
           <p className="eyebrow">Lunar south pole · screening tool</p>
@@ -33,12 +35,13 @@ export default function Home() {
 
         <div>
           <HeroSkyline />
-          <p className="mt-4 text-sm leading-6 text-muted-foreground">
+          <p className="mt-4 text-sm leading-6 text-foreground">
             LunaScope shows the local sky against the terrain skyline, the outages, and the evidence behind each
             number.
           </p>
         </div>
       </div>
+      </HeroStage>
 
       <section aria-labelledby="notable">
         <h2 id="notable" className="type-section">

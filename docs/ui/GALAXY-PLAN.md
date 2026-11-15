@@ -1,6 +1,6 @@
 # LunaScope "Calm Galaxy" redesign: shadcn components and a complete product experience
 
-Status: **plan, revised to a calm, aesthetic direction. G0 (baseline), G1 (shadcn foundation and calm tokens) and G2 (shadcn components) and G3 (calm visual system) and G4 (app shell) and G5 (command palette) and G6 (polished states) and G7 (onboarding) are done**; see Appendices A to H. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
+Status: **plan, revised to a calm, aesthetic direction. G0 (baseline), G1 (shadcn foundation and calm tokens) and G2 (shadcn components) and G3 (calm visual system) and G4 (app shell) and G5 (command palette) and G6 (polished states) and G7 (onboarding) and G8 (calm hero) are done**; see Appendices A to I. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
 
 ## 1. The ask, and the decisions already made
 
@@ -140,7 +140,7 @@ Small, individually mergeable; each ends with unit tests, e2e, axe in both theme
 | G5 | **Done.** Command palette: Command dialog, entries, shortcuts, tests | D |
 | G6 | **Done.** Polished states: skeletons, Sonner toasts, Empty/error/not-found, a short page fade | E |
 | G7 | **Done.**  Onboarding: tour, tooltips, glossary | F |
-| G8 | Calm hero: the supplied image (optimised, with a scrim), plus an optional gentle 3D layer, fallbacks and a performance guard | G |
+| G8 | **Done.** Calm hero: the supplied image (optimised, with a scrim), plus an optional gentle 3D layer, fallbacks and a performance guard | G |
 | G9 | Re-skin each route on the new system (Home, Run, Timeline, Sky, Compare, Time Machine, Evidence, Analyze, Explainer, notable sites) | H |
 | G10 | Verification and docs: sweep, perf budget, update `UI-REDESIGN.md` and the user guide, after screenshots | H |
 
@@ -522,3 +522,32 @@ shadcn `Command` (cmdk) in a `Dialog`: `components/shell/CommandPalette.tsx`. A 
 | `next build` | passes |
 | Playwright e2e | 27 pass (new: `onboarding.spec.ts`: a term opens with Enter and closes with Escape, axe clean with the popover open and during the tour, the five-step tour, never re-offered after a reload, restarted from the palette; the explainer's Key terms); fallback e2e 1 passes |
 | Visual | Not reviewed on screen this phase: the tour needs a finished run (the science service); it was checked by the browser tests above (focus, outline, axe) |
+
+## Appendix I. G8: calm hero
+
+### I.1 What changed
+
+| Part | Behaviour |
+|---|---|
+| **Optimised picture** | `app/images/hero-2400.jpg`: the supplied image resized to 2400 x 1345 (JPEG quality 74, progressive), **268 KB** instead of 22.7 MB. Imported statically into `components/HeroStage.tsx`, so `next/image` serves AVIF or WebP at the right width and generates the blur placeholder. `next.config.ts` lists `image/avif` and `image/webp`. The original (`hero-bg.jpg`) is **not imported anywhere**; a test fails if any hero file refers to it |
+| **Stage** (`HeroStage`) | The whole Home introduction (text, reference-mission card, sketch) sits on the picture inside a rounded, bordered stage. The picture is decoration (`alt=""`, `priority` because it is the largest content, never inside a result frame), with no motion |
+| **Scrim** (`.hero-scrim`) | A dark blue gradient (90 % on the left, 86 % in the middle, 72 % on the right) plus a soft vignette. Computed against the real pixels: the **brightest pixel under the left 60 % still gives the muted text 5.5:1** (foreground 9.9:1), and under the right 40 % 4.5:1; the caption under the sketch uses the brighter foreground colour for extra margin |
+| **Night scope** (`.theme-night`) | The stage always uses the night palette, so the text is light-on-dark in the light theme too (the page around it stays light). It repeats the dark tokens; a test keeps the two copies identical |
+| **Honesty label** | A visible chip on the stage: "Background: illustration only. Not NASA imagery, not data." |
+
+### I.2 Decisions and findings
+
+- **The 3D galaxy layer was not built.** The plan allowed "an optional gentle 3D layer". With the photograph as the backdrop, a rotating point cloud on top would add three.js weight and GPU work to the first screen and compete with the one focal point the calm principles ask for. So there is nothing to pause, no WebGL fallback to maintain, and the reduced-motion, paused and low-power cases are all satisfied by the still picture. It can be revisited as its own phase if the team wants it.
+- **Calm over spectacle.** With the scrim sized for guaranteed legibility the photograph reads as a faint glow and the Earth's limb at the bottom, not as a bright scene. That is the intended "mood, not spectacle"; the knob is the scrim alpha in `.hero-scrim` (lower it only after re-running the contrast numbers above).
+- **No reduced-data switch.** CSS cannot stop an `<img>` from downloading, and `prefers-reduced-data` is barely supported, so the 268 KB picture is always fetched (served as AVIF or WebP it is smaller still; the e2e test caps every served variant at 450 KB).
+- **Open items (yours):** the picture's **source and licence are still unrecorded** (`docs/submission/LICENCES-AND-CITATIONS.md` now says so plainly instead of "No images are used"; `DISCLOSURES.md` may want an entry); and whether to keep the 22.7 MB `hero-bg.jpg` in the repository (a smaller committed copy is what the page now uses; Git LFS or deleting the original are the options).
+
+### I.3 Verification (production build)
+
+| Check | Result |
+|---|---|
+| `vitest` | 32 files, 301 tests pass (new: `hero-stage.test.tsx`: decoration and label, the size budget and the original never imported, the night scope equals the dark tokens) |
+| `tsc`, `eslint` | clean |
+| `next build` | passes |
+| Playwright e2e | 30 pass (new: `hero.spec.ts`: axe clean on Home in dark and in light, every served image variant under 450 KB and AVIF, WebP or JPEG, no sideways scroll at 320, 768 and 1440) |
+| Visual | Home reviewed in the browser in dark and light: calm, text legible, label visible |
