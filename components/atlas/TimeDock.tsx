@@ -118,6 +118,8 @@ export function TimeDock({
   }
 
   const [more, setMore] = useState(false);
+  // desktop: the go-to row can be folded away so the bar is one row and the globe gets the height
+  const [folded, setFolded] = useState(true);
   const status = ready ? statusLine(clock) : run.text;
   const off = !ready;
 
@@ -151,14 +153,14 @@ export function TimeDock({
   );
 
   return (
-    <section aria-label="Time dock" className="atlas-panel px-3 py-2" data-testid="time-dock" data-playing={clock.playing}>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2" onKeyDown={undefined}>
+    <section aria-label="Time dock" className="atlas-panel px-3 py-1.5" data-testid="time-dock" data-playing={clock.playing}>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1" onKeyDown={undefined}>
         <button
           type="button"
           disabled={off || reducedMotion}
           onClick={actions.toggle}
           aria-label={off ? "Play (no run is loaded)" : clock.playing ? "Pause" : "Play"}
-          className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--ink)] text-[var(--void)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--select)] disabled:opacity-40"
+          className="grid size-8 shrink-0 place-items-center rounded-full bg-[var(--ink)] text-[var(--void)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--select)] disabled:opacity-40"
         >
           {clock.playing ? <Pause aria-hidden="true" className="size-4 fill-current" /> : <Play aria-hidden="true" className="size-4 fill-current" />}
         </button>
@@ -177,6 +179,18 @@ export function TimeDock({
         )}
 
         {!compact && groups}
+        {!compact && (
+          <button
+            type="button"
+            className="atlas-key atlas-label shrink-0"
+            aria-expanded={!folded}
+            aria-controls={`${uid}-details`}
+            onClick={() => setFolded((f) => !f)}
+            title={folded ? "Type a date and time to jump to" : "Hide the go-to-time row"}
+          >
+            {folded ? "Go to time" : "Hide go to"}
+          </button>
+        )}
         <div className="flex min-w-48 flex-1 items-center gap-3">
           <input
             type="range"
@@ -210,7 +224,7 @@ export function TimeDock({
       )}
 
       {ready && win && (!compact || more) && (
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-[var(--ink-dim)]">
+        <div id={`${uid}-details`} hidden={!compact && folded} className="mt-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-[var(--ink-dim)]">
           <form onSubmit={onGo} noValidate className="flex flex-wrap items-center gap-2" aria-label="Go to a time">
             <label htmlFor={`${uid}-goto`} className="atlas-label">
               Go to (UTC)
@@ -234,11 +248,11 @@ export function TimeDock({
         </div>
       )}
 
-      <p role="status" aria-live="polite" className="atlas-prose mt-1 min-h-5 text-xs text-[var(--ink)]">
+      <p role="status" aria-live="polite" className={msg || (reducedMotion && ready) ? "atlas-prose mt-1 text-xs text-[var(--ink)]" : "sr-only"}>
         {msg ?? (reducedMotion && ready ? "Playback is off because your system asks for reduced motion. The slider and the event buttons still work." : "")}
       </p>
 
-      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-[var(--panel-edge)] pt-2">
+      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-0.5 border-t border-[var(--panel-edge)] pt-1">
         <DataStatusPill />
         {ready && (
           <span className="atlas-label flex items-center gap-2 text-[var(--ink-dim)]">
@@ -246,7 +260,7 @@ export function TimeDock({
             {run.synthetic && <Tag kind="synthetic" />}
           </span>
         )}
-        <p className={`atlas-prose min-w-0 flex-1 text-[var(--ink-dim)] ${compact ? "basis-full text-[0.6875rem] leading-snug" : "text-xs"}`}>{CREDIT_TEXT}</p>
+        <p className={`atlas-prose min-w-0 flex-1 text-[var(--ink-dim)] ${compact ? "basis-full text-[0.6875rem] leading-snug" : "text-[0.6875rem] leading-snug"}`}>{CREDIT_TEXT}</p>
       </div>
     </section>
   );

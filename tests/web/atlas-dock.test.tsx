@@ -115,6 +115,7 @@ describe("TimeDock with a run", () => {
 
   it("go to a UTC time seeks there, and refuses a time outside the run window in words", () => {
     const { a } = dock(ready(), { t: 0 });
+    fireEvent.click(screen.getByRole("button", { name: "Go to time" })); // folded away by default
     const input = screen.getByLabelText("Go to (UTC)") as HTMLInputElement;
     expect(input.value).toBe("2026-11-15T07:03");
     fireEvent.change(input, { target: { value: "2026-11-17T07:03" } });
@@ -128,6 +129,7 @@ describe("TimeDock with a run", () => {
 
   it("a typed go-to time survives the field losing focus, because pressing Go blurs it first", () => {
     const { a } = dock(ready(), { t: 0 });
+    fireEvent.click(screen.getByRole("button", { name: "Go to time" })); // folded away by default
     const input = screen.getByLabelText("Go to (UTC)") as HTMLInputElement;
     fireEvent.change(input, { target: { value: "2026-11-17T07:03" } });
     fireEvent.blur(input);

@@ -93,6 +93,9 @@ describe("TimeDock on a phone", () => {
     render(ui(false));
     expect(screen.queryByRole("button", { name: "More" })).toBeNull();
     expect(screen.getByRole("button", { name: "Next event" })).toBeVisible();
+    // the go-to row is folded away by default on a wide window, and one press shows it
+    expect(screen.getByRole("button", { name: "Go to time" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Go to time" }));
     expect(screen.getByLabelText("Go to (UTC)")).toBeVisible();
   });
 
