@@ -54,7 +54,8 @@ export function Panel({
           </button>
         )}
       </header>
-      <div id={body} hidden={!open} className={cn("atlas-scroll min-h-0 flex-1 px-3 py-3", bodyClassName)}>
+      {/* a panel body can scroll, so it takes keyboard focus (arrow keys scroll it) */}
+      <div id={body} hidden={!open} tabIndex={0} className={cn("atlas-scroll min-h-0 flex-1 px-3 py-3", bodyClassName)}>
         {children}
       </div>
     </section>

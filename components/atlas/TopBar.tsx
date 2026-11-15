@@ -6,7 +6,10 @@ import { openCommandPalette } from "@/components/shell/CommandPalette";
 import { VIEWS, type ViewName } from "@/lib/explore/geometry";
 
 export type Scale = "moon" | "system" | "sky";
-export type PanelId = "learn" | "sites";
+export type PanelId = "sites" | "timeline" | "metrics" | "clearance" | "sky-path" | "compare" | "learn";
+
+/** Panels that share the right-hand column: opening one closes the others. */
+export const RIGHT_PANELS: PanelId[] = ["metrics", "clearance", "sky-path", "compare", "learn"];
 
 const SCALES: { id: Scale; label: string; ready: boolean; note: string }[] = [
   { id: "moon", label: "Moon", ready: true, note: "" },
@@ -16,6 +19,11 @@ const SCALES: { id: Scale; label: string; ready: boolean; note: string }[] = [
 
 const PANELS: { id: PanelId; label: string }[] = [
   { id: "sites", label: "Sites" },
+  { id: "timeline", label: "Timeline" },
+  { id: "metrics", label: "Metrics" },
+  { id: "clearance", label: "Clearance" },
+  { id: "sky-path", label: "Sky path" },
+  { id: "compare", label: "Compare" },
   { id: "learn", label: "Learn" },
 ];
 

@@ -8,7 +8,14 @@ import { Readout } from "@/components/atlas/Readout";
 import { SelectedSitePanel, type SiteCursor } from "@/components/atlas/SelectedSitePanel";
 import { SitesPanel } from "@/components/atlas/SitesPanel";
 import { TimeDock, type DockRun } from "@/components/atlas/TimeDock";
-import { TopBar, type PanelId, type Scale } from "@/components/atlas/TopBar";
+import { ClearancePanel } from "@/components/atlas/ClearancePanel";
+import { ComparePanel } from "@/components/atlas/ComparePanel";
+import { MetricsPanel } from "@/components/atlas/MetricsPanel";
+import { Panel } from "@/components/atlas/Panel";
+import { SkyPathPanel } from "@/components/atlas/SkyPathPanel";
+import { TimelinePanel } from "@/components/atlas/TimelinePanel";
+import { RIGHT_PANELS, TopBar, type PanelId, type Scale } from "@/components/atlas/TopBar";
+import { useHorizon } from "@/components/atlas/useHorizon";
 import { useCatalog } from "@/components/atlas/useCatalog";
 import { useClock } from "@/components/atlas/useClock";
 import { useRun } from "@/components/atlas/useRun";
@@ -74,6 +81,31 @@ export function AtlasShell() {
     };
   }, [runLoad, selectedId]);
 
+  const tracks = runData && selectedId ? (runData.sites[selectedId] ?? null) : null;
+  const rightOpen = RIGHT_PANELS.find((p) => open.includes(p)) ?? null;
+  const needHorizon = !!tracks && (open.includes("clearance") || open.includes("sky-path"));
+  const horizon = useHorizon(runData?.runId ?? null, selectedId, needHorizon);
+  const readings = runData && selectedId ? cursorAt(runData, selectedId, clock.t) : null;
+
+  /** Why a site panel has nothing to show: no run, no site, or a site the run does not hold. */
+  const gate = (title: string, onClose: () => void) => {
+    const text =
+      runLoad.status === "loading"
+        ? "Loading the run, so there is nothing to show yet."
+        : runLoad.status === "error"
+          ? `The run could not be loaded, so nothing is shown. ${runLoad.message}`
+          : !selected
+            ? "Select a site (a pin on the Moon, or the Sites list) to see its results."
+            : `${selected.label} is not in the loaded run (${runLabel ?? "this run"}), so there is nothing to show for it. Use Analyse this site to compute it.`;
+    return (
+      <Panel title={title} onClose={onClose} focused>
+        <p role="status" className="atlas-prose text-sm text-[var(--ink-dim)]">
+          {text}
+        </p>
+      </Panel>
+    );
+  };
+
   const cursor: SiteCursor = useMemo(() => {
     if (runLoad.status === "loading") return { kind: "loading" };
     if (runLoad.status === "error") return { kind: "error", text: runLoad.message };
@@ -85,7 +117,15 @@ export function AtlasShell() {
 
   const onReady = useCallback((h: SceneHandle) => setScene(h), []);
   const onView = useCallback((v: ViewName) => scene?.fly(v), [scene]);
-  const toggle = useCallback((p: PanelId) => setOpen((o) => (o.includes(p) ? o.filter((x) => x !== p) : [...o, p])), []);
+  // the right-hand panels share one column: opening one closes the others
+  const toggle = useCallback(
+    (p: PanelId) =>
+      setOpen((o) => {
+        if (o.includes(p)) return o.filter((x) => x !== p);
+        return RIGHT_PANELS.includes(p) ? [...o.filter((x) => !RIGHT_PANELS.includes(x)), p] : [...o, p];
+      }),
+    [],
+  );
 
   const select = useCallback(
     (id: string) => {
@@ -198,7 +238,7 @@ export function AtlasShell() {
                 </div>
               )}
               {selected && (
-                <div className="flex max-h-[58%] shrink-0 flex-col">
+                <div className="flex max-h-[40%] shrink-0 flex-col">
                   <SelectedSitePanel
                     key={selected.id}
                     site={selected}
@@ -210,6 +250,15 @@ export function AtlasShell() {
                   />
                 </div>
               )}
+              {open.includes("timeline") && (
+                <div className="flex max-h-[62%] shrink-0 flex-col">
+                  {tracks && runData && selected ? (
+                    <TimelinePanel siteLabel={selected.label} tracks={tracks} window={runData.window} t={clock.t} onSeek={actions.seek} onClose={() => toggle("timeline")} />
+                  ) : (
+                    gate("Timeline", () => toggle("timeline"))
+                  )}
+                </div>
+              )}
             </div>
             <div className="pointer-events-none flex h-full min-h-0 w-[min(26rem,100%)] flex-col items-end gap-3">
               <Readout scaleLabel={SCALE_LABEL[scale]} timeLabel={runData ? utcLabel(runData.window, clock.t) : "NO RUN LOADED"} />
@@ -218,9 +267,42 @@ export function AtlasShell() {
                   Click the Moon to place a point · latitude −90 to −80
                 </p>
               )}
-              {open.includes("learn") && (
-                <div className="pointer-events-auto flex min-h-0 w-full flex-1 flex-col">
-                  <LearnPanel onClose={() => toggle("learn")} />
+              {rightOpen && (
+                <div className="pointer-events-auto flex min-h-0 w-full flex-1 flex-col" data-testid="right-panel" data-panel={rightOpen}>
+                  {rightOpen === "learn" && <LearnPanel onClose={() => toggle("learn")} />}
+                  {rightOpen === "metrics" &&
+                    (tracks && selected && runData ? (
+                      <MetricsPanel siteLabel={selected.label} tracks={tracks} cursor={readings} timeLabel={utcLabel(runData.window, clock.t)} onClose={() => toggle("metrics")} />
+                    ) : (
+                      gate("Metrics", () => toggle("metrics"))
+                    ))}
+                  {rightOpen === "clearance" &&
+                    (tracks && selected && runData ? (
+                      <ClearancePanel siteLabel={selected.label} tracks={tracks} window={runData.window} t={clock.t} horizon={horizon} onSeek={actions.seek} onClose={() => toggle("clearance")} />
+                    ) : (
+                      gate("Clearance", () => toggle("clearance"))
+                    ))}
+                  {rightOpen === "sky-path" &&
+                    (tracks && selected ? (
+                      <SkyPathPanel siteLabel={selected.label} tracks={tracks} t={clock.t} horizon={horizon} onClose={() => toggle("sky-path")} />
+                    ) : (
+                      gate("Sky path", () => toggle("sky-path"))
+                    ))}
+                  {rightOpen === "compare" &&
+                    (runData && Object.keys(runData.sites).length >= 2 ? (
+                      <ComparePanel
+                        runId={runData.runId}
+                        siteIds={Object.keys(runData.sites)}
+                        nameOf={(id) => sites.find((s) => s.id === id)?.label ?? id}
+                        onClose={() => toggle("compare")}
+                      />
+                    ) : (
+                      <Panel title="Compare" onClose={() => toggle("compare")} focused>
+                        <p role="status" className="atlas-prose text-sm text-[var(--ink-dim)]">
+                          {runData ? "This run has fewer than two sites, so there is nothing to compare." : "No run is loaded, so there is nothing to compare."}
+                        </p>
+                      </Panel>
+                    ))}
                 </div>
               )}
             </div>

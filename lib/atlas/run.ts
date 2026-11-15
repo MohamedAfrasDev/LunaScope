@@ -3,13 +3,23 @@
  * events. Pure helpers (redesign phase D). The browser picks and interpolates; it never decides whether a target is visible:
  * the state at a time is the service's classified interval (see lib/sky.ts).
  */
-import type { EventRow, IntervalClass, IntervalRow, ResultsResponse, ResultState, SkySeries, Target } from "@/lib/api/types";
+import type { EventRow, IntervalClass, IntervalRow, ResultsResponse, ResultState, SkySeries, Target, TargetHorizonResult } from "@/lib/api/types";
 import { classAt, interpAzEl } from "@/lib/sky";
 import { windowFromIntervals, type RunWindow } from "@/lib/atlas/clock";
 
 export const TARGETS: Target[] = ["sun_center", "earth_center"];
 
-export type Track = { series: SkySeries; intervals: IntervalRow[]; events: EventRow[] };
+/**
+ * One target at one site. `terrain` is what decides; `flat` is the flat-horizon comparison. `intervals` and `events` are the
+ * terrain-aware ones, kept at the top level for the clock and the cursor.
+ */
+export type Track = {
+  series: SkySeries;
+  intervals: IntervalRow[];
+  events: EventRow[];
+  terrain: TargetHorizonResult;
+  flat: TargetHorizonResult | null;
+};
 
 export type RunData = {
   runId: string;
@@ -30,7 +40,7 @@ export function buildRunData(r: ResultsResponse): RunData | null {
       const series = m?.series;
       const terrain = m?.terrain;
       if (!series || !terrain?.intervals?.length) continue;
-      tracks[target] = { series, intervals: terrain.intervals, events: terrain.events ?? [] };
+      tracks[target] = { series, intervals: terrain.intervals, events: terrain.events ?? [], terrain, flat: m?.flat ?? null };
       window ??= windowFromIntervals(terrain.intervals);
     }
     if (Object.keys(tracks).length) sites[s.site_id] = tracks;

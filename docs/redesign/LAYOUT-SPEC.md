@@ -166,7 +166,7 @@ This replaces the result-state frame visually but keeps its meaning one for one 
 
 ### 6.4 Timeline (left panel, bottom)
 
-**Looks like.** Three aligned bars for the selected site: SUN, EARTH, BOTH. Colours are the Sun and Earth hues, white for both; patterns carry the state (solid clear, hatched marginal/unresolved, dark blocked, dotted unknown). Rise and set ticks (▲ ▼) sit on the bars, a white cursor marks the dock time, and a one-sentence summary sits under it ("Sun above terrain horizon for 53% of the window, line of sight to Earth for 90%…").
+**Looks like.** Two aligned bars for the selected site: SUN and EARTH (a third BOTH row was dropped in phase E: the product judges Sun and Earth separately, rule 3, and a joint row would need the browser to combine classified states). Colours are the Sun and Earth hues; patterns carry the state (solid clear, hatched marginal/unresolved, dark blocked, dotted unknown). Rise and set ticks (▲ ▼) sit on the bars, a white cursor marks the dock time, and a one-sentence summary sits under it ("Sun above terrain horizon for 53% of the window, line of sight to Earth for 90%…").
 
 **Usage.** Click or drag the bars to move the clock. **Show as table** opens every interval (state, start, end, note) and **Download intervals (CSV)** exports it. Flat-horizon rows appear under **Compare to a flat horizon**.
 
@@ -392,3 +392,13 @@ Production cost measured: landing JS 430 KB and images 459 KB (budgets raised fr
 - **Keys:** Space plays or pauses (not while a button or field has focus), `.` and `,` next and previous event, `[` and `]` speed, arrows on the scrubber move ten minutes (an hour with Shift).
 - **Not in this phase:** the Moon's terminator and sub-solar point (the service returns per-site series, not a global sun position, so nothing is drawn that the service did not compute), and the charts that share the cursor (phase E).
 - Fixed on the way: a go-to time typed in the field was lost when Go was pressed, because the click blurs the field first.
+
+### Phase E (result panels), done
+- **Timeline** (left, under Selected site): Sun and Earth bars from the service's classified intervals, its rise and set ticks, a cursor on the clock, drag to seek, an optional flat-horizon comparison, a table of every interval in words and a CSV download. No combined row (see 6.4).
+- **Metrics** (right): per target the outcome (icon and word), availability as a range against the requirement (the requirement is tagged `ASSUMPTION`), the flat-horizon comparison, longest and total hidden time, best clearance, the time at the start and the reading at the cursor.
+- **Clearance** (right): each target's elevation over the window (the service's series) against the terrain skyline in its direction (the service's skyline), with the cursor. It never subtracts the two: the clearance figures printed beside it are the service's, and a gap in the skyline line means unknown, not flat.
+- **Sky path** (right): the run pages' own Local sky plots (unrolled and polar), reused, with a marker at the clock time.
+- **Compare** (right): the service's comparison for the chosen sites of the run, with its typed facts worded by the same templates as the Compare page. No ranking.
+- The right-hand panels share one column. A site panel with nothing to show says why (no run, no site selected, or a site the run does not hold).
+- **Parity:** `tests/e2e/atlas-panels.spec.ts` loads the Timeline run page for the same site and checks that availability, longest and total hidden time, best clearance and the countdown at the start are the same text on both. Sky path's position is checked against the Selected site readout.
+- Fixed: scrollable panel bodies are now keyboard-focusable (axe `scrollable-region-focusable`).

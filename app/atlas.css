@@ -270,3 +270,8 @@
 .atlas-pin[aria-pressed="true"] .atlas-pin-label {
   border-left-color: var(--select);
 }
+
+.atlas-scroll:focus-visible {
+  outline: 2px solid var(--select);
+  outline-offset: -2px;
+}
