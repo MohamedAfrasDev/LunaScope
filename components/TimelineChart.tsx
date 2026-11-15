@@ -32,8 +32,8 @@ function Patterns({ p }: { p: string }) {
         <rect width="6" height="6" style={{ fill: "var(--ok)" }} />
       </pattern>
       <pattern id={`${p}-H`} width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-        <rect width="8" height="8" style={{ fill: "var(--surface-2)" }} />
-        <line x1="0" y1="0" x2="0" y2="8" strokeWidth="3" style={{ stroke: "var(--muted)" }} />
+        <rect width="8" height="8" style={{ fill: "var(--muted)" }} />
+        <line x1="0" y1="0" x2="0" y2="8" strokeWidth="3" style={{ stroke: "var(--muted-foreground)" }} />
       </pattern>
       <pattern id={`${p}-U`} width="6" height="6" patternUnits="userSpaceOnUse">
         <rect width="6" height="6" style={{ fill: "var(--warn-soft)" }} />
@@ -44,8 +44,8 @@ function Patterns({ p }: { p: string }) {
         <path d="M0 0L7 7M7 0L0 7" strokeWidth="1.2" style={{ stroke: "var(--fail)" }} />
       </pattern>
       <pattern id={`${p}-G`} width="6" height="6" patternUnits="userSpaceOnUse">
-        <rect width="6" height="6" style={{ fill: "var(--surface)" }} />
-        <path d="M0 3H6" strokeWidth="1" strokeDasharray="2 2" style={{ stroke: "var(--muted)" }} />
+        <rect width="6" height="6" style={{ fill: "var(--card)" }} />
+        <path d="M0 3H6" strokeWidth="1" strokeDasharray="2 2" style={{ stroke: "var(--muted-foreground)" }} />
       </pattern>
     </defs>
   );
@@ -97,7 +97,7 @@ export function TimelineChart({ bands, title }: { bands: Band[]; title: string }
             )}
             <text x={b.label ? 0 : 20} y={y + BAND / 2 + 4} fontSize="13" style={{ fill: "var(--foreground)" }}>
               {b.label ?? targetLabel(b.target)}
-              <tspan x={b.label ? 0 : 20} dy="14" fontSize="11" style={{ fill: "var(--muted)" }}>
+              <tspan x={b.label ? 0 : 20} dy="14" fontSize="11" style={{ fill: "var(--muted-foreground)" }}>
                 {b.sub ?? (b.horizon === "terrain" ? "terrain-aware" : "flat horizon")}
               </tspan>
             </text>
@@ -131,7 +131,7 @@ export function TimelineChart({ bands, title }: { bands: Band[]; title: string }
           <line x1={x(t)} x2={x(t)} y1={TOP} y2={height - 24} strokeWidth="0.5" strokeDasharray="2 4"
             style={{ stroke: "var(--border)" }} />
           <text x={x(t)} y={height - 8} fontSize="11" textAnchor={t === ticks[ticks.length - 1] && x(t) > W - 30 ? "end" : "middle"}
-            style={{ fill: "var(--muted)" }}>
+            style={{ fill: "var(--muted-foreground)" }}>
             day {t / 86400}
           </text>
         </g>
@@ -186,14 +186,14 @@ export function AvailabilityBar({ lower, upper, threshold, label }: { lower: num
       <title id={`${p}-t`}>
         {`${label}: availability ${pctS(lower)}${upper > lower ? ` to ${pctS(upper)}` : ""}, requirement at least ${pctS(threshold)}`}
       </title>
-      <rect x={x(0)} y={6} width={x(1) - x(0)} height={12} strokeWidth="0.8" style={{ fill: "var(--surface-2)", stroke: "var(--border)" }} />
+      <rect x={x(0)} y={6} width={x(1) - x(0)} height={12} strokeWidth="0.8" style={{ fill: "var(--muted)", stroke: "var(--border)" }} />
       <rect x={x(0)} y={6} width={Math.max(x(lower) - x(0), 0)} height={12} style={{ fill: "var(--ok)" }} />
       {upper > lower && (
         <rect x={x(lower)} y={6} width={Math.max(x(upper) - x(lower), 0.5)} height={12} style={{ fill: "var(--warn)" }} opacity={0.6} />
       )}
       <line x1={x(threshold)} x2={x(threshold)} y1={2} y2={22} strokeWidth="2" style={{ stroke: "var(--foreground)" }} />
       <text x={x(threshold)} y={32} fontSize="9" textAnchor={threshold > 0.85 ? "end" : threshold < 0.15 ? "start" : "middle"}
-        style={{ fill: "var(--muted)" }}>
+        style={{ fill: "var(--muted-foreground)" }}>
         needs {pctS(threshold)}
       </text>
     </svg>

@@ -21,7 +21,7 @@ export function parseView(pathname: string, base: string): { kind: Kind; siteId?
 
 const tab = (active: boolean) =>
   `-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-sm transition-colors ${
-    active ? "border-accent font-medium text-foreground" : "border-transparent text-muted hover:text-foreground"
+    active ? "border-primary font-medium text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
   }`;
 
 /**
@@ -66,7 +66,7 @@ function RunNavFor({ runId }: { runId: string }) {
             </Link>
           ))}
         </nav>
-        <p className="flex items-center gap-2 pb-2 text-xs text-muted">
+        <p className="flex items-center gap-2 pb-2 text-xs text-muted-foreground">
           <span className="readout">{shortId(runId)}</span>
           {run?.result_state && <ResultBadge state={run.result_state} />}
         </p>
@@ -81,7 +81,7 @@ function RunNavFor({ runId }: { runId: string }) {
                 key={id}
                 href={`${base}/${view.kind}/${encodeURIComponent(id)}`}
                 aria-current={on ? "true" : undefined}
-                className={`rounded-md border px-2.5 py-1 ${on ? "border-accent bg-surface-2 font-medium" : "border-border text-muted hover:border-border-strong hover:text-foreground"}`}
+                className={`rounded-md border px-2.5 py-1 ${on ? "border-primary bg-muted font-medium" : "border-border text-muted-foreground hover:border-input hover:text-foreground"}`}
               >
                 {siteLabel(id)}
               </Link>

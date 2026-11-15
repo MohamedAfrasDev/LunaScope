@@ -48,7 +48,7 @@ export function DateStrip({ strip, onOpenDate }: { strip: SearchStrip; onOpenDat
               <div className="flex min-w-[6.5rem] flex-col items-start gap-1 rounded-md border border-border p-2 text-xs">
                 <span className="readout font-medium">{dayLabel(d)}</span>
                 <StatusChip p={p} title={p.help} />
-                <span className="readout text-muted">{utc(d.start_utc).slice(5, 10)}</span>
+                <span className="readout text-muted-foreground">{utc(d.start_utc).slice(5, 10)}</span>
               </div>
             </li>
           );
@@ -79,17 +79,17 @@ export function DateStrip({ strip, onOpenDate }: { strip: SearchStrip; onOpenDat
                       const c = d.sites.find((x) => x.site_id === id);
                       return (
                         <td key={id} className="py-1 pr-3 tabular-nums">
-                          {c ? <>{c.site_status.replace("_", ": ").toLowerCase()}<span className="block text-xs text-muted">margin {c.objective_margin >= 0 ? "+" : "−"}{pct(Math.abs(c.objective_margin))}</span></> : "—"}
+                          {c ? <>{c.site_status.replace("_", ": ").toLowerCase()}<span className="block text-xs text-muted-foreground">margin {c.objective_margin >= 0 ? "+" : "−"}{pct(Math.abs(c.objective_margin))}</span></> : "—"}
                         </td>
                       );
                     })}
                     <td className="py-1 pr-3">
                       {d.run_id && d.state !== "baseline" && (d.verdict !== null) && (
-                        <button type="button" onClick={() => onOpenDate(d.offset_days, d.run_id as string)} className="tap text-accent underline underline-offset-4">
+                        <button type="button" onClick={() => onOpenDate(d.offset_days, d.run_id as string)} className="tap text-primary underline underline-offset-4">
                           Compare
                         </button>
                       )}
-                      {d.state === "baseline" && <span className="text-muted">baseline</span>}
+                      {d.state === "baseline" && <span className="text-muted-foreground">baseline</span>}
                       {d.state === "failed" && d.error && <span className="text-xs text-fail">{d.error.code}</span>}
                     </td>
                   </tr>
@@ -99,7 +99,7 @@ export function DateStrip({ strip, onOpenDate }: { strip: SearchStrip; onOpenDat
           </table>
         </div>
       </Disclosure>
-      <div className="text-xs text-muted">
+      <div className="text-xs text-muted-foreground">
         <p><span className="font-medium">Objective, stated:</span> {strip.objective}</p>
         {Object.entries(strip.largest_margin_among_passing).map(([site, off]) => (
           <p key={site}>

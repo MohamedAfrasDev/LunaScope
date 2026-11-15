@@ -32,13 +32,13 @@ function Marker({ target, x, y }: { target: Target; x: number; y: number }) {
   return target === "sun_center" ? (
     <g>
       <circle cx={x} cy={y} r={6} style={{ fill: HUE[target], stroke: "var(--foreground)" }} strokeWidth={1.2} />
-      <text x={x + 9} y={y - 7} fontSize="10" paintOrder="stroke" strokeWidth={3} strokeLinejoin="round" style={{ fill: "var(--foreground)", stroke: "var(--surface)" }}>Sun</text>
+      <text x={x + 9} y={y - 7} fontSize="10" paintOrder="stroke" strokeWidth={3} strokeLinejoin="round" style={{ fill: "var(--foreground)", stroke: "var(--card)" }}>Sun</text>
     </g>
   ) : (
     <g>
       <rect x={x - 5} y={y - 5} width={10} height={10} transform={`rotate(45 ${x} ${y})`}
-        style={{ fill: "var(--surface)", stroke: HUE[target] }} strokeWidth={2.4} />
-      <text x={x + 9} y={y + 14} fontSize="10" paintOrder="stroke" strokeWidth={3} strokeLinejoin="round" style={{ fill: "var(--foreground)", stroke: "var(--surface)" }}>Earth</text>
+        style={{ fill: "var(--card)", stroke: HUE[target] }} strokeWidth={2.4} />
+      <text x={x + 9} y={y + 14} fontSize="10" paintOrder="stroke" strokeWidth={3} strokeLinejoin="round" style={{ fill: "var(--foreground)", stroke: "var(--card)" }}>Earth</text>
     </g>
   );
 }
@@ -67,7 +67,7 @@ export function SkyLegend() {
         Sun (orange)
       </li>
       <li className="flex items-center gap-1.5">
-        <svg width="14" height="14" aria-hidden="true"><rect x="3" y="3" width="8" height="8" transform="rotate(45 7 7)" strokeWidth="2" style={{ fill: "var(--surface)", stroke: HUE.earth_center }} /></svg>
+        <svg width="14" height="14" aria-hidden="true"><rect x="3" y="3" width="8" height="8" transform="rotate(45 7 7)" strokeWidth="2" style={{ fill: "var(--card)", stroke: HUE.earth_center }} /></svg>
         Earth (blue)
       </li>
     </ul>
@@ -78,12 +78,12 @@ function Patterns({ id }: { id: string }) {
   return (
     <defs>
       <pattern id={`${id}-terrain`} width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-        <rect width="7" height="7" style={{ fill: "var(--surface-2)" }} />
+        <rect width="7" height="7" style={{ fill: "var(--muted)" }} />
         <line x1="0" y1="0" x2="0" y2="7" strokeWidth="2.2" style={{ stroke: "var(--border)" }} />
       </pattern>
       <pattern id={`${id}-unknown`} width="6" height="6" patternUnits="userSpaceOnUse">
-        <rect width="6" height="6" style={{ fill: "var(--surface)" }} />
-        <circle cx="3" cy="3" r="1.1" style={{ fill: "var(--muted)" }} />
+        <rect width="6" height="6" style={{ fill: "var(--card)" }} />
+        <circle cx="3" cy="3" r="1.1" style={{ fill: "var(--muted-foreground)" }} />
       </pattern>
     </defs>
   );
@@ -130,13 +130,13 @@ export function PolarSky({ profile, tracks, band, title, desc }: {
       <title id={`${id}-t`}>{title}</title>
       <desc id={`${id}-d`}>{desc}</desc>
       <Patterns id={id} />
-      <circle r={R} style={{ fill: "var(--surface)", stroke: "var(--border)" }} strokeWidth={1} />
+      <circle r={R} style={{ fill: "var(--card)", stroke: "var(--border)" }} strokeWidth={1} />
       {rings.filter((e) => e !== 0).map((e) => {
         const r = Math.hypot(P(0, e).x, P(0, e).y);
         return (
           <g key={e}>
             <circle r={r} fill="none" strokeWidth={0.5} style={{ stroke: "var(--border)" }} />
-            <text x={2} y={-r - 1} fontSize="6.5" style={{ fill: "var(--muted)" }}>{e}°</text>
+            <text x={2} y={-r - 1} fontSize="6.5" style={{ fill: "var(--muted-foreground)" }}>{e}°</text>
           </g>
         );
       })}
@@ -154,8 +154,8 @@ export function PolarSky({ profile, tracks, band, title, desc }: {
         </>
       )}
       {/* flat 0 degree horizon for comparison */}
-      <circle r={flatR} fill="none" strokeWidth={1.2} strokeDasharray="4 3" style={{ stroke: "var(--muted)" }} />
-      <text x={flatR + 2} y={-2} fontSize="6.5" paintOrder="stroke" strokeWidth={2} strokeLinejoin="round" style={{ fill: "var(--muted)", stroke: "var(--surface)" }}>0° flat horizon</text>
+      <circle r={flatR} fill="none" strokeWidth={1.2} strokeDasharray="4 3" style={{ stroke: "var(--muted-foreground)" }} />
+      <text x={flatR + 2} y={-2} fontSize="6.5" paintOrder="stroke" strokeWidth={2} strokeLinejoin="round" style={{ fill: "var(--muted-foreground)", stroke: "var(--card)" }}>0° flat horizon</text>
       {/* compass */}
       {([["N", 0], ["E", 90], ["S", 180], ["W", 270]] as const).map(([l, a]) => {
         const p = polar(a, band.max, band, R + 11);
@@ -201,26 +201,26 @@ export function UnrolledSky({ profile, tracks, band, title, desc }: {
       <title id={`${id}-t`}>{title}</title>
       <desc id={`${id}-d`}>{desc}</desc>
       <Patterns id={id} />
-      <rect x={L} y={T} width={W - L - RGT} height={H - T - B} style={{ fill: "var(--surface)", stroke: "var(--border)" }} />
+      <rect x={L} y={T} width={W - L - RGT} height={H - T - B} style={{ fill: "var(--card)", stroke: "var(--border)" }} />
       {profile.horizon_el_deg.some((v) => v == null) && (
         <rect x={L} y={T} width={W - L - RGT} height={H - T - B} fill={`url(#${id}-unknown)`} />
       )}
       {ticks.map((e) => (
         <g key={e}>
           <line x1={L} x2={W - RGT} y1={Y(e)} y2={Y(e)} strokeWidth={e === 0 ? 1.2 : 0.5}
-            strokeDasharray={e === 0 ? "4 3" : undefined} style={{ stroke: e === 0 ? "var(--muted)" : "var(--border)" }} />
-          <text x={L - 6} y={Y(e) + 3} fontSize="10" textAnchor="end" style={{ fill: "var(--muted)" }}>{e}°</text>
+            strokeDasharray={e === 0 ? "4 3" : undefined} style={{ stroke: e === 0 ? "var(--muted-foreground)" : "var(--border)" }} />
+          <text x={L - 6} y={Y(e) + 3} fontSize="10" textAnchor="end" style={{ fill: "var(--muted-foreground)" }}>{e}°</text>
         </g>
       ))}
       {[0, 45, 90, 135, 180, 225, 270, 315, 360].map((a) => (
         <g key={a}>
           <line x1={X(a === 360 ? 359.999 : a)} x2={X(a === 360 ? 359.999 : a)} y1={T} y2={H - B} strokeWidth={0.4} strokeDasharray="2 4" style={{ stroke: "var(--border)" }} />
-          <text x={X(a === 360 ? 359.999 : a)} y={H - 12} fontSize="10" textAnchor="middle" style={{ fill: "var(--muted)" }}>
+          <text x={X(a === 360 ? 359.999 : a)} y={H - 12} fontSize="10" textAnchor="middle" style={{ fill: "var(--muted-foreground)" }}>
             {a === 0 || a === 360 ? "N" : a === 90 ? "E" : a === 180 ? "S" : a === 270 ? "W" : `${a}°`}
           </text>
         </g>
       ))}
-      <text x={(L + W - RGT) / 2} y={H - 1} fontSize="10" textAnchor="middle" style={{ fill: "var(--muted)" }}>azimuth, clockwise from north</text>
+      <text x={(L + W - RGT) / 2} y={H - 1} fontSize="10" textAnchor="middle" style={{ fill: "var(--muted-foreground)" }}>azimuth, clockwise from north</text>
       {/* blocked region under the skyline */}
       {runs.map(([a, b]) => {
         const pts = Array.from({ length: b - a + 1 }, (_, k) => `${f(X(profile.azimuth_deg[a + k]))},${f(Y(profile.horizon_el_deg[a + k] as number))}`);
@@ -252,7 +252,7 @@ export function UnrolledSky({ profile, tracks, band, title, desc }: {
       {tracks.map((tr) => (
         <Marker key={tr.target} target={tr.target} x={X(tr.cursor.az)} y={Y(tr.cursor.el)} />
       ))}
-      <text x={L + 4} y={T + 12} fontSize="10" style={{ fill: "var(--muted)" }}>
+      <text x={L + 4} y={T + 12} fontSize="10" style={{ fill: "var(--muted-foreground)" }}>
         hatched: terrain blocks the sky ({n} azimuth bins)
       </text>
     </svg>

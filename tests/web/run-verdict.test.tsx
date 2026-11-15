@@ -91,7 +91,7 @@ describe("SiteCards", () => {
   });
   it("draws the availability bars as decoration only, since the numbers are written beside them", () => {
     const { container } = render(<SiteCards runId={RUN} rows={[ROWS[0]]} />);
-    const bars = container.querySelectorAll(".bg-surface-2.rounded-full");
+    const bars = container.querySelectorAll(".bg-muted.rounded-full");
     expect(bars.length).toBe(2);
     bars.forEach((b) => expect(b).toHaveAttribute("aria-hidden", "true"));
   });

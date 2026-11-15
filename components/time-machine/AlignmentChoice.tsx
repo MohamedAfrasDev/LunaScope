@@ -33,7 +33,7 @@ export function AlignmentChoice({ value, onChange }: { value: Alignment; onChang
             />
             <span>
               <span className="font-medium">{a.label}</span>
-              <span className="block text-muted">{a.help}</span>
+              <span className="block text-muted-foreground">{a.help}</span>
             </span>
           </label>
         ))}

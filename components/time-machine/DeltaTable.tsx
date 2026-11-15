@@ -65,7 +65,7 @@ export function DeltaTable({ cmp }: { cmp: RunComparisonResponse }) {
           </tbody>
         </table>
       </div>
-      <p className="mt-2 text-xs text-muted">
+      <p className="mt-2 text-xs text-muted-foreground">
         No date is ranked or scored; each requirement is judged on its own. The flat horizon is not shown here: the
         terrain-aware result decides.
       </p>

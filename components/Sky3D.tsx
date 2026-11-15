@@ -341,10 +341,10 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
     };
   }, [profile, tracks, k]);
 
-  const btn = "rounded-md border border-border px-2.5 py-1 text-sm transition-colors hover:border-border-strong hover:bg-surface-2";
+  const btn = "rounded-md border border-border px-2.5 py-1 text-sm transition-colors hover:border-input hover:bg-muted";
   if (ok === false)
     return (
-      <p role="status" className="rounded-md border border-border bg-surface-2 px-3 py-3 text-sm">
+      <p role="status" className="rounded-md border border-border bg-muted px-3 py-3 text-sm">
         The 3D view needs WebGL, which this browser or device does not offer. The polar and unrolled views show the same
         sky.
       </p>
@@ -371,7 +371,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
 
       <div className="relative overflow-hidden rounded-md border border-border" aria-label={label} role="group">
         <div data-canvas-slot className="min-h-[14rem] w-full" />
-        {ok === null && <p className="absolute inset-0 grid place-items-center text-sm text-muted">Loading the 3D view…</p>}
+        {ok === null && <p className="absolute inset-0 grid place-items-center text-sm text-muted-foreground">Loading the 3D view…</p>}
       </div>
 
       <ul className="grid gap-1 text-sm" aria-label="Where the Sun and Earth are at the cursor">
@@ -381,7 +381,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
           </li>
         ))}
       </ul>
-      <p className="text-xs text-muted">
+      <p className="text-xs text-muted-foreground">
         Drag to look around (arrow keys also turn the view, + and − zoom). The wall is the terrain skyline from the elevation
         data; a target behind it is hidden, shown faintly through the wall. Markers are drawn larger than the real Sun and
         Earth so they can be seen. {k !== 1 ? "Elevation angles are exaggerated ×3 for legibility. " : ""}

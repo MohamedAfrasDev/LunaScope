@@ -27,9 +27,9 @@ export function SensitivityPanel({ variants }: { variants: SensitivityVariant[] 
     return (
       <section aria-label="Sensitivity" className="rounded-md border border-border p-3 text-sm">
         <h2 className="text-base font-semibold">Sensitivity</h2>
-        <p className="mt-1 text-muted">
+        <p className="mt-1 text-muted-foreground">
           No sensitivity check was run for this analysis. Start one from{" "}
-          <Link href="/analyze" className="text-accent underline underline-offset-4">New analysis</Link> with the
+          <Link href="/analyze" className="text-primary underline underline-offset-4">New analysis</Link> with the
           sensitivity option on: it re-runs the site with a finer azimuth step and with the other DEM release, and
           reports how much the result moves.
         </p>
@@ -54,7 +54,7 @@ export function SensitivityPanel({ variants }: { variants: SensitivityVariant[] 
                 </span>
               )}
             </h3>
-            {meta.what && <p className="mt-1 text-muted">{meta.what}</p>}
+            {meta.what && <p className="mt-1 text-muted-foreground">{meta.what}</p>}
             <Disclosure summary="Differences from the base run" className="mt-2">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[34rem] text-left">
@@ -88,7 +88,7 @@ export function SensitivityPanel({ variants }: { variants: SensitivityVariant[] 
               </table>
             </div>
             </Disclosure>
-            <p className="mt-1 text-xs text-muted">
+            <p className="mt-1 text-xs text-muted-foreground">
               Flagged if an outcome changes, the number of events changes, or availability moves by more than{" "}
               {(v.tolerance_availability * 100).toFixed(0)} percentage point.
             </p>

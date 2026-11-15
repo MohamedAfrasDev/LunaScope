@@ -83,7 +83,7 @@ function CountdownCard({ runId, siteId, target, t, playing, range }: { runId: st
   }, [runId, siteId, target, t, playing, cd]);
 
   if (err) return <p className="text-sm text-fail">{err}</p>;
-  if (!cd) return <p className="text-sm text-muted">Working out the next change…</p>;
+  if (!cd) return <p className="text-sm text-muted-foreground">Working out the next change…</p>;
   const fresh = cd.at !== undefined ? t <= cd.at : Math.abs(cd.t - t) < 1;
   const remaining = cd.at !== undefined && t <= cd.at ? cd.at - t : null;
   return (
@@ -96,7 +96,7 @@ function CountdownCard({ runId, siteId, target, t, playing, range }: { runId: st
           ? <>: the predicted {cd.event_type} is at this moment</>
           : <>: the predicted {cd.event_type} is {remaining > 0 ? `in ${duration(remaining)}` : `${duration(-remaining)} ago`}</>
         : null}
-      {cd.solver_bracket_s != null && cd.kind !== "unknown" ? <span className="text-muted"> (model bracket {cd.solver_bracket_s} s)</span> : null}
+      {cd.solver_bracket_s != null && cd.kind !== "unknown" ? <span className="text-muted-foreground"> (model bracket {cd.solver_bracket_s} s)</span> : null}
       {cd.at !== undefined && cd.kind !== "unknown" ? <TerrainRange range={range} /> : null}
     </p>
   );
@@ -105,9 +105,9 @@ function CountdownCard({ runId, siteId, target, t, playing, range }: { runId: st
 /** The countdown's spread across the terrain variants: a different skyline can move the event, so say by how much. */
 function TerrainRange({ range }: { range: VariantRange | null }) {
   if (range === null)
-    return <span className="block text-xs text-muted">No sensitivity check was run, so no range across terrain variants is shown.</span>;
+    return <span className="block text-xs text-muted-foreground">No sensitivity check was run, so no range across terrain variants is shown.</span>;
   return (
-    <span className="block text-xs text-muted">
+    <span className="block text-xs text-muted-foreground">
       {range.maxShiftS < 1
         ? `Across ${range.variants} terrain variant${range.variants === 1 ? "" : "s"} (finer azimuth step, other DEM release) this time does not move.`
         : `Across ${range.variants} terrain variant${range.variants === 1 ? "" : "s"} (finer azimuth step, other DEM release) this time moves by up to ${duration(range.maxShiftS)}.`}
@@ -119,7 +119,7 @@ function TerrainRange({ range }: { range: VariantRange | null }) {
 // three.js is only fetched when the 3D view is chosen
 const Sky3D = dynamic(() => import("./Sky3D").then((m) => m.Sky3D), {
   ssr: false,
-  loading: () => <p className="text-sm text-muted">Loading the 3D view…</p>,
+  loading: () => <p className="text-sm text-muted-foreground">Loading the 3D view…</p>,
 });
 
 export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
@@ -197,12 +197,12 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
   if (err)
     return (
       <div className="grid gap-3">
-        <Link href={`/runs/${runId}`} className="tap text-sm text-accent underline underline-offset-4">← Back to the status matrix</Link>
+        <Link href={`/runs/${runId}`} className="tap text-sm text-primary underline underline-offset-4">← Back to the status matrix</Link>
         <p role="alert" className="rounded-md border border-fail/40 bg-fail-soft px-3 py-2 text-fail">{err}</p>
       </div>
     );
   if (!data || !site || tracks.length === 0)
-    return <p className="text-muted">Loading the local sky…</p>;
+    return <p className="text-muted-foreground">Loading the local sky…</p>;
 
   const cursors: Track[] = tracks.map((x) => ({ ...x, cursor: interpAzEl(x.series, t) }));
   const sp = SITE_STATUS[site.site_status];
@@ -246,7 +246,7 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="type-title">Local sky: {siteLabel(siteId)}</h1>
         <StatusChip p={sp} title={sp.help} />
-        <Link href={`/runs/${runId}/timeline/${encodeURIComponent(siteId)}`} className="tap text-sm text-accent underline underline-offset-4">
+        <Link href={`/runs/${runId}/timeline/${encodeURIComponent(siteId)}`} className="tap text-sm text-primary underline underline-offset-4">
           Timeline
         </Link>
       </div>
@@ -263,7 +263,7 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
                   {(["polar", "unrolled", "3d"] as const).map((v) => (
                     <label
                       key={v}
-                      className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-2.5 py-1 transition-colors hover:border-border-strong has-[:checked]:border-accent has-[:checked]:bg-surface-2 has-[:checked]:font-medium"
+                      className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-2.5 py-1 transition-colors hover:border-input has-[:checked]:border-primary has-[:checked]:bg-muted has-[:checked]:font-medium"
                     >
                       <input type="radio" name={`${uid}-view`} checked={view === v} onChange={() => setView(v)} />
                       {v === "polar" ? "Polar (north up)" : v === "unrolled" ? "Unrolled (azimuth across)" : "3D (look around)"}
@@ -284,7 +284,7 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
                 <div role="group" tabIndex={0} onKeyDown={onKey}
                   aria-label="Time player. With this group focused: Space plays or pauses, comma and period jump to the previous or next event, left and right arrows step ten minutes."
                   aria-keyshortcuts="Space , . ArrowLeft ArrowRight"
-                  className="grid gap-3 border-t border-border bg-surface-2 p-3">
+                  className="grid gap-3 border-t border-border bg-muted p-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <Button variant="primary" disabled={reduced} onClick={() => (t >= total && setT(0), setPlaying((p) => !p))}>
                       {playing ? "Pause" : "Play"}
@@ -298,20 +298,20 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
                     <label className="ml-auto flex items-center gap-2 text-sm">
                       Speed
                       <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))}
-                        className="rounded-md border border-border-strong bg-surface px-2 py-1">
+                        className="rounded-md border border-input bg-card px-2 py-1">
                         {SPEEDS.map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}
                       </select>
                     </label>
                   </div>
                   {reduced && (
-                    <p className="text-xs text-muted">Your system asks for reduced motion, so playback is off. Use the slider and the event buttons.</p>
+                    <p className="text-xs text-muted-foreground">Your system asks for reduced motion, so playback is off. Use the slider and the event buttons.</p>
                   )}
                   <label className="grid gap-1 text-sm">
                     <span className="font-medium">Time (UTC)</span>
                     <input type="range" min={0} max={total} step={60} value={Math.round(t)}
                       aria-valuetext={clock(t)}
                       onChange={(e) => { setPlaying(false); setT(Number(e.target.value)); }} />
-                    <span className="flex justify-between text-xs text-muted tabular-nums"><span>{clock(0)}</span><span>{clock(total)}</span></span>
+                    <span className="flex justify-between text-xs text-muted-foreground tabular-nums"><span>{clock(0)}</span><span>{clock(total)}</span></span>
                   </label>
                 </div>
               </div>
@@ -342,11 +342,11 @@ export function SkyView({ runId, siteId }: { runId: string; siteId: string }) {
                       {targetLabel(c.target)}
                     </h2>
                     <dl className="kv mt-2">
-                      <dt className="text-muted">Azimuth</dt><dd className="readout">{c.cursor.az.toFixed(2)}°</dd>
-                      <dt className="text-muted">Elevation</dt><dd className="readout">{degrees(c.cursor.el)}</dd>
-                      <dt className="text-muted">Skyline there</dt>
+                      <dt className="text-muted-foreground">Azimuth</dt><dd className="readout">{c.cursor.az.toFixed(2)}°</dd>
+                      <dt className="text-muted-foreground">Elevation</dt><dd className="readout">{degrees(c.cursor.el)}</dd>
+                      <dt className="text-muted-foreground">Skyline there</dt>
                       <dd className="readout">{skyline === null ? "unknown (no terrain data)" : degrees(skyline)}</dd>
-                      <dt className="text-muted">State</dt>
+                      <dt className="text-muted-foreground">State</dt>
                       <dd>{cls ? INTERVAL[cls].label : "outside the window"}</dd>
                     </dl>
                     <div className="mt-3 border-t border-border pt-3">

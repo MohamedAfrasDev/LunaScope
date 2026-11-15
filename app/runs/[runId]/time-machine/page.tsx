@@ -15,7 +15,7 @@ async function Body({ params }: { params: PageProps<"/runs/[runId]/time-machine"
 
 export default function TimeMachinePage(props: PageProps<"/runs/[runId]/time-machine">) {
   return (
-    <Suspense fallback={<p className="text-muted">Loading…</p>}>
+    <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
       <Body params={props.params} />
     </Suspense>
   );

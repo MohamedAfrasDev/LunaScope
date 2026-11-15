@@ -165,6 +165,6 @@ describe("CompareView presentation (phase 12)", () => {
     await screen.findByText("Held constant (identical for every site)");
     const box = screen.getByLabelText("89.5°S, 0°E");
     expect(box).toBeChecked();
-    expect(box.closest("label")?.className).toContain("has-[:checked]:border-accent");
+    expect(box.closest("label")?.className).toContain("has-[:checked]:border-primary");
   });
 });

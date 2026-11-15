@@ -6,5 +6,5 @@ export const TONE_BOX: Record<Tone, string> = {
   fail: "border-fail/40 bg-fail-soft text-fail",
   warn: "border-warn/50 bg-warn-soft text-warn",
   info: "border-info/40 bg-info-soft text-info",
-  muted: "border-border bg-surface-2 text-muted",
+  muted: "border-border bg-muted text-muted-foreground",
 };

@@ -17,7 +17,7 @@ async function Body({ params }: { params: PageProps<"/runs/[runId]/sky/[siteId]"
 
 export default function SkyPage(props: PageProps<"/runs/[runId]/sky/[siteId]">) {
   return (
-    <Suspense fallback={<p className="text-muted">Loading…</p>}>
+    <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
       <Body params={props.params} />
     </Suspense>
   );

@@ -48,7 +48,7 @@ export function TimeMachineView({ runId }: { runId: string }) {
   if (notFound)
     return (
       <p role="alert" className="surface-card p-4">
-        No run with this id exists. <Link className="text-accent underline" href="/analyze">Start a new analysis</Link>.
+        No run with this id exists. <Link className="text-primary underline" href="/analyze">Start a new analysis</Link>.
       </p>
     );
 
@@ -59,7 +59,7 @@ export function TimeMachineView({ runId }: { runId: string }) {
     <div className="grid gap-6">
       <div>
         <h1 className="type-title">Mission Time Machine</h1>
-        <p className="mt-1 max-w-3xl text-sm text-muted">
+        <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
           What changes if the date slips? Shift the start and LunaScope recomputes the same sites with the same
           requirements and terrain. Only the start date changes; the baseline{" "}
           <span className="readout text-xs">{shortId(runId)}</span> stays frozen.
@@ -67,7 +67,7 @@ export function TimeMachineView({ runId }: { runId: string }) {
       </div>
 
       {baseErr && <Alert tone="warn">{baseErr}</Alert>}
-      {!base && !baseErr && <p className="text-muted">Loading the baseline…</p>}
+      {!base && !baseErr && <p className="text-muted-foreground">Loading the baseline…</p>}
       {base && !baseReady && (
         <p className="surface-card p-4 text-sm" aria-live="polite">
           {base.status === "failed"

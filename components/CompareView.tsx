@@ -79,11 +79,11 @@ export function CompareView({ runId }: { runId: string }) {
   if (err)
     return (
       <div className="grid gap-3">
-        <Link href={`/runs/${runId}`} className="tap text-sm text-accent underline underline-offset-4">← Back to the status matrix</Link>
+        <Link href={`/runs/${runId}`} className="tap text-sm text-primary underline underline-offset-4">← Back to the status matrix</Link>
         <Alert tone="fail">{err}</Alert>
       </div>
     );
-  if (!results || !allSites || !selected) return <p className="text-muted">Loading the comparison…</p>;
+  if (!results || !allSites || !selected) return <p className="text-muted-foreground">Loading the comparison…</p>;
 
   const toggle = (id: string, on: boolean) => setSelected(on ? allSites.filter((s) => s === id || selected.includes(s)) : selected.filter((s) => s !== id));
 
@@ -91,7 +91,7 @@ export function CompareView({ runId }: { runId: string }) {
     <div className="grid gap-6">
       <div>
         <h1 className="type-title">Compare sites</h1>
-        <p className="mt-1 max-w-3xl text-sm text-muted">
+        <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
           Every site below was computed from identical inputs. Sunlight and Earth visibility are judged separately and
           LunaScope does not rank the sites: it shows the trade-offs.
         </p>
@@ -101,7 +101,7 @@ export function CompareView({ runId }: { runId: string }) {
         <legend className="px-1 text-base font-semibold">Sites to compare</legend>
         <div className="mt-1 flex flex-wrap gap-2">
           {allSites.map((id) => (
-            <label key={id} className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm transition-colors hover:border-border-strong has-[:checked]:border-accent has-[:checked]:bg-surface-2 has-[:checked]:font-medium">
+            <label key={id} className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm transition-colors hover:border-input has-[:checked]:border-primary has-[:checked]:bg-muted has-[:checked]:font-medium">
               <input type="checkbox" checked={selected.includes(id)} onChange={(e) => toggle(id, e.target.checked)} />
               {siteLabel(id)}
             </label>
@@ -127,7 +127,7 @@ export function CompareView({ runId }: { runId: string }) {
                   <dl className="kv mt-2 text-sm">
                     {cmp.held_constant.map((h) => (
                       <div key={h.field} className="contents">
-                        <dt className="text-muted">{fieldLabel(h.field)}</dt>
+                        <dt className="text-muted-foreground">{fieldLabel(h.field)}</dt>
                         <dd className="break-all tabular-nums">{fieldValue(h.field, h.value)}</dd>
                       </div>
                     ))}
@@ -140,7 +140,7 @@ export function CompareView({ runId }: { runId: string }) {
                       <li key={v.site_id}>
                         <strong>{siteLabel(v.site_id)}</strong>{" "}
                         <StatusChip p={SITE_STATUS[cmp.site_status[v.site_id]]} />
-                        <span className="block text-xs text-muted">ground height {v.ground_height_m.toFixed(0)} m</span>
+                        <span className="block text-xs text-muted-foreground">ground height {v.ground_height_m.toFixed(0)} m</span>
                       </li>
                     ))}
                   </ul>
@@ -165,7 +165,7 @@ export function CompareView({ runId }: { runId: string }) {
                     </span>
                     {targetLabel(t)}
                   </h2>
-                  <p className="mt-1 text-sm text-muted">
+                  <p className="mt-1 text-sm text-muted-foreground">
                     Availability across the compared sites ranges from{" "}
                     <strong>{(block.spread.availability_lower_min * 100).toFixed(1)}%</strong> to{" "}
                     <strong>{(block.spread.availability_lower_max * 100).toFixed(1)}%</strong> (lower bounds).
@@ -220,7 +220,7 @@ export function CompareView({ runId }: { runId: string }) {
                 ))}
               </ul>
             )}
-            <div className="text-xs text-muted">
+            <div className="text-xs text-muted-foreground">
               <p className="font-medium">Limits that apply to every number here</p>
               <ul className="mt-1 list-disc pl-5">{cmp.caveats.map((c) => <li key={c}>{c}</li>)}</ul>
             </div>

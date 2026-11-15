@@ -15,7 +15,7 @@ async function Body({ params }: { params: PageProps<"/runs/[runId]/evidence">["p
 
 export default function EvidencePage(props: PageProps<"/runs/[runId]/evidence">) {
   return (
-    <Suspense fallback={<p className="text-muted">Loading…</p>}>
+    <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
       <Body params={props.params} />
     </Suspense>
   );

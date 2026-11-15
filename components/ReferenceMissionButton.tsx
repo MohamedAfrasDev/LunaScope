@@ -49,7 +49,7 @@ export function ReferenceMissionButton() {
       >
         {busy ? "Starting…" : "Start the reference mission"}
       </button>
-      <p className="mt-2 text-sm text-muted">
+      <p className="mt-2 text-sm text-muted-foreground">
         {ref
           ? `Reference ${ref.reference_id}: ${days} days from ${ref.request.mission.start_utc.slice(0, 10)} UTC, sunlight at least ` +
             `${Math.round(ref.request.requirements.sun_min_availability * 100)}% and Earth visibility at least ` +
@@ -58,7 +58,7 @@ export function ReferenceMissionButton() {
           : "Loading the reference definition…"}
       </p>
       {ref && (
-        <p className="mt-1 text-xs text-muted">
+        <p className="mt-1 text-xs text-muted-foreground">
           {ref.status === "frozen"
             ? `${ref.reference_id} is frozen: its inputs and settings cannot change, and any change would be a new reference version. `
             : `${ref.reference_id} is a ${ref.status}. `}

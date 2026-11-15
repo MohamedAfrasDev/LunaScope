@@ -1,54 +1,113 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
 /*
- * Design tokens.
- * Status colours are always paired with an icon and a word in the markup (never colour alone).
- * The palette is deliberately quiet: cool neutrals, one accent, Sun/Earth hues, and status hues used only for state.
+ * shadcn's `dark:` variant follows this app's own theme switch: dark unless the system prefers light.
+ * (shadcn expects a `.dark` class; this app themes by media query, so the variant is a media query too.)
  */
-/* Dark is the default look (a quiet console in shadow); light is the alternate. */
+@custom-variant dark (@media not (prefers-color-scheme: light));
+
+/*
+ * Design tokens: shadcn's semantic names, with a calm twilight palette (dark, the default) and a warm
+ * "lunar day" palette (light). Status colours are always paired with an icon and a word in the markup
+ * (never colour alone). Sun and Earth keep their meaning everywhere: gold is the Sun, blue is Earth.
+ *
+ * Contrast is guarded by tests/web/tokens.test.ts: text 4.5:1, the edge of a control (--input) 3:1,
+ * on every surface it can sit on.
+ *
+ *   background / foreground   the page and its text
+ *   card, popover             solid panels (data always sits on one of these)
+ *   muted                     nested and quiet surfaces; muted-foreground is the secondary text colour
+ *   secondary, accent         hover and selected backgrounds (not text colours)
+ *   primary                   links, the main action, focus
+ *   input                     the edge of a form control (3:1 or better)
+ *   border                    decorative hairlines
+ */
 :root {
   color-scheme: dark;
-  --background: #090b0e;
-  --foreground: #e6e9ed;
-  --surface: #0f1216;
-  --surface-2: #151a20;
-  --border: #232a32;
-  --border-strong: #5f6b78; /* 3:1 or better on every surface: the edge of an input (WCAG 1.4.11) */
-  --muted: #98a2ad;
-  --accent: #7fb0ff;
-  --accent-hover: #a3c6ff;
-  --accent-contrast: #090b0e;
-  /* The two protagonists: the Sun is warm amber, Earth is cool blue, everywhere they appear. */
-  --sun: #f2b84b;
-  --sun-soft: #2e2208;
-  --earth: #6aa8ff;
-  --earth-soft: #11233d;
-  --ok: #6fd69b;
-  --ok-soft: #10281b;
-  --fail: #ff8f94;
-  --fail-soft: #33151a;
-  --warn: #f0c36a;
-  --warn-soft: #30240a;
-  --info: #8ab4ff;
-  --info-soft: #12213a;
-  --focus: #8ab4ff;
+  --background: #0b1020;
+  --foreground: #e9edfa;
+  --card: #111830;
+  --card-foreground: #e9edfa;
+  --popover: #151d38;
+  --popover-foreground: #e9edfa;
+  --primary: #a5b4ff;
+  --primary-foreground: #0b1020;
+  --secondary: #1b2448;
+  --secondary-foreground: #e9edfa;
+  --muted: #182142;
+  --muted-foreground: #a9b2d3;
+  --accent: #212b57;
+  --accent-foreground: #e9edfa;
+  --destructive: #ff9aa5;
+  --border: #2a3560;
+  --input: #6d7bb0;
+  --ring: #a5b4ff;
+  --chart-1: #a5b4ff;
+  --chart-2: #86b8ff;
+  --chart-3: #f4c873;
+  --chart-4: #7dd3c8;
+  --chart-5: #e8a0bf;
+  --sidebar: #0e1530;
+  --sidebar-foreground: #e9edfa;
+  --sidebar-primary: #a5b4ff;
+  --sidebar-primary-foreground: #0b1020;
+  --sidebar-accent: #212b57;
+  --sidebar-accent-foreground: #e9edfa;
+  --sidebar-border: #2a3560;
+  --sidebar-ring: #a5b4ff;
+  /* The two protagonists, and the status colours (each with a soft fill for its chip). */
+  --sun: #f4c873;
+  --sun-soft: #2c2410;
+  --earth: #86b8ff;
+  --earth-soft: #122342;
+  --ok: #86dcae;
+  --ok-soft: #10281f;
+  --fail: #ff9aa5;
+  --fail-soft: #34161f;
+  --warn: #f4d27e;
+  --warn-soft: #2e2610;
+  --info: #9db7ff;
+  --info-soft: #161f40;
   --shadow-sm: none;
-  --radius: 0.5rem;
+  --radius: 0.75rem;
 }
 
 @media (prefers-color-scheme: light) {
   :root {
     color-scheme: light;
-    --background: #f7f8f9;
-    --foreground: #14181d;
-    --surface: #ffffff;
-    --surface-2: #eff1f3;
-    --border: #dadfe4;
-    --border-strong: #7a8591;
-    --muted: #565f69;
-    --accent: #1d4ed8;
-    --accent-hover: #1e40af;
-    --accent-contrast: #ffffff;
+    --background: #f7f5f0;
+    --foreground: #1a1f36;
+    --card: #ffffff;
+    --card-foreground: #1a1f36;
+    --popover: #ffffff;
+    --popover-foreground: #1a1f36;
+    --primary: #4350c8;
+    --primary-foreground: #ffffff;
+    --secondary: #ece9e1;
+    --secondary-foreground: #1a1f36;
+    --muted: #efece5;
+    --muted-foreground: #585e78;
+    --accent: #e7e3da;
+    --accent-foreground: #1a1f36;
+    --destructive: #a4262c;
+    --border: #dcd8cc;
+    --input: #7a7466;
+    --ring: #4350c8;
+    --chart-1: #4350c8;
+    --chart-2: #1d4f9c;
+    --chart-3: #8a5500;
+    --chart-4: #1f7a70;
+    --chart-5: #a5427a;
+    --sidebar: #f1eee7;
+    --sidebar-foreground: #1a1f36;
+    --sidebar-primary: #4350c8;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #e7e3da;
+    --sidebar-accent-foreground: #1a1f36;
+    --sidebar-border: #dcd8cc;
+    --sidebar-ring: #4350c8;
     --sun: #8a5500;
     --sun-soft: #fff1d6;
     --earth: #1d4f9c;
@@ -59,9 +118,8 @@
     --fail-soft: #fbe7e8;
     --warn: #7c5200;
     --warn-soft: #fff1d6;
-    --info: #1d4f8c;
-    --info-soft: #e5eefb;
-    --focus: #1d4ed8;
+    --info: #2f4bb3;
+    --info-soft: #e8ecfb;
     --shadow-sm: 0 1px 2px rgb(16 24 40 / 0.05);
   }
 }
@@ -69,14 +127,35 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
-  --color-border: var(--border);
-  --color-border-strong: var(--border-strong);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-contrast: var(--accent-contrast);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
   --color-sun: var(--sun);
   --color-sun-soft: var(--sun-soft);
   --color-earth: var(--earth);
@@ -89,13 +168,19 @@
   --color-warn-soft: var(--warn-soft);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-heading: var(--font-sans);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   line-height: 1.55;
   text-rendering: optimizeLegibility;
@@ -118,7 +203,7 @@ body {
   }
 
   ::selection {
-    background: color-mix(in srgb, var(--accent) 28%, transparent);
+    background: color-mix(in srgb, var(--primary) 28%, transparent);
   }
 
   /* A grid with no column utility gets one shrinkable column. Without this the implicit column is sized to its
@@ -127,7 +212,7 @@ body {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /* Buttons: a calm, consistent secondary look by default; primary actions opt in with bg-accent. */
+  /* Buttons: a calm, consistent secondary look by default; primary actions opt in with bg-primary. */
   button {
     cursor: pointer;
     transition:
@@ -140,11 +225,11 @@ body {
     cursor: not-allowed;
   }
   button:not(:disabled):hover {
-    border-color: var(--border-strong);
-    background-color: var(--surface-2);
+    border-color: var(--input);
+    background-color: var(--muted);
   }
   button[aria-pressed="true"] {
-    box-shadow: inset 0 0 0 1px var(--accent);
+    box-shadow: inset 0 0 0 1px var(--primary);
   }
 
   /* Form controls */
@@ -160,17 +245,17 @@ body {
   input:not([type="checkbox"], [type="radio"], [type="range"]):hover,
   select:hover,
   textarea:hover {
-    border-color: var(--border-strong);
+    border-color: var(--input);
   }
   input[type="checkbox"],
   input[type="radio"] {
     width: 1rem;
     height: 1rem;
-    accent-color: var(--accent);
+    accent-color: var(--primary);
   }
   progress {
     height: 0.5rem;
-    accent-color: var(--accent);
+    accent-color: var(--primary);
   }
 
   /* Tables read as data, not decoration. */
@@ -178,19 +263,19 @@ body {
     font-variant-numeric: tabular-nums;
   }
   thead th {
-    color: var(--muted);
+    color: var(--muted-foreground);
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
 
   /* Links inside running text feel intentional, not default blue. */
-  a.text-accent {
+  a.text-primary {
     text-decoration-thickness: 1px;
     transition: color 0.15s ease;
   }
-  a.text-accent:hover {
-    color: var(--accent-hover);
+  a.text-primary:hover {
+    color: color-mix(in oklab, var(--primary) 78%, var(--foreground));
     text-decoration-thickness: 2px;
   }
 
@@ -205,18 +290,27 @@ body {
   input[type="range"] {
     min-height: 1.5rem;
   }
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
 }
 
 /* Reusable surfaces (opt-in; used by the shell and home page). */
 .surface-card {
-  background: var(--surface);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
 }
 
 .nav-link {
-  color: var(--muted);
+  color: var(--muted-foreground);
   font-size: 0.875rem;
   border-radius: 0.375rem;
   padding: 0.375rem 0.625rem;
@@ -226,11 +320,11 @@ body {
 }
 .nav-link:hover {
   color: var(--foreground);
-  background: var(--surface-2);
+  background: var(--muted);
 }
 .nav-link[aria-current="page"] {
   color: var(--foreground);
-  background: var(--surface-2);
+  background: var(--muted);
   font-weight: 500;
 }
 
@@ -270,7 +364,7 @@ body {
 .type-caption {
   font-size: 0.8125rem;
   line-height: 1.5;
-  color: var(--muted);
+  color: var(--muted-foreground);
 }
 @media (min-width: 640px) {
   .type-display {
@@ -300,7 +394,7 @@ body {
 .readout-unit {
   margin-left: 0.2em;
   font-size: 0.75em;
-  color: var(--muted);
+  color: var(--muted-foreground);
 }
 
 /* Label and value pairs (dl). One column on a phone, label above value, so a long value never collapses to a
@@ -344,7 +438,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--muted-foreground);
 }
 
 .btn-primary {
@@ -353,8 +447,8 @@ body {
   justify-content: center;
   gap: 0.5rem;
   border-radius: 0.5rem;
-  background: var(--accent);
-  color: var(--accent-contrast);
+  background: var(--primary);
+  color: var(--primary-foreground);
   padding: 0.75rem 1.25rem;
   font-size: 1rem;
   font-weight: 600;
@@ -369,9 +463,8 @@ body {
 .btn-primary:disabled {
   opacity: 0.6;
 }
-.btn-primary:not(:disabled):hover,
-button.bg-accent:not(:disabled):hover {
-  background-color: var(--accent-hover);
+.btn-primary:not(:disabled):hover {
+  background-color: color-mix(in oklab, var(--primary) 88%, var(--foreground));
   border-color: transparent;
 }
 
@@ -407,7 +500,7 @@ button.bg-accent:not(:disabled):hover {
 
 /* Visible keyboard focus everywhere (NFR-03). */
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
-  outline: 3px solid var(--focus);
+  outline: 3px solid var(--ring);
   outline-offset: 2px;
   border-radius: 4px;
 }
