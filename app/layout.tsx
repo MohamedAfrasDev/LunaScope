@@ -50,7 +50,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <SidebarInset className="min-w-0">
                 <DataStatusAlert />
                 <ShellBar />
-                <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:py-14">
+                <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:py-12">
                   {children}
                 </main>
                 <footer className="border-t border-border bg-card px-4 py-6 text-center text-xs leading-5 text-muted-foreground">
