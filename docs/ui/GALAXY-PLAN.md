@@ -1,6 +1,6 @@
 # LunaScope "Calm Galaxy" redesign: shadcn components and a complete product experience
 
-Status: **plan, revised to a calm, aesthetic direction. G0 (baseline), G1 (shadcn foundation and calm tokens) and G2 (shadcn components) are done**; see Appendices A to C. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
+Status: **plan, revised to a calm, aesthetic direction. G0 (baseline), G1 (shadcn foundation and calm tokens) and G2 (shadcn components) and G3 (calm visual system) are done**; see Appendices A to D. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
 
 ## 1. The ask, and the decisions already made
 
@@ -135,7 +135,7 @@ Small, individually mergeable; each ends with unit tests, e2e, axe in both theme
 | G0 | **Done.** Baseline: all suites, "pre-galaxy" screenshots, inventory of what the token rename touches, hero asset audit | A |
 | G1 | **Done.** shadcn foundation: `init`, `cn`, deps, `components.json`; token migration codemod; **calm twilight palette**; `tokens.test.ts` updated | A |
 | G2 | **Done.** Replace primitives with shadcn: Button, Card, Badge (status chips), Alert, Separator, Skeleton, Progress, Input, Label, native Select; restyle native Disclosure. Checkbox and RadioGroup deliberately stay native (Appendix C.3) | B |
-| G3 | Calm visual system: twilight backdrop (gradient, nebula washes, still stars), soft elevation, hairline borders, spacing and type rhythm, optional slow drift with Pause, reduced-motion/transparency/contrast fallbacks | C |
+| G3 | **Done.** Calm visual system: twilight backdrop (gradient, nebula washes, still stars), soft elevation, hairline borders, spacing and type rhythm, optional slow drift with Pause, reduced-motion/transparency/contrast fallbacks | C |
 | G4 | App shell: Sidebar, Sheet on mobile, breadcrumbs, recent runs, ToggleGroup for the view mode, status pill relocated | D |
 | G5 | Command palette: Command dialog, entries, shortcuts, tests | D |
 | G6 | Polished states: skeletons, Sonner toasts, Empty/error/not-found, a short page fade | E |
@@ -352,3 +352,42 @@ No other test changed: they find things by role, name and text.
 | Playwright e2e | 14 pass (after the wrap fix; the first run caught the 320 px overflow); fallback e2e 1 passes |
 | axe, dark and light, 9 routes | 0 violations |
 | Visual | 30 views re-captured: forms, chips, buttons, alerts and disclosures reviewed in both themes |
+
+## Appendix D. G3: calm visual system
+
+### D.1 What changed
+
+| Part | Behaviour |
+|---|---|
+| **Backdrop** (`.backdrop`, in `app/layout.tsx`) | Fixed behind everything, `aria-hidden`, `pointer-events: none`. A twilight gradient with three faint nebula washes (lavender, dusty blue, rose, each under 16 % opacity). Pure CSS, no image, no canvas, no JavaScript |
+| **Stars** (`.backdrop-stars`) | A still field of 34 faint points (1 to 2 px, 30 to 50 % opacity) from one 600 px tile, generated once with a fixed seed and written into the stylesheet |
+| **Drift** | The star layer moves one tile (600 px) in 240 s, linear, a GPU `transform` only (no repaint, no parallax, not tied to scroll or pointer). Runs only under `prefers-reduced-motion: no-preference` and unless paused |
+| **Pause** (`AmbientToggle`, in the footer) | A visible button, "Pause background motion" / "Resume background motion", `aria-pressed`, remembered in `localStorage`, applied as `data-motion="paused"` on `<html>`. Reads storage through `useSyncExternalStore`, so the first paint assumes "running" and there is no hydration mismatch |
+| **Soft elevation** | `--shadow-sm` is now a two-part diffuse shadow in both themes (deeper in dark, barely there in light); applied to `.surface-card` and every shadcn Card (`[data-slot="card"]`). Hairline borders stay |
+| **Glass chrome** | The header is `.chrome-glass` (82 % card colour, blur 14 px). Panels and data are never glass |
+| **Rhythm** | Body line height 1.55 to 1.6; the page's vertical padding grows a little on large screens |
+
+### D.2 Fallbacks
+
+| Preference | Result |
+|---|---|
+| `prefers-reduced-motion: reduce` | No drift at all; the gradient and still stars stay |
+| Paused by the user | Same, and remembered |
+| `prefers-reduced-transparency: reduce` or `prefers-contrast: more` | The header is solid, the backdrop is the plain background colour, no stars |
+| Light theme (the lunar day) | A pale wash, no stars |
+
+### D.3 Notes
+
+- Everything decorative sits behind opaque panels or in empty margin, so contrast was not changed: text colours are unchanged and `tokens.test.ts` (which tests against the real panel colours) still passes. Text that sits directly on the backdrop (headings and body on Home) is on a background between `#0d1330` and `#0b1020` with specks at 30 to 50 % opacity, and keeps well over 4.5:1.
+- Not done: pausing when the tab is hidden is left to the browser, which already stops compositing animations in a hidden tab. The "also in the palette" entry for the pause toggle arrives with the palette in G5.
+- A calm-versus-galaxy judgement on real screenshots is deferred to G8 with the hero, as the risk table says.
+
+### D.4 Verification (production build)
+
+| Check | Result |
+|---|---|
+| `vitest` | 27 files, 275 tests pass (new: `ambient-toggle.test.tsx`) |
+| `tsc`, `eslint` | clean |
+| `next build` | passes |
+| Playwright e2e | 16 pass (new: `backdrop.spec.ts`: drifts by default, stops when paused and stays paused after a reload, is inert, and does not run under reduced motion) |
+| Visual | Home reviewed in the browser: faint stars, soft wash, readable |

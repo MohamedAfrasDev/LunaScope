@@ -70,7 +70,7 @@
   --warn-soft: #2e2610;
   --info: #9db7ff;
   --info-soft: #161f40;
-  --shadow-sm: none;
+  --shadow-sm: 0 1px 2px rgb(2 4 16 / 0.35), 0 10px 28px -14px rgb(2 4 16 / 0.6);
   --radius: 0.75rem;
 }
 
@@ -120,7 +120,7 @@
     --warn-soft: #fff1d6;
     --info: #2f4bb3;
     --info-soft: #e8ecfb;
-    --shadow-sm: 0 1px 2px rgb(16 24 40 / 0.05);
+    --shadow-sm: 0 1px 2px rgb(40 44 80 / 0.06), 0 10px 28px -16px rgb(40 44 80 / 0.18);
   }
 }
 
@@ -182,7 +182,7 @@
 
 body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
-  line-height: 1.55;
+  line-height: 1.6;
   text-rendering: optimizeLegibility;
 }
 
@@ -301,11 +301,118 @@ body {
   }
 }
 
+/*
+ * Calm backdrop (galaxy G3). Decorative only: aria-hidden, no pointer events, behind everything.
+ * Layers: a twilight gradient with faint nebula washes, a still starfield, and an optional drift of the stars
+ * (one 600px tile every 4 minutes, no parallax, GPU transform only). Data panels are opaque, so nothing here
+ * ever sits under data. The drift runs only without reduced motion and unless the user paused animation.
+ */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(60rem 36rem at 12% -8%, rgb(120 110 220 / 0.16), transparent 70%),
+    radial-gradient(50rem 32rem at 95% 8%, rgb(90 150 200 / 0.1), transparent 70%),
+    radial-gradient(70rem 40rem at 50% 115%, rgb(180 120 190 / 0.08), transparent 70%),
+    linear-gradient(180deg, #0d1330 0%, var(--background) 55%);
+}
+.backdrop-stars {
+  position: absolute;
+  inset: 0 0 -600px 0;
+  background-size: 600px 600px;
+  background-image:
+    radial-gradient(2px 2px at 331px 154px, rgb(233 237 250 / 0.3), transparent),
+    radial-gradient(1px 1px at 404px 49px, rgb(233 237 250 / 0.5), transparent),
+    radial-gradient(1px 1px at 548px 96px, rgb(165 180 255 / 0.45), transparent),
+    radial-gradient(1px 1px at 596px 59px, rgb(233 237 250 / 0.5), transparent),
+    radial-gradient(2px 2px at 38px 88px, rgb(233 237 250 / 0.3), transparent),
+    radial-gradient(1px 1px at 444px 428px, rgb(233 237 250 / 0.5), transparent),
+    radial-gradient(1px 1px at 246px 92px, rgb(165 180 255 / 0.45), transparent),
+    radial-gradient(1px 1px at 60px 579px, rgb(233 237 250 / 0.5), transparent),
+    radial-gradient(2px 2px at 228px 596px, rgb(233 237 250 / 0.3), transparent),
+    radial-gradient(1px 1px at 63px 590px, rgb(165 180 255 / 0.45), transparent),
+    radial-gradient(1px 1px at 50px 226px, rgb(233 237 250 / 0.5), transparent),
+    radial-gradient(1px 1px at 570px 136px, rgb(165 180 255 / 0.45), transparent),
+    radial-gradient(2px 2px at 429px 147px, rgb(233 237 250 / 0.3), transparent),
+    radial-gradient(1px 1px at 553px 120px, rgb(165 180 255 / 0.45), transparent),
+    radial-gradient(1px 1px at 573px 185px, rgb(233 237 250 / 0.5), transparent),
+    radial-gradient(1px 1px at 595px 584px, rgb(233 237 250 / 0.5), transparent),
+    radial-gradient(2px 2px at 381px 99px, rgb(233 237 250 / 0.3), transparent),
+    radial-gradient(1px 1px at 560px 64px, rgb(233 237 250 / 0.5), transparent),
+    radial-gradient(1px 1px at 210px 508px, rgb(165 180 255 / 0.45), transparent),
+    radial-gradient(1px 1px at 321px 476px, rgb(165 180 255 / 0.45), transparent),
+    radial-gradient(2px 2px at 370px 306px, rgb(233 237 250 / 0.3), transparent),
+    radial-gradient(1px 1px at 254px 184px, rgb(233 237 250 / 0.5), transparent),
+    radial-gradient(1px 1px at 83px 588px, rgb(165 180 255 / 0.45), transparent),
+    radial-gradient(1px 1px at 537px 506px, rgb(165 180 255 / 0.45), transparent),
+    radial-gradient(2px 2px at 459px 294px, rgb(233 237 250 / 0.3), transparent),
+    radial-gradient(1px 1px at 74px 120px, rgb(165 180 255 / 0.45), transparent),
+    radial-gradient(1px 1px at 168px 350px, rgb(233 237 250 / 0.5), transparent),
+    radial-gradient(1px 1px at 500px 431px, rgb(233 237 250 / 0.5), transparent),
+    radial-gradient(2px 2px at 79px 571px, rgb(233 237 250 / 0.3), transparent),
+    radial-gradient(1px 1px at 586px 321px, rgb(165 180 255 / 0.45), transparent),
+    radial-gradient(1px 1px at 358px 508px, rgb(165 180 255 / 0.45), transparent),
+    radial-gradient(1px 1px at 70px 95px, rgb(165 180 255 / 0.45), transparent),
+    radial-gradient(2px 2px at 485px 66px, rgb(233 237 250 / 0.3), transparent),
+    radial-gradient(1px 1px at 62px 317px, rgb(165 180 255 / 0.45), transparent);
+}
+@keyframes star-drift {
+  to {
+    transform: translate3d(0, -600px, 0);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-motion="paused"]) .backdrop-stars {
+    animation: star-drift 240s linear infinite;
+  }
+}
+@media (prefers-color-scheme: light) {
+  /* The lunar day: a pale wash, no stars. */
+  .backdrop {
+    background:
+      radial-gradient(60rem 36rem at 12% -8%, rgb(140 150 230 / 0.14), transparent 70%),
+      radial-gradient(50rem 32rem at 95% 8%, rgb(120 180 220 / 0.1), transparent 70%),
+      var(--background);
+  }
+  .backdrop-stars {
+    display: none;
+  }
+}
+@media (prefers-contrast: more) {
+  .backdrop {
+    background: var(--background);
+  }
+  .backdrop-stars {
+    display: none;
+  }
+}
+
+/* Chrome (header) may be glass; panels never are. Solid when transparency is unwelcome. */
+.chrome-glass {
+  background: color-mix(in srgb, var(--card) 82%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .chrome-glass {
+    background: var(--card);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
 /* Reusable surfaces (opt-in; used by the shell and home page). */
 .surface-card {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) * 1.4); /* the same corner as shadcn's Card (rounded-xl) */
+  box-shadow: var(--shadow-sm);
+}
+
+[data-slot="card"] {
   box-shadow: var(--shadow-sm);
 }
 
