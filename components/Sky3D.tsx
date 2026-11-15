@@ -21,6 +21,7 @@ import type { Track } from "./SkyPlots";
 
 export type Track3D = Pick<Track, "target" | "series" | "intervals">;
 import { targetLabel } from "@/lib/format";
+import { readSkyPalette, useColorScheme } from "@/lib/sky-palette";
 
 /**
  * A 3D look at the same sky: the terrain skyline as a wall around the observer, the Sun's and Earth's paths over it,
@@ -32,9 +33,6 @@ import { targetLabel } from "@/lib/format";
 const R_WALL = 10; // the terrain wall
 const R_SKY = 11; // targets sit a little beyond the wall, so terrain in front of them hides them (depth test)
 const FLOOR_EL = -8;
-const SUN_COLOR = 0xf5a524;
-const EARTH_COLOR = 0x5aa9ff;
-const COLORS: Record<string, number> = { sun_center: SUN_COLOR, earth_center: EARTH_COLOR };
 
 type Mode = "look" | "orbit";
 
@@ -54,6 +52,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
   const [mode, setMode] = useState<Mode>("look");
   const [k, setK] = useState(1);
   const [ok, setOk] = useState<boolean | null>(null);
+  const scheme = useColorScheme(); // rebuild the scene when the system theme changes
   const handles = useRef<Handles | null>(null);
   const view = useRef({ yaw: 0, pitch: 4, fov: 70, dist: 30 });
   const live = useRef({ tracks, t, k, mode });
@@ -95,6 +94,8 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
     (async () => {
       const THREE = (await import("three")) as typeof THREE_NS;
       if (cancelled) return;
+      const pal = readSkyPalette(); // the theme's colours, read now
+      const COLORS: Record<string, string> = { sun_center: pal.sun, earth_center: pal.earth };
       let renderer: THREE_NS.WebGLRenderer;
       try {
         renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
@@ -111,7 +112,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
       el.querySelector("[data-canvas-slot]")?.appendChild(canvas);
 
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x0a0f1c);
+      scene.background = new THREE.Color(pal.background);
       const camera = new THREE.PerspectiveCamera(view.current.fov, 1, 0.05, 200);
       const disposables: { dispose: () => void }[] = [];
       const add = <T extends THREE_NS.Object3D>(o: T) => (scene.add(o), o);
@@ -119,7 +120,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
       // ground disc, wall, ridge line
       const ground = new THREE.CircleGeometry(R_WALL, 96);
       ground.rotateX(-Math.PI / 2);
-      const groundMat = new THREE.MeshBasicMaterial({ color: 0x151b29, side: THREE.DoubleSide });
+      const groundMat = new THREE.MeshBasicMaterial({ color: pal.ground, side: THREE.DoubleSide });
       add(new THREE.Mesh(ground, groundMat));
       disposables.push(ground, groundMat);
 
@@ -127,11 +128,11 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
       const wallGeo = new THREE.BufferGeometry();
       wallGeo.setAttribute("position", new THREE.BufferAttribute(wall.positions, 3));
       wallGeo.setIndex(new THREE.BufferAttribute(wall.indices, 1));
-      const wallMat = new THREE.MeshBasicMaterial({ color: 0x2b3448, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+      const wallMat = new THREE.MeshBasicMaterial({ color: pal.wall, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
       add(new THREE.Mesh(wallGeo, wallMat));
       disposables.push(wallGeo, wallMat);
 
-      const ridgeMat = new THREE.LineBasicMaterial({ color: 0xe8eefc });
+      const ridgeMat = new THREE.LineBasicMaterial({ color: pal.ridge });
       disposables.push(ridgeMat);
       for (const run of skylineRuns(profile.azimuth_deg, profile.horizon_el_deg, R_WALL, k)) {
         const g = new THREE.BufferGeometry();
@@ -145,7 +146,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
       for (let e = 0; e <= Math.ceil(maxEl / 5) * 5; e += 5) {
         const g = new THREE.BufferGeometry();
         g.setAttribute("position", new THREE.BufferAttribute(elevationRing(e, R_SKY + 0.2, 180, k), 3));
-        const m = new THREE.LineBasicMaterial({ color: e === 0 ? 0x9fb0d0 : 0x3a4560, transparent: true, opacity: e === 0 ? 0.9 : 0.55 });
+        const m = new THREE.LineBasicMaterial({ color: e === 0 ? pal.horizonRing : pal.ring, transparent: true, opacity: e === 0 ? 0.9 : 0.55 });
         add(new THREE.Line(g, m));
         disposables.push(g, m);
       }
@@ -173,7 +174,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
           g.textAlign = "center";
           g.textBaseline = "middle";
           g.lineWidth = 10;
-          g.strokeStyle = "#0a0f1c";
+          g.strokeStyle = pal.labelStroke;
           g.strokeText(text, 128, 68);
           g.fillStyle = color;
           g.fillText(text, 128, 68);
@@ -186,12 +187,12 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
         return s;
       };
       for (const c of COMPASS) {
-        const s = sprite(c.label, c.label === "N" ? "#ffd166" : "#dbe4f5", 1.4);
+        const s = sprite(c.label, c.label === "N" ? pal.labelNorth : pal.label, 1.4);
         s.position.set(...dirFromAzEl(c.az, exaggerate(0, k) + 1.5, R_SKY + 0.6));
         add(s);
       }
       const pinGeo = new THREE.ConeGeometry(0.18, 0.7, 12);
-      const pinMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const pinMat = new THREE.MeshBasicMaterial({ color: pal.pin });
       const pin = new THREE.Mesh(pinGeo, pinMat);
       pin.position.set(0, 0.35, 0);
       add(pin);
@@ -206,7 +207,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
         const solid = new THREE.Mesh(geo, solidMat);
         const ghost = new THREE.Mesh(geo, ghostMat);
         ghost.renderOrder = 5;
-        const tag = sprite(targetLabel(tr.target), tr.target === "sun_center" ? "#ffd27a" : "#9fd0ff", 1.5);
+        const tag = sprite(targetLabel(tr.target), tr.target === "sun_center" ? pal.sun : pal.earth, 1.5);
         add(solid);
         add(ghost);
         add(tag);
@@ -339,7 +340,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
       cancelled = true;
       cleanup?.();
     };
-  }, [profile, tracks, k]);
+  }, [profile, tracks, k, scheme]);
 
   const btn = "rounded-md border border-border px-2.5 py-1 text-sm transition-colors hover:border-input hover:bg-muted";
   if (ok === false)

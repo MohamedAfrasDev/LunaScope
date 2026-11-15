@@ -1,6 +1,6 @@
 # LunaScope "Calm Galaxy" redesign: shadcn components and a complete product experience
 
-Status: **plan, revised to a calm, aesthetic direction. G0 (baseline), G1 (shadcn foundation and calm tokens) and G2 (shadcn components) and G3 (calm visual system) and G4 (app shell) and G5 (command palette) and G6 (polished states) and G7 (onboarding) and G8 (calm hero) are done**; see Appendices A to I. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
+Status: **plan, revised to a calm, aesthetic direction. G0 (baseline), G1 (shadcn foundation and calm tokens) and G2 (shadcn components) and G3 (calm visual system) and G4 (app shell) and G5 (command palette) and G6 (polished states) and G7 (onboarding) and G8 (calm hero) and G9 (route re-skin) are done**; see Appendices A to J. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
 
 ## 1. The ask, and the decisions already made
 
@@ -141,7 +141,7 @@ Small, individually mergeable; each ends with unit tests, e2e, axe in both theme
 | G6 | **Done.** Polished states: skeletons, Sonner toasts, Empty/error/not-found, a short page fade | E |
 | G7 | **Done.**  Onboarding: tour, tooltips, glossary | F |
 | G8 | **Done.** Calm hero: the supplied image (optimised, with a scrim), plus an optional gentle 3D layer, fallbacks and a performance guard | G |
-| G9 | Re-skin each route on the new system (Home, Run, Timeline, Sky, Compare, Time Machine, Evidence, Analyze, Explainer, notable sites) | H |
+| G9 | **Done.** Re-skin each route on the new system (Home, Run, Timeline, Sky, Compare, Time Machine, Evidence, Analyze, Explainer, notable sites) | H |
 | G10 | Verification and docs: sweep, perf budget, update `UI-REDESIGN.md` and the user guide, after screenshots | H |
 
 Suggested first release: A, B, C (the look), then D to F (the product feel), then G (the hero), then H.
@@ -551,3 +551,33 @@ shadcn `Command` (cmdk) in a `Dialog`: `components/shell/CommandPalette.tsx`. A 
 | `next build` | passes |
 | Playwright e2e | 30 pass (new: `hero.spec.ts`: axe clean on Home in dark and in light, every served image variant under 450 KB and AVIF, WebP or JPEG, no sideways scroll at 320, 768 and 1440) |
 | Visual | Home reviewed in the browser in dark and light: calm, text legible, label visible |
+
+## Appendix J. G9: re-skin of the routes
+
+### J.1 Audit first
+
+Every route was captured in dark and light at 1440 px on a real finished synthetic run (home, new analysis, explainer, run matrix, timeline, sky in all three views, compare, Time Machine, evidence) and reviewed. Because G1 to G7 moved every component onto the semantic tokens, most routes needed no change: the status chips, cards, tables, charts, disclosures and forms already follow the calm palette in both themes. A search for hard-coded colours in `components/`, `app/` and `lib/` (outside the token definitions and the generated shadcn files) found exactly one place: the 3D sky.
+
+### J.2 What changed
+
+| Part | Behaviour |
+|---|---|
+| **3D sky on the tokens** (`lib/sky-palette.ts`, `components/Sky3D.tsx`) | Every colour in the scene is read from the design tokens when the scene is built: background, ground (`--card`), terrain wall (`--accent`), ridge line and compass letters (`--foreground`), the flat-horizon ring (`--muted-foreground`), the other elevation rings (`--border`), the north marker and the Sun (`--sun`), Earth (`--earth`). The Sun and Earth hues now match the rest of the interface (the 3D view used `#f5a524` and `#5aa9ff`, which differed from the tokens). The scene is rebuilt when the system theme changes, so it is the night scene in dark and a pale lunar-day scene in light. A test fails if a hex colour appears in `Sky3D.tsx` again |
+| **Recent runs** | The status badge in the sidebar no longer truncates ("Synthetic demc"): it wraps onto its own line |
+| **Page rhythm** | The vertical padding of the content area is a little tighter (2rem, 3rem on larger screens), so run pages start higher |
+
+### J.3 Decisions and findings
+
+- **Re-skin by system, not by route.** Rewriting each page's markup would have added risk (every route has e2e, axe and layout tests) for little visible gain once the tokens, primitives, shell and states were in place. The audit found no route that still looked like the old interface.
+- **Not changed, noted for later:** the polar sky plot's labels crowd where the Sun's marker, the "S" and "0° flat horizon" meet at a low Sun (an existing layout choice in `SkyPlots`, not a theme issue), and the analysis form's sticky "Run analysis" bar is translucent, so content scrolling under it shows faintly. Neither affects meaning or contrast.
+- **Dark-versus-light axe on every route** is the first job of G10 (today the Playwright suite checks axe in the default theme, plus Home in both).
+
+### J.4 Verification (production build)
+
+| Check | Result |
+|---|---|
+| `vitest` | 33 files, 304 tests pass (new: `sky-palette.test.tsx`: tokens are read, the night fallback, no hard-coded colour in the scene) |
+| `tsc`, `eslint` | clean |
+| `next build` | passes |
+| Playwright e2e | 30 pass (the 3D view's draw, time-follow, axe, keyboard and phone-fit tests all unchanged and green); fallback e2e 1 passes |
+| Visual | 18 route captures plus the 3D view in both themes reviewed; the 3D scene follows each theme |

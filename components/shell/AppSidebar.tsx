@@ -91,7 +91,7 @@ function Recent({ path }: { path: string | null }) {
                       <History aria-hidden="true" className="mt-0.5" />
                       <span className="grid min-w-0 gap-0.5">
                         <span className="truncate">{r.label}</span>
-                        <span className="flex items-center gap-1.5 text-xs text-sidebar-foreground/70">
+                        <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-sidebar-foreground/70">
                           <span className="readout">{shortId(r.id)}</span>
                           {r.state && <ResultBadge state={r.state as RunStatusResponse["result_state"]} />}
                         </span>
