@@ -58,7 +58,7 @@ function ComputeBlock({ compute }: { compute: NonNullable<Parameters<typeof Sele
   const running = st?.status === "loading";
   return (
     <section aria-label="Compute sky for this site" className="space-y-2 border border-[var(--panel-edge)] p-3" data-testid="compute-block">
-      {compute.offline ? (
+      {compute.offline || (st?.status === "error" && st.offline) ? (
         <p className="atlas-prose text-xs text-[var(--ink-dim)]" data-testid="compute-offline">
           This copy of LunaScope is offline: it shows the saved reference runs (GR-001, GR-002, GR-003) and cannot compute a sky for a new point.
           Open a saved run from the Runs panel, or choose a site that is already in the loaded run.
@@ -75,7 +75,7 @@ function ComputeBlock({ compute }: { compute: NonNullable<Parameters<typeof Sele
           {st.progress != null ? ` ${Math.round(st.progress * 100)}%` : ""}
         </p>
       )}
-      {st?.status === "error" && (
+      {st?.status === "error" && !st.offline && (
         <p role="alert" className="atlas-prose text-sm text-[var(--fail)]">
           {st.message}
         </p>
@@ -83,11 +83,11 @@ function ComputeBlock({ compute }: { compute: NonNullable<Parameters<typeof Sele
       <button
         type="button"
         className="atlas-key atlas-label border-[var(--panel-edge)]"
-        disabled={!compute.canStart || running || compute.offline}
-        title={compute.offline ? "This copy is offline" : compute.canStart ? undefined : "Needs a loaded run whose settings the service returned"}
+        disabled={!compute.canStart || running || compute.offline || (st?.status === "error" && st.offline)}
+        title={compute.offline || (st?.status === "error" && st.offline) ? "This copy is offline" : compute.canStart ? undefined : "Needs a loaded run whose settings the service returned"}
         onClick={compute.onStart}
       >
-        {running ? "Computing…" : st?.status === "error" ? "Try again" : "Compute sky for this site"}
+        {running ? "Computing…" : st?.status === "error" && !st.offline ? "Try again" : "Compute sky for this site"}
       </button>
     </section>
   );

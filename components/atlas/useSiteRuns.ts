@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { describeError, getJson, postJson } from "@/lib/api/client";
+import { ApiError, describeError, getJson, postJson } from "@/lib/api/client";
 import type { ProvenanceResponse, ResultsResponse, RunStatusResponse, RunSummary } from "@/lib/api/types";
 import type { RunWindow } from "@/lib/atlas/clock";
 import { buildRunData } from "@/lib/atlas/run";
@@ -26,7 +26,7 @@ export function useRunRequest(runId: string | null): BaseRequest | null {
 
 export type SiteRunState =
   | { status: "loading"; stage: string; progress: number | null }
-  | { status: "error"; message: string }
+  | { status: "error"; message: string; /** The service said it is an offline copy that cannot compute. */ offline?: boolean }
   | { status: "ready" };
 
 type Store = { key: string; states: Record<string, SiteRunState>; extras: Record<string, SiteExtra> };
@@ -91,7 +91,7 @@ export function useSiteRuns(baseRunId: string | null, window_: RunWindow | null,
           patch(site.id, { status: "ready" }, { runId: run.run_id, serviceId: id, tracks: data.sites[id] });
         } catch (e) {
           if (ctl.signal.aborted || (e instanceof DOMException && e.name === "AbortError")) return;
-          patch(site.id, { status: "error", message: describeError(e) });
+          patch(site.id, { status: "error", message: describeError(e), offline: e instanceof ApiError && e.code === "REPLAY_ONLY" });
         }
       })();
     },
