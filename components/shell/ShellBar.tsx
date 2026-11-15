@@ -13,6 +13,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { PaletteButton } from "@/components/shell/CommandPalette";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { shortId } from "@/lib/format";
 
@@ -86,6 +87,7 @@ export function ShellBar() {
           <CurrentCrumbs />
         </Suspense>
         <div className="ml-auto flex flex-wrap items-center gap-3">
+          <PaletteButton />
           <DataStatusPill />
           <ViewModeToggle />
         </div>

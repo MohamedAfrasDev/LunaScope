@@ -1,6 +1,6 @@
 # LunaScope "Calm Galaxy" redesign: shadcn components and a complete product experience
 
-Status: **plan, revised to a calm, aesthetic direction. G0 (baseline), G1 (shadcn foundation and calm tokens) and G2 (shadcn components) and G3 (calm visual system) and G4 (app shell) are done**; see Appendices A to E. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
+Status: **plan, revised to a calm, aesthetic direction. G0 (baseline), G1 (shadcn foundation and calm tokens) and G2 (shadcn components) and G3 (calm visual system) and G4 (app shell) and G5 (command palette) are done**; see Appendices A to F. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
 
 ## 1. The ask, and the decisions already made
 
@@ -137,7 +137,7 @@ Small, individually mergeable; each ends with unit tests, e2e, axe in both theme
 | G2 | **Done.** Replace primitives with shadcn: Button, Card, Badge (status chips), Alert, Separator, Skeleton, Progress, Input, Label, native Select; restyle native Disclosure. Checkbox and RadioGroup deliberately stay native (Appendix C.3) | B |
 | G3 | **Done.** Calm visual system: twilight backdrop (gradient, nebula washes, still stars), soft elevation, hairline borders, spacing and type rhythm, optional slow drift with Pause, reduced-motion/transparency/contrast fallbacks | C |
 | G4 | **Done.** App shell: Sidebar, Sheet on mobile, breadcrumbs, recent runs, ToggleGroup for the view mode, status pill relocated | D |
-| G5 | Command palette: Command dialog, entries, shortcuts, tests | D |
+| G5 | **Done.** Command palette: Command dialog, entries, shortcuts, tests | D |
 | G6 | Polished states: skeletons, Sonner toasts, Empty/error/not-found, a short page fade | E |
 | G7 | Onboarding: tour, tooltips, glossary | F |
 | G8 | Calm hero: the supplied image (optimised, with a scrim), plus an optional gentle 3D layer, fallbacks and a performance guard | G |
@@ -425,3 +425,38 @@ No other test changed: they find things by role, name and text.
 | `next build` | passes |
 | Playwright e2e | 18 pass (new: `shell.spec.ts`: desktop shell, recent runs survive a reload and clear; phone sheet opens and closes with Escape, status stays in view); axe clean on every route with the shell; fallback e2e 1 passes |
 | Visual | Desktop (1440) and phone (375, sheet open) reviewed in the browser |
+
+## Appendix F. G5: command palette
+
+### F.1 What it is
+
+shadcn `Command` (cmdk) in a `Dialog`: `components/shell/CommandPalette.tsx`. A shortcut layer over things that already have a visible control; it is never the only way to anything.
+
+| Part | Behaviour |
+|---|---|
+| **Opening** | Ctrl/Cmd+K (toggles), or `/` when you are not typing in a field; and a visible **Search** button in the top bar (with the shortcut as `aria-keyshortcuts`), so nobody needs to know the keys |
+| **Dialog** | Radix: focus moves to the search box, focus is trapped, Escape closes and returns focus, and the dialog has a name ("Search LunaScope") and a description. Frosted (`chrome-glass`), solid under reduced transparency or more contrast. Fits a 320 px phone |
+| **This analysis** (only on a run page) | Matrix, **Timeline: site** and **Sky: site** for each of the run's sites, Compare sites (two or more sites), Time Machine, Evidence. The site names come from the recent-run record, which now also keeps the run's site ids (written by `RunNav` once the service has answered) |
+| **Pages** | Home, New analysis, Why the south pole is hard |
+| **Recent runs** | The same list as the sidebar |
+| **Actions** | Switch to the Guided or Technical view (shows the one you are not on), Pause or Resume background motion (the toggle from G3, now exported), Copy link to this page, Clear recent runs (only when there are some) |
+| **Empty** | "Nothing matches. Try a page name, a site or technical." |
+
+### F.2 Decisions and findings
+
+- **Generated `CommandDialog` fixed twice.** Its title and description were rendered outside the dialog, leaving a screen-reader-only `h2` in the page even when the palette was closed, which broke the "home starts with its h1" check; they now sit inside the dialog. It also does not wrap its children in cmdk's `Command` root (the list throws without it); the palette adds it.
+- **No separators.** axe flagged the listbox (`aria-required-children`): a `separator` is not an allowed child of a listbox. The groups already have headings, so the separators were dropped.
+- **Suspense.** The palette reads the URL, so it streams in behind Suspense like the rest of the shell; the build caught the missing boundary.
+- **Shortcut safety.** `/` never fires while typing in an input, textarea, select or editable field; Ctrl/Cmd+K works anywhere. The sidebar's own Ctrl/Cmd+B (shadcn default) is unchanged.
+- **Copy link** needs the clipboard; if it is unavailable the action does nothing (a toast confirming it arrives with G6).
+- `shadcn add command dialog -o` again overwrote `button.tsx` and `input.tsx`; restored from git. (Use `-o` only with a `git checkout` of those two afterwards, or without `-o` and answer the prompts.) It also added `input-group` and `textarea`, which the command input uses.
+
+### F.3 Verification (production build)
+
+| Check | Result |
+|---|---|
+| `vitest` | 29 files, 289 tests pass (new: `command-palette.test.tsx`, 8 tests: open/close, `/` rule, Search button, navigation, run views, actions, empty state) |
+| `tsc`, `eslint` | clean |
+| `next build` | passes |
+| Playwright e2e | 21 pass (new: `palette.spec.ts`: Ctrl+K opens a named dialog with the search box focused, axe clean on the dialog, filter and Enter navigate, `/` and Escape, Search button plus an action, phone fit); fallback e2e 1 passes |
+| Visual | Opened in the browser pane: frosted dialog, search box focused |

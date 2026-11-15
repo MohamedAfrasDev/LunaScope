@@ -7,7 +7,7 @@ import { useSyncExternalStore } from "react";
  * site names the service itself returned for that run. Nothing is invented, nothing is sent anywhere, and the
  * list can be cleared. Every storage access is guarded: with storage blocked the list is simply empty.
  */
-export type RecentRun = { id: string; label: string; state?: string; openedAt: number };
+export type RecentRun = { id: string; label: string; state?: string; sites?: string[]; openedAt: number };
 
 const KEY = "lunascope.recent-runs";
 const MAX = 8;
@@ -21,7 +21,8 @@ let memory: RecentRun[] | null = null; // when storage is blocked the list still
 
 function valid(x: unknown): x is RecentRun {
   const r = x as RecentRun;
-  return !!r && typeof r.id === "string" && RUN_ID.test(r.id) && typeof r.label === "string" && typeof r.openedAt === "number";
+  return !!r && typeof r.id === "string" && RUN_ID.test(r.id) && typeof r.label === "string" && typeof r.openedAt === "number" &&
+    (r.sites === undefined || (Array.isArray(r.sites) && r.sites.every((x) => typeof x === "string")));
 }
 
 function snapshot(): RecentRun[] {
@@ -59,7 +60,7 @@ export function rememberRun(run: Omit<RecentRun, "openedAt">): void {
   if (!RUN_ID.test(run.id)) return;
   const cur = snapshot();
   const prev = cur[0];
-  if (prev && prev.id === run.id && prev.label === run.label && prev.state === run.state) return; // already on top: no churn
+  if (prev && prev.id === run.id && prev.label === run.label && prev.state === run.state && (prev.sites ?? []).join() === (run.sites ?? []).join()) return; // already on top: no churn
   write([{ ...run, openedAt: Date.now() }, ...cur.filter((r) => r.id !== run.id)].slice(0, MAX));
 }
 
