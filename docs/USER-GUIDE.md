@@ -25,6 +25,7 @@ A complete guide to every page, control, label and setting. It describes the pro
 12. [When something goes wrong](#12-when-something-goes-wrong)
 13. [What it does not do, and what is not yet done](#13-what-it-does-not-do-and-what-is-not-yet-done)
 14. [Glossary](#14-glossary)
+15. [The Atlas (the new layout)](#15-the-atlas-the-new-layout-on-the-redesign-layout-branch)
 
 ---
 
@@ -672,3 +673,27 @@ What may and may not be claimed is in [`docs/submission/CLAIMS-AUDIT.md`](submis
 | **Libration** | The slow wobble of the Moon that moves Earth by a few degrees in its sky. |
 | **Planetocentric** | Latitude measured from the Moon's centre (the convention used throughout). |
 | **Synthetic / unverified / validated** | Invented data; real data with no validation gate closed; validated within named scopes (none yet). |
+
+---
+
+## 15. The Atlas (the new layout, on the `redesign-layout` branch)
+
+The Atlas is the same analysis with a different interface: the Moon fills the screen, and every tool is a small panel floating on it. Nothing about the science, the labels or the claims changes. The classic pages above still work and link into it (**Open in the Atlas** on every run page).
+
+**Opening it.** The landing page (`/`) is the Moon, the name and one **Enter** button. Enter opens `/atlas`, which loads the reference mission GR-001. `/atlas?run=<64 characters>` opens a given run and `/atlas?ref=GR-002` a reference. The address follows the run you choose, so a view can be shared.
+
+**The screen.** Top bar: scale (**Moon**, **System**, **Site sky**), panels, **Whole Moon** and **South pole**, **Place a point**, the **run chip** (opens the Runs panel) and **Search** (Ctrl+K). Top right: the time, the scale, and in Site sky the Sun's and Earth's direction. Bottom: the time dock and the data status. **H** hides the interface.
+
+**Sites.** Every catalog site is a pin. Choose one on the Moon or in the **Sites** list (which is also the keyboard route). A solid ring means the terrain data covers the whole 150 km footprint, a dashed ring that it does not or has not been checked. **Place a point** then a click on the Moon (latitude −90 to −80) adds a custom point, checked by the service; **Add a point** in the Sites panel does the same by coordinates. The **Selected site** card shows coordinates, precision, terrain coverage and source, and has **Centre on site**, **Enter site sky**, **Analyse this site** and, for a custom point, **Remove point**.
+
+**The clock.** The dock moves a cursor through the loaded run: play and pause, five speeds (1 minute to 1 day per second), reverse, loop, previous and next event, a scrubber and **Go to (UTC)**. Space plays, `.` and `,` jump between events, `[` and `]` change speed, arrows on the scrubber move ten minutes (an hour with Shift). Under reduced motion playback is off and the rest still works. Everything that follows the clock was computed by the science service; the browser only picks and interpolates.
+
+**Panels.** Left: **Sites**, **Timeline** (Sun and Earth bars, rise and set ticks, drag to seek, flat-horizon comparison, table, CSV). Right, one at a time: **Metrics**, **Clearance**, **Sky path**, **Compare**, **Dates** (Time Machine and dates search), **Evidence**, **Analyse**, **Runs**, **Learn**. Panels about a site need a selected site that the loaded run holds, and say so when they have nothing to show. Sun and Earth are never combined into one figure.
+
+**Site sky.** With a site selected, **Site sky** stands you on it: the terrain skyline as a wall, the Sun and Earth where the service's series puts them at the clock time, a compass line, **Face the Sun**, **Face the Earth**, **N E S W**, **Sun path**, **Earth path**, **All paths**, **Look around** or **From outside**, and **Exaggerate heights ×3** (stated on screen whenever on). **Mission window** shows the day and, per target, the service's state now and over the whole window. **Return to Moon** goes back.
+
+**Labels.** `NASA DATA`, `DERIVED`, `ASSUMPTION`, `ILLUSTRATION`, `SYNTHETIC` and `REPLAY` tag every block of numbers, with the same meanings as the result-state frame. Imagery carries its NASA credit and the note that lighting is illustrative.
+
+**On a phone.** The bar folds behind **Menu**, one panel at a time is a bottom sheet, the dock keeps play, the scrubber, the time, the data label and the imagery credit, and **More** reveals the rest. Nothing scrolls sideways from 320 px.
+
+**Not in the Atlas yet.** The **System** scale (needs Earth–Moon–Sun geometry the service does not return), the Guided/Technical switch, the page tour, the status matrix and the A/B clock for the Time Machine. The classic pages cover them.

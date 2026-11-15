@@ -437,3 +437,9 @@ Production cost measured: landing JS 430 KB and images 459 KB (budgets raised fr
 | Recent runs | Runs panel | done |
 | Page tour | not in the Atlas | open |
 | System scale | not built (needs service geometry, D4) | open |
+
+### Phase I (verification and polish), done
+- **Phone (under 768 px):** the top bar folds behind a **Menu** (choosing something closes it), the run chip stays beside the name, one panel at a time is a bottom sheet (choosing a site replaces the list with its card), the dock keeps play, the scrubber, the time, the data label and the imagery credit with **More** for the rest, and Site sky folds its controls behind **Controls**. Nothing opens on its own on a phone. Checked at 320, 375 and 414 px (no sideways scroll, sheet above the dock, dock under 45% of the height) and at 768 px (desktop columns).
+- **Production build:** passes; `/atlas` is partially prerendered. Measured bytes: landing JS 415 KB and images 459 KB; Atlas JS 1,762 KB (budgets 560 KB, 600 KB and 2,200 KB hold); the analysis page is unchanged at 245 KB.
+- **Docs:** the user guide has a section on the Atlas (15) and the README links the spec.
+- **Left open:** System scale (D4), Guided/Technical in the Atlas, the page tour, the A/B clock, redirecting the old run routes (D6), and the Moon Trek terms (D5).

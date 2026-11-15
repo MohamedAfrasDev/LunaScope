@@ -9,6 +9,7 @@ LunaScope is a **screening and education tool**. It is not a certification of la
 ## Documents
 
 - [**User guide**: how it works and how to use every page and control](docs/USER-GUIDE.md)
+- [Atlas layout specification and build record](docs/redesign/LAYOUT-SPEC.md) (the new full-screen Moon interface; usage in the [user guide](docs/USER-GUIDE.md#15-the-atlas-the-new-layout-on-the-redesign-layout-branch))
 - [UI redesign record: the design language, components, accessibility rules and before/after screenshots](docs/ui/UI-REDESIGN.md)
 - [Product and Technical Specification v2.1](<LunaScope Product and Technical Specification v2.1.md>)
 - [API reference (implemented subset)](docs/API.md)
