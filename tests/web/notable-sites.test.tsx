@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AnalyzeForm } from "@/components/AnalyzeForm";
 import { ReferenceRunCard } from "@/components/ReferenceRunCard";
+import { defaultSiteIds, MAX_SITES } from "@/lib/draft";
 import { siteLabel } from "@/lib/format";
 
 const push = vi.fn();
@@ -80,5 +81,35 @@ describe("analysis form: grouped catalog", () => {
     expect(screen.getByRole("heading", { name: /Demonstration points/ })).toBeInTheDocument();
     expect(screen.getByText(/Crater, 51.4 km across; -87.45°, 354.83°E/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "IAU entry" })).toHaveAttribute("href", "https://planetarynames.wr.usgs.gov/Feature/14502");
+  });
+});
+
+describe("the form's default selection", () => {
+  const cov = { covered_fraction: 1, fully_covered: true, sectors_with_gap: 0, radius_km: 150 };
+  const demo = ["rule-89.5S-E0", "rule-89.5S-E120", "rule-89.5S-E240"].map((id) => ({
+    site_id: id, label: id, lat_deg: -89.5, lon_east_deg: 0, convention: "planetocentric", source: "rule", precision_m: 100,
+    kind: "demonstration_rule", dem_coverage_150km: cov }));
+  const named = Array.from({ length: 12 }, (_, i) => ({
+    site_id: `iau-place-${i}`, label: `Place ${i}`, name: `Place ${i}`, group: "g", lat_deg: -87, lon_east_deg: i, convention: "planetocentric",
+    source: "IAU", precision_m: 1000, kind: "named_feature_iau", dem_coverage_150km: cov }));
+
+  it("starts with the demonstration points only, never more than a run allows", () => {
+    const ids = defaultSiteIds([...demo, ...named]);
+    expect(ids).toEqual(demo.map((d) => d.site_id));
+    expect(ids.length).toBeLessThanOrEqual(MAX_SITES);
+    // a catalog with no demonstration points still never exceeds the limit
+    expect(defaultSiteIds(named).length).toBe(MAX_SITES);
+  });
+
+  it("opens with three sites ticked and no error, even though the catalog holds fifteen", async () => {
+    window.localStorage.clear();
+    window.sessionStorage.clear();
+    vi.stubGlobal("fetch", vi.fn(async () => json({ note: "n", groups: { g: "Named" }, sites: [...demo, ...named] })));
+    render(<AnalyzeForm />);
+    await screen.findByRole("heading", { name: "Named" });
+    const ticked = screen.getAllByRole("checkbox").filter((c) => (c as HTMLInputElement).checked);
+    expect(ticked.length).toBe(3);
+    fireEvent.click(screen.getByRole("button", { name: /Run analysis/ }));
+    await waitFor(() => expect(screen.queryByText(/Fix \d+ field/)).toBeNull());
   });
 });
