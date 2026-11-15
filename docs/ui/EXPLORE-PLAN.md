@@ -1,6 +1,6 @@
 # LunaScope Explorer: plan
 
-Status: **proposed** (nothing built yet). Follows the galaxy phases ([GALAXY-PLAN.md](GALAXY-PLAN.md), [UI-GALAXY.md](UI-GALAXY.md)).
+Status: **E0 done** (spike and decisions, section 9); E1 to E7 not started. Follows the galaxy phases ([GALAXY-PLAN.md](GALAXY-PLAN.md), [UI-GALAXY.md](UI-GALAXY.md)).
 
 ## 1. Goal
 
@@ -82,3 +82,25 @@ Each phase is its own branch and PR, merged before the next starts.
 1. Engine: CesiumJS (recommended) or the lighter, larger-effort three.js?
 2. Arbitrary click-to-analyse, if the service supports it, or presets only?
 3. Imagery source: NASA Moon Trek tiles (recommended) or a texture you already have a licence for?
+
+## 9. E0 report (measured)
+
+Checked on the working tree and from this machine; one observation each, not a lab study.
+
+| Question | Finding | Consequence |
+|---|---|---|
+| Does the service return Sun and Earth positions over time? | **Yes.** Each site's results carry a `series` per target (Sun, Earth): `step_s`, `az_deg[]`, `el_deg[]` (`SkySeries`, `science/lunascope/responses.py`). The horizon endpoint returns the terrain skyline (`azimuth_deg`, `horizon_el_deg`) | The time dock (E4), the Site sky (E6) and result pins (E4) can be driven entirely by service data. **No ephemeris in the browser.** The System scale (E5) needs Earth-Moon-Sun geometry that is not in these series; E5 needs either a new service field or is limited to directions at the sampled times (open) |
+| Does the service accept an arbitrary point? | **Yes, with a coverage check.** `POST /api/v1/sites/custom` takes latitude, longitude, convention and source, and returns `dem_coverage_150km` | Click-to-place is possible (E3). Where the terrain model does not cover a point, the result must say "unknown coverage", never "not visible" |
+| Are NASA Moon Trek tiles usable from the browser? | **Yes.** Global LROC mosaic (`LRO_WAC_Mosaic_Global_303ppd_v02`) and LOLA colour shading (`LRO_LOLA_ClrShade_Global_128ppd_v04`) returned 200 with `Access-Control-Allow-Origin: *` | No proxy needed. Tile scheme: geographic, 2x1 tiles at level 0, 256 px, levels 0 to 8, URL `.../{level}/{row}/{col}.jpg`, which matches Cesium's geographic tiling scheme |
+| South-pole-specific tiles | The polar layer name I guessed returned 404 | Not found yet. The global tiles are enough for E1; a higher-resolution polar layer is a stretch item to look up in the Trek catalogue |
+| Licence and credit | NASA's media guidelines say NASA material is generally not copyrighted and may be used if NASA is acknowledged as the source and no endorsement is implied; the NASA insignia and logos are excluded. The Trek site itself is script-rendered, so **its own terms were not read** | Use a credit line ("Imagery: NASA/LRO ..., via Moon Trek"), use no NASA logos, state no endorsement. **Owner to confirm** the Trek terms before E1 ships |
+| Bundle size (CesiumJS 1.147) | ES build 4.8 MB raw, **about 1.33 MB gzipped**, plus workers (1.2 MB) and assets (4.7 MB, mostly not needed). That is roughly **4 to 5 times the whole budget of our other pages** | Acceptable only as a lazy-loaded `/explore` route with its own budget (about 1.5 MB gzipped, set in E7) and a loading state. Tree-shaking via `@cesium/engine` may reduce it and is tried in E1 |
+
+### Decisions from E0
+
+1. **Engine: CesiumJS stays the recommendation**, on `/explore` only, because the global tiles fit its tiling scheme directly. The cost is the bundle. The three.js alternative would mean writing our own tile loader and is only worth it if the bundle proves unacceptable in E1.
+2. **Arbitrary points: yes** (E3), with unknown coverage shown honestly.
+3. **Imagery: Moon Trek global tiles**, with a bundled 2K fallback, subject to the owner confirming the Trek terms.
+4. **Open for E5:** the System scale needs more than direction series; decide in E5 whether to ask for a service field or to draw directions only.
+
+E0 changed no application code.
