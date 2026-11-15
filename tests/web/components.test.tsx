@@ -86,7 +86,7 @@ describe("ResultStateFrame", () => {
 
 describe("RunView", () => {
   it("renders a finished run inside its result-state frame with warnings and no verified claim", async () => {
-    mockFetch((url) => (url.includes("provenance") ? { status: 500, body: { error: { code: "X", message: "m", field: null, retryable: false, correlation_id: null } } } : { body: done() }));
+    mockFetch((url) => ((url.includes("provenance") || url.includes("validation")) ? { status: 500, body: { error: { code: "X", message: "m", field: null, retryable: false, correlation_id: null } } } : { body: done() }));
     render(<RunView runId={RUN} />);
     expect(await screen.findByRole("region", { name: /Synthetic demonstration/ })).toBeInTheDocument();
     expect(screen.getByRole("table")).toBeInTheDocument();

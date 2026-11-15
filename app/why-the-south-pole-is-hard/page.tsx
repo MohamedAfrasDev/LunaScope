@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SkylineFigure } from "@/components/HeroSkyline";
+import { GLOSSARY } from "@/lib/glossary";
 
 export const metadata: Metadata = {
   title: "Why the south pole is hard",
@@ -98,6 +99,16 @@ export default function WhySouthPoleIsHard() {
         elevation model. It shows the local sky, the outages and the evidence behind every number, and it keeps the
         flat-horizon result beside the terrain result so the difference is visible.
       </p>
+
+      <h2 id="key-terms" className={H2}>Key terms</h2>
+      <dl className="mt-2 grid gap-3 text-sm leading-6">
+        {GLOSSARY.map((g) => (
+          <div key={g.id}>
+            <dt className="font-medium">{g.term}</dt>
+            <dd className="text-muted-foreground">{g.text}</dd>
+          </div>
+        ))}
+      </dl>
 
       <aside className="surface-card mt-8 p-4 text-sm leading-6">
         <p className="font-semibold">What this page is not</p>

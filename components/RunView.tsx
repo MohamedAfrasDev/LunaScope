@@ -17,6 +17,8 @@ import { Progress } from "./ui/progress";
 import { LoadingState } from "@/components/ui/loading-state";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia } from "@/components/ui/empty";
 import { SearchX } from "lucide-react";
+import { RunTour } from "./tour/RunTour";
+import { TermsHint } from "./TermsHint";
 
 const TERMINAL = new Set(["complete", "complete_with_warnings", "failed"]);
 
@@ -134,10 +136,16 @@ export function RunView({ runId }: { runId: string }) {
               What if the date slips? Open the Time Machine
             </Link>
           </p>
+          <RunTour />
           <ResultStateFrame state={run.result_state}>
             <div className="grid gap-6">
-              <RunVerdict rows={run.matrix} />
-              <SiteCards runId={runId} rows={run.matrix} />
+              <div data-tour="verdict">
+                <RunVerdict rows={run.matrix} />
+              </div>
+              <div data-tour="cards">
+                <SiteCards runId={runId} rows={run.matrix} />
+              </div>
+              <TermsHint />
               <ExcludedSites runId={runId} rows={run.matrix.filter((r) => r.site_status === "UNKNOWN_COVERAGE")} />
               {run.matrix.length >= 2 && (
                 <p className="text-sm">
