@@ -15,6 +15,7 @@ import {
   exaggerate,
   skylineRuns,
   skylineWall,
+  skylineWallUv,
   trackRuns,
 } from "@/lib/sky3d";
 import type { Track } from "./SkyPlots";
@@ -22,6 +23,8 @@ import type { Track } from "./SkyPlots";
 export type Track3D = Pick<Track, "target" | "series" | "intervals">;
 import { targetLabel } from "@/lib/format";
 import { readSkyPalette, useColorScheme } from "@/lib/sky-palette";
+import { PHOTO_LOOK } from "@/lib/atlas/sky-look";
+import { earthCanvas, glowCanvas, regolithCanvas } from "@/lib/atlas/textures";
 
 /**
  * A 3D look at the same sky: the terrain skyline as a wall around the observer, the Sun's and Earth's paths over it,
@@ -44,7 +47,7 @@ interface Handles {
 /** What a host (the Atlas) can ask of the view. */
 export type Sky3DHandle = { faceTarget: (target: string) => void; face: (yawDeg: number, pitchDeg?: number) => void };
 
-export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode: modeProp, exaggeration, showPaths, onReady, onView }: {
+export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode: modeProp, exaggeration, showPaths, showLander = true, onReady, onView }: {
   profile: HorizonProfileResponse;
   tracks: Track3D[]; // keep this array stable: the scene is rebuilt when it changes
   t: number;
@@ -56,6 +59,8 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
   mode?: Mode;
   exaggeration?: number;
   showPaths?: Partial<Record<string, boolean>>;
+  /** Atlas only: the generic lander model (an illustration). */
+  showLander?: boolean;
   onReady?: (h: Sky3DHandle) => void;
   /** Where the view is looking (degrees), on every drawn frame. */
   onView?: (yawDeg: number, pitchDeg: number) => void;
@@ -75,7 +80,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
   const scheme = useColorScheme(); // rebuild the scene when the system theme changes
   const handles = useRef<Handles | null>(null);
   const view = useRef({ yaw: 0, pitch: 4, fov: 70, dist: 30 });
-  const live = useRef({ tracks, t, k, mode, paths: { sun_center: sunPath, earth_center: earthPath } as Record<string, boolean> });
+  const live = useRef({ tracks, t, k, mode, lander: showLander, paths: { sun_center: sunPath, earth_center: earthPath } as Record<string, boolean> });
 
   const cursor = useMemo(() => tracks.map((x) => ({ target: x.target, ...interpAzEl(x.series, t), cls: (classAt(x.intervals, t) ?? "none") as IntervalClass | "none" })), [tracks, t]);
   const label = describeScene({
@@ -85,9 +90,9 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
 
   // The scene reads the latest props through this ref; it is updated in an effect, before any frame is drawn.
   useEffect(() => {
-    live.current = { tracks, t, k, mode, paths: { sun_center: sunPath, earth_center: earthPath } };
+    live.current = { tracks, t, k, mode, lander: showLander, paths: { sun_center: sunPath, earth_center: earthPath } };
     handles.current?.render();
-  }, [tracks, t, k, mode, sunPath, earthPath]);
+  }, [tracks, t, k, mode, sunPath, earthPath, showLander]);
 
   const faceTarget = useCallback((target: string) => {
     const c = live.current.tracks.find((x) => x.target === target);
@@ -136,15 +141,35 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
       el.querySelector("[data-canvas-slot]")?.appendChild(canvas);
 
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color(pal.background);
-      const camera = new THREE.PerspectiveCamera(view.current.fov, 1, 0.05, 200);
+      // the Atlas draws a lit surface, a glowing Sun, a phased Earth and a lander; the run pages keep the diagram look
+      const photo = bleed;
+      scene.background = new THREE.Color(photo ? PHOTO_LOOK.sky : pal.background);
+      const camera = new THREE.PerspectiveCamera(view.current.fov, 1, photo ? 0.004 : 0.05, 200);
       const disposables: { dispose: () => void }[] = [];
       const add = <T extends THREE_NS.Object3D>(o: T) => (scene.add(o), o);
 
       // ground disc, wall, ridge line
+      const regolith = photo ? regolithCanvas(512) : null;
+      const regTex = regolith ? new THREE.CanvasTexture(regolith) : null;
+      if (regTex) {
+        regTex.wrapS = regTex.wrapT = THREE.RepeatWrapping;
+        regTex.colorSpace = THREE.SRGBColorSpace;
+        regTex.anisotropy = 8;
+        disposables.push(regTex);
+      }
       const ground = new THREE.CircleGeometry(R_WALL, 96);
       ground.rotateX(-Math.PI / 2);
-      const groundMat = new THREE.MeshBasicMaterial({ color: pal.ground, side: THREE.DoubleSide });
+      if (regTex) {
+        // planar texture coordinates: the picture repeats every 6 units
+        const gp = ground.getAttribute("position");
+        const uv = new Float32Array(gp.count * 2);
+        for (let q = 0; q < gp.count; q++) {
+          uv[q * 2] = gp.getX(q) / 6;
+          uv[q * 2 + 1] = gp.getZ(q) / 6;
+        }
+        ground.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+      }
+      const groundMat = new THREE.MeshBasicMaterial(regTex ? { map: regTex, side: THREE.DoubleSide } : { color: pal.ground, side: THREE.DoubleSide });
       add(new THREE.Mesh(ground, groundMat));
       disposables.push(ground, groundMat);
 
@@ -152,11 +177,12 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
       const wallGeo = new THREE.BufferGeometry();
       wallGeo.setAttribute("position", new THREE.BufferAttribute(wall.positions, 3));
       wallGeo.setIndex(new THREE.BufferAttribute(wall.indices, 1));
-      const wallMat = new THREE.MeshBasicMaterial({ color: pal.wall, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+      if (regTex) wallGeo.setAttribute("uv", new THREE.BufferAttribute(skylineWallUv(profile.azimuth_deg, profile.horizon_el_deg, 10, 0.3), 2));
+      const wallMat = new THREE.MeshBasicMaterial({ ...(regTex ? { map: regTex, color: PHOTO_LOOK.wall } : { color: pal.wall }), side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
       add(new THREE.Mesh(wallGeo, wallMat));
       disposables.push(wallGeo, wallMat);
 
-      const ridgeMat = new THREE.LineBasicMaterial({ color: pal.ridge });
+      const ridgeMat = new THREE.LineBasicMaterial({ color: photo ? PHOTO_LOOK.ridge : pal.ridge });
       disposables.push(ridgeMat);
       for (const run of skylineRuns(profile.azimuth_deg, profile.horizon_el_deg, R_WALL, k)) {
         const g = new THREE.BufferGeometry();
@@ -165,9 +191,9 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
         disposables.push(g);
       }
 
-      // rings: the flat 0 degree horizon (brighter) and every 5 degrees above it
+      // rings: the flat 0 degree horizon (brighter) and every 5 degrees above it (the diagram view only)
       const maxEl = Math.max(10, ...profile.horizon_el_deg.filter((v): v is number => v != null), ...tracks.flatMap((x) => x.series.el_deg));
-      for (let e = 0; e <= Math.ceil(maxEl / 5) * 5; e += 5) {
+      for (let e = 0; !photo && e <= Math.ceil(maxEl / 5) * 5; e += 5) {
         const g = new THREE.BufferGeometry();
         g.setAttribute("position", new THREE.BufferAttribute(elevationRing(e, R_SKY + 0.2, 180, k), 3));
         const m = new THREE.LineBasicMaterial({ color: e === 0 ? pal.horizonRing : pal.ring, transparent: true, opacity: e === 0 ? 0.9 : 0.55 });
@@ -182,14 +208,14 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
           const g = new THREE.BufferGeometry();
           g.setAttribute("position", new THREE.BufferAttribute(run.positions, 3));
           const vis = run.cls === "V";
-          const m = new THREE.LineBasicMaterial({ color: COLORS[tr.target], transparent: !vis, opacity: vis ? 1 : 0.4, depthTest: vis });
+          const m = new THREE.LineBasicMaterial({ color: COLORS[tr.target], transparent: !vis, opacity: vis ? 1 : photo ? 0.28 : 0.4, depthTest: vis });
           const line = add(new THREE.Line(g, m));
           pathObjs.set(tr.target, [...(pathObjs.get(tr.target) ?? []), line]);
           disposables.push(g, m);
         }
       }
 
-      // compass letters and the observer's pin
+      // compass letters and the observer pin
       const sprite = (text: string, color: string, scale: number) => {
         const c = document.createElement("canvas");
         c.width = 256;
@@ -206,53 +232,145 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
           g.fillText(text, 128, 68);
         }
         const tex = new THREE.CanvasTexture(c);
-        const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true });
+        const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true, opacity: photo ? 0.7 : 1 });
         const s = new THREE.Sprite(mat);
         s.scale.set(scale * 2, scale, 1);
         disposables.push(tex, mat);
         return s;
       };
       for (const c of COMPASS) {
-        const s = sprite(c.label, c.label === "N" ? pal.labelNorth : pal.label, 1.4);
-        s.position.set(...dirFromAzEl(c.az, exaggerate(0, k) + 1.5, R_SKY + 0.6));
+        const s = sprite(c.label, photo ? PHOTO_LOOK.compass : c.label === "N" ? pal.labelNorth : pal.label, photo ? 0.8 : 1.4);
+        s.position.set(...dirFromAzEl(c.az, exaggerate(0, k) + (photo ? 1.2 : 1.5), R_SKY + 0.6));
         add(s);
       }
-      const pinGeo = new THREE.ConeGeometry(0.18, 0.7, 12);
-      const pinMat = new THREE.MeshBasicMaterial({ color: pal.pin });
-      const pin = new THREE.Mesh(pinGeo, pinMat);
-      pin.position.set(0, 0.35, 0);
-      add(pin);
-      disposables.push(pinGeo, pinMat);
+      if (!photo) {
+        const pinGeo = new THREE.ConeGeometry(0.18, 0.7, 12);
+        const pinMat = new THREE.MeshBasicMaterial({ color: pal.pin });
+        const pin = new THREE.Mesh(pinGeo, pinMat);
+        pin.position.set(0, 0.35, 0);
+        add(pin);
+        disposables.push(pinGeo, pinMat);
+      }
 
-      // markers: a solid body (hidden behind terrain by the depth test) plus a faint ghost that is always drawn
-      const markers = new Map<string, { solid: THREE_NS.Mesh; ghost: THREE_NS.Mesh; tag: THREE_NS.Sprite }>();
+      // markers. Diagram view: a solid body (hidden behind terrain by the depth test) plus a faint ghost that is always drawn.
+      // Atlas view: a glowing Sun and an Earth globe whose phase follows the Sun, both hidden by the terrain, with no labels.
+      type Marker = { body: THREE_NS.Object3D; ghost: THREE_NS.Object3D | null; tag: THREE_NS.Object3D | null };
+      const markers = new Map<string, Marker>();
+      let earthLight: THREE_NS.DirectionalLight | null = null;
+      if (photo) {
+        earthLight = new THREE.DirectionalLight(PHOTO_LOOK.light, 3.4);
+        scene.add(earthLight);
+        scene.add(new THREE.AmbientLight(PHOTO_LOOK.light, 0.06));
+      }
       for (const tr of tracks) {
-        const geo = tr.target === "sun_center" ? new THREE.SphereGeometry(0.34, 24, 16) : new THREE.OctahedronGeometry(0.42);
-        const solidMat = new THREE.MeshBasicMaterial({ color: COLORS[tr.target] });
-        const ghostMat = new THREE.MeshBasicMaterial({ color: COLORS[tr.target], transparent: true, opacity: 0.3, depthTest: false });
-        const solid = new THREE.Mesh(geo, solidMat);
-        const ghost = new THREE.Mesh(geo, ghostMat);
-        ghost.renderOrder = 5;
-        const tag = sprite(targetLabel(tr.target), tr.target === "sun_center" ? pal.sun : pal.earth, 1.5);
-        add(solid);
-        add(ghost);
-        add(tag);
-        markers.set(tr.target, { solid, ghost, tag });
-        disposables.push(geo, solidMat, ghostMat);
+        if (photo && tr.target === "sun_center") {
+          const group = new THREE.Group();
+          const coreGeo = new THREE.SphereGeometry(0.2, 24, 16);
+          const coreMat = new THREE.MeshBasicMaterial({ color: PHOTO_LOOK.sunCore });
+          group.add(new THREE.Mesh(coreGeo, coreMat));
+          const glowTex = new THREE.CanvasTexture(glowCanvas(256, "rgba(255,250,235,1)", "rgba(255,196,110,0.45)") ?? document.createElement("canvas"));
+          const glowMat = new THREE.SpriteMaterial({ map: glowTex, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false });
+          const glow = new THREE.Sprite(glowMat);
+          glow.scale.set(4.4, 4.4, 1);
+          group.add(glow);
+          add(group);
+          markers.set(tr.target, { body: group, ghost: null, tag: null });
+          disposables.push(coreGeo, coreMat, glowTex, glowMat);
+        } else if (photo) {
+          const earthTex = new THREE.CanvasTexture(earthCanvas(512, 256) ?? document.createElement("canvas"));
+          earthTex.colorSpace = THREE.SRGBColorSpace;
+          const geo = new THREE.SphereGeometry(0.5, 48, 32);
+          const mat = new THREE.MeshStandardMaterial({ map: earthTex, roughness: 0.9, metalness: 0 });
+          const globe = new THREE.Mesh(geo, mat);
+          globe.rotation.set(0.35, 1.2, 0.2);
+          const haloTex = new THREE.CanvasTexture(glowCanvas(128, "rgba(120,170,255,0.0)", "rgba(110,170,255,0.28)") ?? document.createElement("canvas"));
+          const haloMat = new THREE.SpriteMaterial({ map: haloTex, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false });
+          const halo = new THREE.Sprite(haloMat);
+          halo.scale.set(1.8, 1.8, 1);
+          const group = new THREE.Group();
+          group.add(halo);
+          group.add(globe);
+          add(group);
+          markers.set(tr.target, { body: group, ghost: null, tag: null });
+          disposables.push(earthTex, geo, mat, haloTex, haloMat);
+        } else {
+          const geo = tr.target === "sun_center" ? new THREE.SphereGeometry(0.34, 24, 16) : new THREE.OctahedronGeometry(0.42);
+          const solidMat = new THREE.MeshBasicMaterial({ color: COLORS[tr.target] });
+          const ghostMat = new THREE.MeshBasicMaterial({ color: COLORS[tr.target], transparent: true, opacity: 0.3, depthTest: false });
+          const solid = new THREE.Mesh(geo, solidMat);
+          const ghost = new THREE.Mesh(geo, ghostMat);
+          ghost.renderOrder = 5;
+          const tag = sprite(targetLabel(tr.target), tr.target === "sun_center" ? pal.sun : pal.earth, 1.5);
+          add(solid);
+          add(ghost);
+          add(tag);
+          markers.set(tr.target, { body: solid, ghost, tag });
+          disposables.push(geo, solidMat, ghostMat);
+        }
+      }
+
+      // a generic lander (an illustration, not a real spacecraft): body, legs, pads and two panels, a little way off
+      let lander: THREE_NS.Group | null = null;
+      if (photo) {
+        lander = new THREE.Group();
+        const gold = new THREE.MeshBasicMaterial({ color: PHOTO_LOOK.landerBody });
+        const dark = new THREE.MeshBasicMaterial({ color: PHOTO_LOOK.landerDark });
+        const panel = new THREE.MeshBasicMaterial({ color: PHOTO_LOOK.landerPanel });
+        const bodyGeo = new THREE.CylinderGeometry(0.34, 0.34, 0.26, 6);
+        const body = new THREE.Mesh(bodyGeo, gold);
+        body.position.y = 0.62;
+        lander.add(body);
+        const topGeo = new THREE.CylinderGeometry(0.2, 0.3, 0.12, 6);
+        const top = new THREE.Mesh(topGeo, dark);
+        top.position.y = 0.81;
+        lander.add(top);
+        const legGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.62, 6);
+        const padGeo = new THREE.CylinderGeometry(0.07, 0.07, 0.015, 12);
+        for (let q = 0; q < 4; q++) {
+          const a = (q / 4) * Math.PI * 2 + Math.PI / 4;
+          const leg = new THREE.Mesh(legGeo, dark);
+          leg.position.set(Math.cos(a) * 0.4, 0.31, Math.sin(a) * 0.4);
+          leg.rotation.z = -Math.cos(a) * 0.5;
+          leg.rotation.x = Math.sin(a) * 0.5;
+          lander.add(leg);
+          const pad = new THREE.Mesh(padGeo, dark);
+          pad.position.set(Math.cos(a) * 0.55, 0.01, Math.sin(a) * 0.55);
+          lander.add(pad);
+        }
+        const panelGeo = new THREE.BoxGeometry(0.62, 0.02, 0.34);
+        for (const sx of [-1, 1]) {
+          const pn = new THREE.Mesh(panelGeo, panel);
+          pn.position.set(sx * 0.72, 0.82, 0);
+          pn.rotation.z = sx * 0.28;
+          lander.add(pn);
+        }
+        const lp = dirFromAzEl(196, 0, 7.5);
+        lander.position.set(lp[0], 0, lp[2]);
+        lander.scale.setScalar(1.3);
+        add(lander);
+        disposables.push(bodyGeo, topGeo, legGeo, padGeo, panelGeo, gold, dark, panel);
       }
 
       let raf = 0;
       let frames = 0;
       const placeMarkers = () => {
+        let sunPos: [number, number, number] | null = null;
         for (const tr of live.current.tracks) {
           const m = markers.get(tr.target);
           if (!m) continue;
           const p = interpAzEl(tr.series, live.current.t);
           const [x, y, z] = dirFromAzEl(p.az, exaggerate(p.el, live.current.k), R_SKY);
-          m.solid.position.set(x, y, z);
-          m.ghost.position.set(x, y, z);
-          m.tag.position.set(x, y + 0.95, z);
+          m.body.position.set(x, y, z);
+          m.ghost?.position.set(x, y, z);
+          m.tag?.position.set(x, y + 0.95, z);
+          if (tr.target === "sun_center") sunPos = [x, y, z];
         }
+        if (earthLight) {
+          // the globe is lit from the side of the Sun, so its phase is whatever the Sun and Earth directions make it
+          const sp = sunPos ?? [0, 1, 0];
+          earthLight.position.set(sp[0], sp[1], sp[2]);
+        }
+        if (lander) lander.visible = live.current.lander;
       };
       const draw = () => {
         raf = 0;

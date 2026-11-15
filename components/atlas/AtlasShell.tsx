@@ -86,6 +86,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
   const [skyK, setSkyK] = useState(1);
   const [skyPaths, setSkyPaths] = useState({ sun_center: true, earth_center: true });
   const [skyYaw, setSkyYaw] = useState(0);
+  const [skyLander, setSkyLander] = useState(true);
   const skyHandle = useRef<Sky3DHandle | null>(null);
   const nextCustom = useRef(1);
 
@@ -423,6 +424,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
           look={skyLook}
           exaggeration={skyK}
           paths={skyPaths}
+          lander={skyLander}
           onReady={onSkyReady}
           onView={onSkyView}
         />
@@ -464,6 +466,8 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
                 onExaggeration={setSkyK}
                 paths={skyPaths}
                 onPaths={setSkyPaths}
+                lander={skyLander}
+                onLander={setSkyLander}
                 onFaceTarget={(t) => skyHandle.current?.faceTarget(t)}
                 onFace={(az) => skyHandle.current?.face(az)}
                 onReturn={() => setScale("moon")}

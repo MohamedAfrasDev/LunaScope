@@ -113,6 +113,19 @@ describe("SkyControls", () => {
     expect(screen.getByTestId("sky-heading")).toHaveTextContent("Facing south-east");
   });
 
+  it("shows the Lander toggle only when asked, and it reports its state", () => {
+    const props = base();
+    const onLander = vi.fn();
+    const { rerender } = render(<SkyControls {...props} />);
+    expect(screen.queryByRole("button", { name: "Lander" })).toBeNull();
+    rerender(<SkyControls {...props} lander onLander={onLander} />);
+    expect(screen.getByRole("button", { name: "Lander" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Lander" }));
+    expect(onLander).toHaveBeenCalledWith(false);
+    rerender(<SkyControls {...props} lander={false} onLander={onLander} />);
+    expect(screen.getByRole("button", { name: "Lander" })).toHaveAttribute("aria-pressed", "false");
+  });
+
   it("offers only the targets the site has", () => {
     render(<SkyControls {...base()} has={{ sun_center: true, earth_center: false }} />);
     expect(screen.queryByRole("button", { name: "Face the Earth" })).toBeNull();
@@ -156,6 +169,7 @@ describe("MissionWindowPanel", () => {
     expect(region).toHaveTextContent("Whole window: 50.00–52.00% (needs at least 60%)");
     expect(region).toHaveTextContent("Whole window: 100.00% (needs at least 60%)");
     expect(region).toHaveTextContent(/judged separately/);
+    expect(screen.getByTestId("sky-illustration-note")).toHaveTextContent(/ILLUSTRATION.*lander are drawn, not photographed.*Sun and Earth are enlarged/);
     expect(region).not.toHaveTextContent(/both visible/i); // no combined figure
   });
 });

@@ -27,6 +27,7 @@ export function SiteSky({
   look,
   exaggeration,
   paths,
+  lander = true,
   onReady,
   onView,
 }: {
@@ -38,6 +39,8 @@ export function SiteSky({
   look: SkyLook;
   exaggeration: number;
   paths: Partial<Record<Target, boolean>>;
+  /** The generic lander model (an illustration). */
+  lander?: boolean;
   onReady: (h: Sky3DHandle) => void;
   onView: (yaw: number, pitch: number) => void;
 }) {
@@ -71,6 +74,7 @@ export function SiteSky({
         mode={look}
         exaggeration={exaggeration}
         showPaths={paths}
+        showLander={lander}
         onReady={onReady}
         onView={onView}
       />

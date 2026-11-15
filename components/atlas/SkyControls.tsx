@@ -30,8 +30,13 @@ export function SkyControls({
   onReturn,
   yaw,
   has,
+  lander = true,
+  onLander,
   compact = false,
 }: {
+  /** The generic lander model is drawn (an illustration, not a real spacecraft). */
+  lander?: boolean;
+  onLander?: (on: boolean) => void;
   /** Phone width: Return to Moon and the heading stay; the rest folds behind Controls. */
   compact?: boolean;
   look: SkyLook;
@@ -78,6 +83,11 @@ export function SkyControls({
         ))}
       </div>
       <div role="group" aria-label="Paths" className="flex flex-wrap items-center gap-0.5 border-l border-[var(--panel-edge)] pl-2">
+        {onLander && (
+          <button type="button" className="atlas-key atlas-label" aria-pressed={lander} onClick={() => onLander(!lander)}>
+            Lander
+          </button>
+        )}
         {has.sun_center && (
           <button type="button" className="atlas-key atlas-label" aria-pressed={paths.sun_center} onClick={() => onPaths({ ...paths, sun_center: !paths.sun_center })}>
             Sun path
