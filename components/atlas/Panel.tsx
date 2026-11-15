@@ -71,7 +71,7 @@ export function Panel({
     head.addEventListener("pointercancel", up);
   }
 
-  function startResize(e: ReactPointerEvent<HTMLElement>) {
+  function startResize(e: ReactPointerEvent<HTMLElement>, axis: "both" | "x" | "y" = "both") {
     if (e.button !== 0 || !movable()) return;
     const el = root.current;
     if (!el) return;
@@ -83,8 +83,8 @@ export function Panel({
     grip.setPointerCapture?.(e.pointerId);
     const move = (ev: PointerEvent) =>
       setSize({
-        w: Math.round(Math.min(window.innerWidth - from.left - 8, Math.max(MIN_W, from.w + ev.clientX - from.px))),
-        h: Math.round(Math.min(window.innerHeight - from.top - 8, Math.max(MIN_H, from.h + ev.clientY - from.py))),
+        w: axis === "y" ? Math.round(from.w) : Math.round(Math.min(window.innerWidth - from.left - 8, Math.max(MIN_W, from.w + ev.clientX - from.px))),
+        h: axis === "x" ? Math.round(from.h) : Math.round(Math.min(window.innerHeight - from.top - 8, Math.max(MIN_H, from.h + ev.clientY - from.py))),
       });
     const up = () => {
       grip.removeEventListener("pointermove", move);
@@ -151,16 +151,21 @@ export function Panel({
         {children}
       </div>
       {open && (
-        <span
-          aria-hidden="true"
-          data-testid="panel-resize"
-          onPointerDown={startResize}
-          className="absolute bottom-0 right-0 z-10 hidden size-4 cursor-se-resize touch-none md:block"
-        >
-          <svg viewBox="0 0 16 16" className="size-4 text-[var(--ink-dim)]">
-            <path d="M14 5 5 14M14 9 9 14M14 13 13 14" stroke="currentColor" strokeWidth="1.2" fill="none" />
-          </svg>
-        </span>
+        <>
+          {/* the right edge (width), the bottom edge (height) and the corner (both): thin strips you can hit without aiming */}
+          <span aria-hidden="true" data-testid="panel-resize-x" onPointerDown={(e) => startResize(e, "x")} className="absolute inset-y-3 -right-1 z-10 hidden w-2 cursor-ew-resize touch-none md:block" />
+          <span aria-hidden="true" data-testid="panel-resize-y" onPointerDown={(e) => startResize(e, "y")} className="absolute inset-x-3 -bottom-1 z-10 hidden h-2 cursor-ns-resize touch-none md:block" />
+          <span
+            aria-hidden="true"
+            data-testid="panel-resize"
+            onPointerDown={(e) => startResize(e, "both")}
+            className="absolute -bottom-1 -right-1 z-20 hidden size-5 cursor-nwse-resize touch-none md:block"
+          >
+            <svg viewBox="0 0 16 16" className="size-5 text-[var(--ink-dim)]">
+              <path d="M14 5 5 14M14 9 9 14M14 13 13 14" stroke="currentColor" strokeWidth="1.2" fill="none" />
+            </svg>
+          </span>
+        </>
       )}
     </section>
   );

@@ -73,6 +73,23 @@ describe("Panel move and resize", () => {
     ptr("pointerup", grip, 9000, 9000);
   });
 
+  it("resizes in one direction from the right edge or the bottom edge", () => {
+    const { panel } = setup();
+    const right = screen.getByTestId("panel-resize-x");
+    ptr("pointerdown", right, 400, 300);
+    ptr("pointermove", right, 520, 900);
+    ptr("pointerup", right, 520, 900);
+    expect(panel.style.width).toBe("420px");
+    expect(panel.style.height).toBe("400px"); // height untouched
+    box(panel, { left: 100, top: 100, width: 420, height: 400 }); // where the browser now reports it
+    const bottom = screen.getByTestId("panel-resize-y");
+    ptr("pointerdown", bottom, 250, 500);
+    ptr("pointermove", bottom, 900, 560);
+    ptr("pointerup", bottom, 900, 560);
+    expect(panel.style.height).toBe("460px");
+    expect(panel.style.width).toBe("420px"); // width untouched
+  });
+
   it("stays where it is on a phone", () => {
     Object.defineProperty(window, "innerWidth", { value: 390, configurable: true });
     const { panel, handle, grip } = setup();
