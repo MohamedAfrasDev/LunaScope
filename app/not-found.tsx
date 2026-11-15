@@ -1,6 +1,7 @@
 import { Compass } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ShellFrame } from "@/components/shell/ShellFrame";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia } from "@/components/ui/empty";
 
@@ -8,6 +9,7 @@ export const metadata: Metadata = { title: "Page not found" };
 
 export default function NotFound() {
   return (
+    <ShellFrame>
     <Empty className="surface-card mx-auto max-w-xl">
       <EmptyHeader>
         <EmptyMedia variant="icon">
@@ -27,5 +29,6 @@ export default function NotFound() {
         </Button>
       </EmptyContent>
     </Empty>
+    </ShellFrame>
   );
 }

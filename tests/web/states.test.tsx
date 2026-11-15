@@ -1,8 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import ErrorPage from "@/app/error";
+import ErrorPage from "@/app/(shell)/error";
 import NotFound from "@/app/not-found";
 import { LoadingState } from "@/components/ui/loading-state";
+
+// the sidebar shell is its own concern (shell.test.tsx); here only the page content is under test
+vi.mock("@/components/shell/ShellFrame", () => ({ ShellFrame: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
 
 describe("LoadingState", () => {
   it("says what is loading as a status, and hides the decorative blocks", () => {

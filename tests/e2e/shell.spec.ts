@@ -29,7 +29,7 @@ test("desktop: side navigation, breadcrumbs, and a run you open is remembered", 
 
 test("phone: the navigation is a sheet that closes with Escape", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
-  await page.goto("/");
+  await page.goto("/analyze");
   await expect(page.getByRole("navigation", { name: "Main" })).toHaveCount(0); // closed, not in the page
   await page.getByRole("button", { name: "Toggle Sidebar" }).first().click();
   const dialog = page.getByRole("dialog");

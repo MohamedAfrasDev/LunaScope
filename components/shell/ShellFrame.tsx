@@ -1,6 +1,3 @@
-"use client";
-
-import { usePathname } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { DataStatusAlert } from "@/components/DataStatusBanner";
 import { AmbientToggle } from "@/components/AmbientToggle";
@@ -10,31 +7,12 @@ import { ShellBar } from "@/components/shell/ShellBar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 
-/** The Atlas owns the whole screen, so it gets no sidebar, header or footer. Every other route keeps the shell it has today. */
-export function isAtlasPath(pathname: string | null): boolean {
-  return pathname === "/atlas" || (pathname?.startsWith("/atlas/") ?? false);
-}
-
-export function AppFrame({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-
-  if (isAtlasPath(pathname)) {
-    return (
-      <>
-        <Suspense fallback={null}>
-          <CommandPalette />
-        </Suspense>
-        <div className="flex h-svh flex-col bg-black">
-          <DataStatusAlert />
-          <main id="main" className="relative min-h-0 flex-1">
-            {children}
-          </main>
-        </div>
-        <Toaster />
-      </>
-    );
-  }
-
+/**
+ * The shell the analysis pages sit in: sidebar, top bar, footer. It is a layout of the `(shell)` route group, so the
+ * choice between this and the full-screen frame (landing and Atlas, `(bare)`) is made by the folder, never by reading the
+ * URL at runtime.
+ */
+export function ShellFrame({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider>
       <AppSidebar />

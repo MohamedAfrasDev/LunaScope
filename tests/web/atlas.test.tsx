@@ -1,6 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { isAtlasPath } from "@/components/shell/AppFrame";
 import { Panel } from "@/components/atlas/Panel";
 import { TAGS, Tag, type TagKind } from "@/components/atlas/Tag";
 import { TopBar } from "@/components/atlas/TopBar";
@@ -15,17 +14,6 @@ beforeEach(() => {
   window.matchMedia =
     window.matchMedia ??
     ((q: string) => ({ matches: false, media: q, addEventListener: () => {}, removeEventListener: () => {} }) as unknown as MediaQueryList);
-});
-
-describe("isAtlasPath", () => {
-  it("is true for the Atlas and its sub-routes only", () => {
-    expect(isAtlasPath("/atlas")).toBe(true);
-    expect(isAtlasPath("/atlas/anything")).toBe(true);
-    expect(isAtlasPath("/")).toBe(false);
-    expect(isAtlasPath("/atlases")).toBe(false);
-    expect(isAtlasPath("/runs/abc")).toBe(false);
-    expect(isAtlasPath(null)).toBe(false);
-  });
 });
 
 describe("Tag", () => {

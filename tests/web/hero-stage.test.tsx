@@ -29,7 +29,7 @@ describe("HeroStage", () => {
 describe("hero image budget", () => {
   it("ships a small copy, and nothing imports the 22.7 MB original", () => {
     expect(statSync("app/images/hero-2400.jpg").size).toBeLessThan(600 * 1024);
-    for (const f of ["components/HeroStage.tsx", "app/page.tsx", "app/layout.tsx"]) {
+    for (const f of ["components/HeroStage.tsx", "app/(bare)/page.tsx", "app/layout.tsx"]) {
       expect(readFileSync(f, "utf-8")).not.toMatch(/hero-bg\.jpg/);
     }
   });

@@ -5,7 +5,7 @@ const drift = (page: Page) => page.locator(".backdrop-stars").evaluate((el) => g
 
 test("the backdrop drifts by default, stops when paused, and is inert", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark", reducedMotion: "no-preference" });
-  await page.goto("/");
+  await page.goto("/analyze");
   expect(await drift(page)).toBe("star-drift");
   await expect(page.locator(".backdrop")).toHaveAttribute("aria-hidden", "true");
   expect(await page.locator(".backdrop").evaluate((el) => getComputedStyle(el).pointerEvents)).toBe("none");
@@ -20,6 +20,6 @@ test("the backdrop drifts by default, stops when paused, and is inert", async ({
 
 test("reduced motion: no drift at all", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
-  await page.goto("/");
+  await page.goto("/analyze");
   expect(await drift(page)).toBe("none");
 });

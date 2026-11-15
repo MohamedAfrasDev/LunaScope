@@ -1,35 +1,39 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-/** Galaxy G8: the hero picture is optimised, labelled, behind the text, and Home stays accessible in both themes. */
-for (const scheme of ["dark", "light"] as const) {
-  test(`home with the hero image passes axe in the ${scheme} theme`, async ({ page }) => {
-    await page.emulateMedia({ colorScheme: scheme, reducedMotion: "no-preference" });
-    await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    await expect(page.getByText(/Background: illustration only/)).toBeVisible();
-    const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
-    expect(axe.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
-  });
-}
+/** Redesign phase B: the landing is the Moon, a wordmark and one button. It is accessible, it enters the Atlas, and it never pushes the page sideways. */
+test("the landing passes axe", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1, name: "LunaScope" })).toBeVisible();
+  await expect(page.getByText(/Lighting is illustrative/)).toBeVisible();
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+  expect(axe.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
+});
 
-test("the picture is served small and modern, and does not push the page sideways", async ({ page }) => {
-  const sizes: { url: string; bytes: number; type: string }[] = [];
-  page.on("response", async (r) => {
-    if (r.url().includes("/_next/image")) {
-      const b = await r.body().catch(() => Buffer.alloc(0));
-      sizes.push({ url: r.url(), bytes: b.length, type: r.headers()["content-type"] ?? "" });
-    }
-  });
+test("Enter opens the Atlas", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Enter" }).click();
+  await page.waitForURL(/\/atlas$/);
+  await expect(page.getByTestId("atlas")).toBeVisible();
+});
+
+test("the Moon is drawn (or a still picture stands in), and the page does not scroll sideways", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/", { waitUntil: "networkidle" });
-  expect(sizes.length).toBeGreaterThan(0);
-  for (const s of sizes) {
-    expect(s.bytes, s.url).toBeLessThan(450 * 1024); // never the 22.7 MB original
-    expect(s.type).toMatch(/avif|webp|jpeg/);
-  }
+  await page.goto("/");
+  const moon = page.getByTestId("landing-moon");
+  await expect(moon).toBeVisible();
+  await expect(moon.locator("canvas, [role=img]").first()).toBeAttached({ timeout: 15_000 });
   for (const w of [320, 768, 1440]) {
     await page.setViewportSize({ width: w, height: 800 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(w);
   }
+});
+
+test("reduced motion: the Moon is drawn once and does not turn", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await expect(page.getByTestId("landing-moon").locator("canvas, [role=img]").first()).toBeAttached({ timeout: 15_000 });
+  const long = await page.evaluate(() => document.getAnimations().filter((a) => a.effect?.getTiming().iterations === Infinity).length);
+  expect(long).toBe(0);
 });

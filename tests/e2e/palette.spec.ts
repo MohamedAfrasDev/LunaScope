@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 /** Galaxy G5: the command palette is a keyboard shortcut layer, never the only way, and it is accessible. */
 test("Ctrl+K opens a named dialog, filters, navigates, and Escape returns focus", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/analyze");
   await expect(page.getByRole("button", { name: /Search/ })).toBeVisible();
 
   await page.keyboard.press("Control+k");
@@ -30,7 +30,7 @@ test("Ctrl+K opens a named dialog, filters, navigates, and Escape returns focus"
 
 test("the Search button opens it, and an action works from the keyboard", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/analyze");
   await page.getByRole("button", { name: /Search/ }).click();
   await page.keyboard.type("technical");
   await page.keyboard.press("Enter");
@@ -39,7 +39,7 @@ test("the Search button opens it, and an action works from the keyboard", async 
 
 test("it fits a phone", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 640 });
-  await page.goto("/");
+  await page.goto("/analyze");
   await page.getByRole("button", { name: /Search/ }).click();
   const box = await page.getByRole("dialog").boundingBox();
   expect(box && box.x >= 0 && box.x + box.width <= 320).toBe(true);

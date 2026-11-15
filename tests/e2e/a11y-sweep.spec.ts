@@ -145,8 +145,9 @@ test("screen reader semantics: names, descriptions and one h1 with no skipped he
   await ready(page, id);
 
   // the status pill reads as its state and says it opens details; the hero drawing has a name and a description
-  await page.goto("/");
+  await page.goto("/analyze");
   await expect(page.locator("header summary").first()).toHaveAccessibleName(/(Synthetic demonstration data|Real data, unverified).*show details/);
+  await page.goto("/");
   const hero = page.getByRole("img", { name: /Sketch: a ridge hides the Sun/ });
   await expect(hero).toHaveAccessibleDescription(/not to scale, and not taken from any data/);
 

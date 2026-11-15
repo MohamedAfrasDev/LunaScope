@@ -20,7 +20,7 @@ test("a run id that does not exist says so, with a way forward", async ({ page }
 
 test("a palette action confirms with a short toast", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
-  await page.goto("/");
+  await page.goto("/analyze");
   await page.getByRole("button", { name: /Search/ }).click();
   await page.keyboard.type("technical");
   await page.keyboard.press("Enter");
@@ -32,7 +32,7 @@ test("loading blocks pulse slowly, and stop under reduced motion", async ({ page
   // use the real stylesheet: load a page, then add a skeleton to it
   for (const [motion, expected] of [["no-preference", "soft-pulse"], ["reduce", "none"]] as const) {
     await page.emulateMedia({ reducedMotion: motion });
-    await page.goto("/");
+    await page.goto("/analyze");
     const name = await page.evaluate(() => {
       const d = document.createElement("div");
       d.setAttribute("data-slot", "skeleton");

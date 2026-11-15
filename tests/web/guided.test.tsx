@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import WhySouthPoleIsHard from "@/app/why-the-south-pole-is-hard/page";
+import WhySouthPoleIsHard from "@/app/(shell)/why-the-south-pole-is-hard/page";
 import { TimelineView } from "@/components/TimelineView";
 import { ViewModeToggle, setViewMode } from "@/components/ViewMode";
 import { KNOWN_CODES, plainFact, type Fact } from "@/lib/guided";

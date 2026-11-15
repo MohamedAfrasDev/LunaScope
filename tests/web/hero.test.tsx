@@ -33,7 +33,7 @@ describe("HeroSkyline", () => {
 
 describe("Explainer schematic shares the hero drawing", () => {
   it("draws the same picture without Earth, keeps its own pinned text, and never matches the hero's text", async () => {
-    const { default: Why } = await import("@/app/why-the-south-pole-is-hard/page");
+    const { default: Why } = await import("@/app/(shell)/why-the-south-pole-is-hard/page");
     const { container } = render(<Why />);
     const svg = container.querySelector("svg")!;
     expect(svg).toHaveAttribute("role", "img");

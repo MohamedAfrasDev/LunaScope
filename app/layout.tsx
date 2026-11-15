@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { DataStatusProvider } from "@/components/DataStatusBanner";
-import { AppFrame } from "@/components/shell/AppFrame";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
@@ -36,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </div>
         <DataStatusProvider>
           <TooltipProvider>
-            <AppFrame>{children}</AppFrame>
+            {children}
           </TooltipProvider>
         </DataStatusProvider>
       </body>
