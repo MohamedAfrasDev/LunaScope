@@ -1,6 +1,6 @@
 "use client";
 
-import { History, House, Mountain, Plus, Trash2 } from "lucide-react";
+import { Globe, History, House, Mountain, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
@@ -28,6 +28,7 @@ type Item = { href: string; label: string; icon: typeof House; exact?: boolean }
 const MISSION: Item[] = [
   { href: "/", label: "Home", icon: House, exact: true },
   { href: "/analyze", label: "New analysis", icon: Plus },
+  { href: "/explore", label: "Explore the Moon", icon: Globe },
 ];
 const LEARN: Item[] = [{ href: "/why-the-south-pole-is-hard", label: "Why the south pole is hard", icon: Mountain }];
 

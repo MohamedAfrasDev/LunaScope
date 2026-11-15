@@ -14,9 +14,13 @@
     "verify": "npm run check:api && npm run typecheck && npm run lint && npm test",
     "test:e2e": "playwright test",
     "test:e2e:fallback": "playwright test -c playwright.fallback.config.ts",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "predev": "node scripts/copy-cesium.mjs",
+    "prebuild": "node scripts/copy-cesium.mjs",
+    "pretest:e2e": "node scripts/copy-cesium.mjs"
   },
   "dependencies": {
+    "cesium": "1.147.0",
     "class-variance-authority": "^0.7.1",
     "cmdk": "^1.1.1",
     "cn": "^0.5.2",

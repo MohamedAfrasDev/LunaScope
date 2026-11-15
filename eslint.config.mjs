@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "science/**",
     "data/**",
+    // third-party runtime files copied by scripts/copy-cesium.mjs
+    "public/cesium/**",
   ]),
 ]);
 
