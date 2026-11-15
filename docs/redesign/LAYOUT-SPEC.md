@@ -479,3 +479,10 @@ pages) and every component only they used were deleted. `/` is still the Moon la
 redirects the old addresses: `/runs/:id/...` to `/atlas?run=:id`, and `/analyze`, `/explore` and `/why-the-south-pole-is-hard` to
 `/atlas`. The explainer and key terms now live in the Learn panel. The Atlas keeps the evidence, dates, compare and analyse tools as
 panels. The classic pages remain on `main`.
+
+## Movable panels and a slimmer dock
+
+`components/atlas/Panel.tsx`: on screens 768 px and wider every panel drags by its title bar (a strip stays on screen), resizes from a corner grip
+(minimum 240 by 120, never past the screen), double-click puts it back, and the last one touched is raised. Position and size are not remembered.
+The time dock lost its spare rows: smaller play button and padding, the status line only takes space when it has something to say, and the
+go-to-time row is folded by default (**Go to time** / **Hide go to**), so the globe gets the height.

@@ -60,6 +60,7 @@ test("the Earth turns as the clock runs: the side that faces the Moon changes", 
   const lon0 = await lon();
   // six hours later, the Earth has turned a quarter of a turn (about 87 degrees west)
   const dock = page.getByTestId("time-dock");
+  await dock.getByRole("button", { name: "Go to time" }).click();
   await dock.getByLabel("Go to (UTC)").evaluate((el: HTMLInputElement) => el.value);
   const start = await dock.getByLabel("Go to (UTC)").inputValue();
   const later = new Date(Date.parse(start + ":00Z") + 6 * 3600_000).toISOString().slice(0, 16);

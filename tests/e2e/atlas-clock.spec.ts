@@ -31,7 +31,8 @@ test("the reference run loads and the dock shows its window, the run and the dat
   await expect(elapsed(page)).toHaveText("T+ 0 D 0 H");
   const slider = dock.getByRole("slider", { name: "Time (UTC)" });
   expect(Number(await slider.getAttribute("max"))).toBeGreaterThan(3600);
-  await expect(dock.getByText(/→/)).toBeVisible(); // the window, start to end
+  await dock.getByRole("button", { name: "Go to time" }).click(); // the window, start to end, sits in the folded go-to row
+  await expect(dock.getByText(/→/)).toBeVisible();
 });
 
 test("play moves the cursor, pause stops it, and the controls report their state", async ({ page }) => {
@@ -108,6 +109,7 @@ test("go to a UTC time inside the window moves the cursor; outside it, the dock 
   test.setTimeout(300_000);
   await open(page);
   const dock = page.getByTestId("time-dock");
+  await dock.getByRole("button", { name: "Go to time" }).click(); // the row is folded away by default
   const field = dock.getByLabel("Go to (UTC)");
   const start = await field.inputValue(); // the cursor is at the start, so this is the window start
   const total = Number(await dock.getByRole("slider", { name: "Time (UTC)" }).getAttribute("max"));
@@ -115,10 +117,10 @@ test("go to a UTC time inside the window moves the cursor; outside it, the dock 
   const want = `T+ ${Math.floor(off / 86400)} D ${Math.floor((off % 86400) / 3600)} H`;
   const next = new Date(Date.parse(start + ":00Z") + off * 1000).toISOString().slice(0, 16);
   await field.fill(next);
-  await dock.getByRole("button", { name: "Go" }).click();
+  await dock.getByRole("button", { name: "Go", exact: true }).click();
   await expect(elapsed(page)).toHaveText(want);
   await field.fill("2035-01-01T00:00");
-  await dock.getByRole("button", { name: "Go" }).click();
+  await dock.getByRole("button", { name: "Go", exact: true }).click();
   await expect(dock.getByText(/outside the run window/)).toBeVisible();
   await expect(elapsed(page)).toHaveText(want); // unchanged
 });
