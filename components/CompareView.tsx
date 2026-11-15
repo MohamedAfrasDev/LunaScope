@@ -14,6 +14,7 @@ import { Alert } from "./ui/alert";
 import { Card } from "./ui/card";
 import { WarningItem } from "./ui/warning-item";
 import { LoadingState } from "@/components/ui/loading-state";
+import { ScrollRegion } from "@/components/ui/scroll-region";
 
 const TARGETS: Target[] = ["sun_center", "earth_center"];
 
@@ -171,7 +172,7 @@ export function CompareView({ runId }: { runId: string }) {
                     <strong>{(block.spread.availability_lower_min * 100).toFixed(1)}%</strong> to{" "}
                     <strong>{(block.spread.availability_lower_max * 100).toFixed(1)}%</strong> (lower bounds).
                   </p>
-                  <div className="mt-2 overflow-x-auto">
+                  <ScrollRegion label="Comparison table" className="mt-2">
                     <table className="w-full min-w-[44rem] border-collapse text-left text-sm">
                       <caption className="sr-only">{targetLabel(t)} compared across sites</caption>
                       <thead>
@@ -201,7 +202,7 @@ export function CompareView({ runId }: { runId: string }) {
                         ))}
                       </tbody>
                     </table>
-                  </div>
+                  </ScrollRegion>
 
                   <div className="mt-4">
                     <TimelineChart bands={bands[t]} title={`${targetLabel(t)} visibility timelines, one row per site, same time axis`} />

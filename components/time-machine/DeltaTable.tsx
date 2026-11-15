@@ -4,6 +4,7 @@ import { OUTCOME } from "@/lib/status";
 import { StatusChip } from "../StatusChip";
 import { Disclosure } from "../ui/disclosure";
 import { pp } from "./format";
+import { ScrollRegion } from "@/components/ui/scroll-region";
 
 const TARGETS: Target[] = ["sun_center", "earth_center"];
 
@@ -11,7 +12,7 @@ const TARGETS: Target[] = ["sun_center", "earth_center"];
 export function DeltaTable({ cmp }: { cmp: RunComparisonResponse }) {
   return (
     <Disclosure summary="Deltas from the baseline (terrain-aware): the full table">
-      <div className="overflow-x-auto">
+      <ScrollRegion label="Deltas table">
         <table className="w-full min-w-[52rem] border-collapse text-left text-sm">
           <caption className="sr-only">Baseline and shifted results for each site and target</caption>
           <thead>
@@ -64,7 +65,7 @@ export function DeltaTable({ cmp }: { cmp: RunComparisonResponse }) {
             )}
           </tbody>
         </table>
-      </div>
+      </ScrollRegion>
       <p className="mt-2 text-xs text-muted-foreground">
         No date is ranked or scored; each requirement is judged on its own. The flat horizon is not shown here: the
         terrain-aware result decides.

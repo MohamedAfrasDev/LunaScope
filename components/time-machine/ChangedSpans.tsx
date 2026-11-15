@@ -3,6 +3,7 @@ import { duration, siteLabel, targetLabel } from "@/lib/format";
 import { INTERVAL } from "@/lib/status";
 import { at } from "./format";
 import { Disclosure } from "../ui/disclosure";
+import { ScrollRegion } from "@/components/ui/scroll-region";
 
 const TARGETS: Target[] = ["sun_center", "earth_center"];
 
@@ -29,7 +30,7 @@ export function ChangedSpans({ cmp, siteId }: { cmp: RunComparisonResponse; site
             }
           >
             {spans.length > 0 && (
-              <div className="overflow-x-auto">
+              <ScrollRegion label="Changed spans table">
                 <table className="w-full min-w-[48rem] text-left text-sm">
                   <thead>
                     <tr className="border-b border-border">
@@ -52,7 +53,7 @@ export function ChangedSpans({ cmp, siteId }: { cmp: RunComparisonResponse; site
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </ScrollRegion>
             )}
           </Disclosure>
         );

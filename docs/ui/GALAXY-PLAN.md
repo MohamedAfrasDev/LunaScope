@@ -1,6 +1,6 @@
 # LunaScope "Calm Galaxy" redesign: shadcn components and a complete product experience
 
-Status: **plan, revised to a calm, aesthetic direction. G0 (baseline), G1 (shadcn foundation and calm tokens) and G2 (shadcn components) and G3 (calm visual system) and G4 (app shell) and G5 (command palette) and G6 (polished states) and G7 (onboarding) and G8 (calm hero) and G9 (route re-skin) are done**; see Appendices A to J. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
+Status: **plan, revised to a calm, aesthetic direction. G0 (baseline), G1 (shadcn foundation and calm tokens) and G2 (shadcn components) and G3 (calm visual system) and G4 (app shell) and G5 (command palette) and G6 (polished states) and G7 (onboarding) and G8 (calm hero) and G9 (route re-skin) and G10 (verification and docs) are done, which completes the plan**; see Appendices A to K and the current record in [UI-GALAXY.md](UI-GALAXY.md). No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
 
 ## 1. The ask, and the decisions already made
 
@@ -142,7 +142,7 @@ Small, individually mergeable; each ends with unit tests, e2e, axe in both theme
 | G7 | **Done.**  Onboarding: tour, tooltips, glossary | F |
 | G8 | **Done.** Calm hero: the supplied image (optimised, with a scrim), plus an optional gentle 3D layer, fallbacks and a performance guard | G |
 | G9 | **Done.** Re-skin each route on the new system (Home, Run, Timeline, Sky, Compare, Time Machine, Evidence, Analyze, Explainer, notable sites) | H |
-| G10 | Verification and docs: sweep, perf budget, update `UI-REDESIGN.md` and the user guide, after screenshots | H |
+| G10 | **Done.** Verification and docs: sweep, perf budget, update `UI-REDESIGN.md` and the user guide, after screenshots | H |
 
 Suggested first release: A, B, C (the look), then D to F (the product feel), then G (the hero), then H.
 
@@ -581,3 +581,69 @@ Every route was captured in dark and light at 1440 px on a real finished synthet
 | `next build` | passes |
 | Playwright e2e | 30 pass (the 3D view's draw, time-follow, axe, keyboard and phone-fit tests all unchanged and green); fallback e2e 1 passes |
 | Visual | 18 route captures plus the 3D view in both themes reviewed; the 3D scene follows each theme |
+
+## Appendix K. G10: verification and docs
+
+### K.1 The sweep, and what it found
+
+A new Playwright spec (`tests/e2e/theme-sweep.spec.ts`) runs axe (WCAG 2.0 and 2.1, A and AA) in **four configurations** (dark and light, desktop 1440 px and phone 375 px) over: Home, New analysis, the explainer, a real 404, a finished run, its timeline, compare, Time Machine and evidence pages, the sky in its polar, unrolled and 3D views, and the overlays (an open term popover, the tour, the command palette).
+
+| Finding | Fix |
+|---|---|
+| **Wide tables could not be scrolled by keyboard on a phone** (`scrollable-region-focusable`, serious, on Compare and Evidence; the same wrapper pattern was used in nine places) | `components/ui/scroll-region.tsx`: a sideways-scrolling box that, **only when it actually overflows**, becomes a named region with a tab stop, so the arrow keys scroll it; when it fits it adds no tab stop and no landmark. All nine table wrappers use it |
+| Nothing else: no colour-contrast, name, role, landmark or heading violation in either theme, at either width, on any route or overlay | none needed |
+
+### K.2 Performance budget
+
+Measured on the production build with the synthetic stack, headless Chromium, no throttling, one run per page (single observations on a fast machine, not a lab study; real devices and networks are **not measured**). JavaScript is the transferred size of the page's script files.
+
+| Page | JS | Images | LCP | Layout shift (CLS), desktop | CLS, phone |
+|---|---|---|---|---|---|
+| Home | 227 KB | 37 KB (12 KB on a phone) | 0.2 s | 0.021 | 0.010 |
+| New analysis | 227 KB | 0 | 0.2 s | 0.000 | 0.000 |
+| Run | 244 KB | 0 | 0.5 s | 0.004 | 0.007 |
+| Timeline | 251 KB | 0 | 0.3 s | 0.086 | 0.070 |
+| Compare | 249 KB | 0 | 0.2 s | 0.004 | 0.000 |
+| Evidence | 244 KB | 0 | 0.3 s | 0.006 | 0.006 |
+| Sky, 3D view open | 442 KB (three.js loads only when this view is chosen) | 0 | 0.2 s | 0.043 | n/a |
+
+`tests/e2e/perf-budget.spec.ts` fails if a page's JavaScript is more than about 30 % over these values (300 KB for Home and New analysis, 330 KB for the run pages), if the Home images exceed 120 KB, or if layout shift while loading exceeds 0.1, on desktop and on a phone.
+
+**Layout shift was a real problem and is fixed.** The first measurement showed Timeline at 0.57 and every run page at about 0.17 on a phone ("good" is under 0.1). Two causes: (1) the **footer** sat inside the first screen while a page was loading and was pushed out of view when the content arrived (0.04 to 0.12 on every page); the content area now has a minimum height of one screen, so the footer starts below the fold; (2) on a phone, the run's **tab bar jumped sideways** when Timeline, Sky and Compare appeared after the run loaded; they now hold their place (invisible, the same words) while the run loads.
+
+Timeline at 0.086 on desktop is close to the 0.1 line; it is the chart and its cards arriving. Not tuned further.
+
+### K.3 Plan checklist (section 2 of this plan), after G10
+
+| Principle | State |
+|---|---|
+| Quiet before striking; one focal point | Met on every captured route |
+| Soft, low-saturation colour | Met; tokens in both themes |
+| Depth through light, not effects | Soft shadows and hairlines; no glow on text |
+| Generous space and rhythm | Met (body 1.6 line height, content padding) |
+| Near-still motion, with a Pause control | Met: 4-minute drift, Pause in the footer and in Search, none under reduced motion |
+| Legibility is the aesthetic | Met: contrast guarded by `tokens.test.ts`, the hero scrim computed on the real pixels, axe clean |
+| Calm language | Met in empty, loading, error and tour copy |
+| Trust model intact | Status pill always in view; result-state frames unchanged; unknown never "not visible"; the hero labelled as illustration |
+
+### K.4 Docs
+
+- **New:** [UI-GALAXY.md](UI-GALAXY.md), the short current design record (look, product experience, guards, open items).
+- **Marked superseded in part:** [UI-REDESIGN.md](UI-REDESIGN.md) (its colours, "no gradients" rule, header navigation and old primitives).
+- **User guide** (`docs/USER-GUIDE.md`): the side navigation and recent runs, the top bar, Search, the background motion and Pause, the 404 and error screens, the hero label, key terms and the page tour, and keyboard scrolling of wide tables.
+- **Not done:** fresh "after" screenshots in `docs/ui/screenshots/` (the review images for this plan were looked at but not committed, to keep the repository small).
+
+### K.5 Verification (production build)
+
+| Check | Result |
+|---|---|
+| `vitest` | 34 files, 306 tests pass (new: `scroll-region.test.tsx`) |
+| `tsc`, `eslint` | clean |
+| `next build` | passes |
+| Playwright e2e | 36 pass (new: the four-configuration axe sweep and the two-configuration performance budget); fallback e2e 1 passes |
+
+### K.6 Open items (yours)
+
+1. The hero picture's **source and licence** are not recorded; confirm them or remove the picture (`LICENCES-AND-CITATIONS.md` states this plainly).
+2. Keep or drop the 22.7 MB `app/images/hero-bg.jpg` (Git LFS, or delete it, since a 270 KB copy ships).
+3. A galaxy 3D hero layer was deliberately not built; say so if you want it as its own phase.

@@ -3,6 +3,7 @@ import type { EventRow, HorizonKind, IntervalClass, IntervalRow, Target } from "
 import { duration, targetLabel, utc } from "@/lib/format";
 import { INTERVAL } from "@/lib/status";
 import { Disclosure } from "./ui/disclosure";
+import { ScrollRegion } from "@/components/ui/scroll-region";
 
 export interface Band {
   target: Target;
@@ -150,7 +151,7 @@ export function IntervalTable({ band }: { band: Band }) {
         </>
       }
     >
-      <div className="overflow-x-auto">
+      <ScrollRegion label="Interval table">
         <table className="w-full min-w-[34rem] text-left text-sm">
           <thead>
             <tr className="border-b border-border">
@@ -171,7 +172,7 @@ export function IntervalTable({ band }: { band: Band }) {
             ))}
           </tbody>
         </table>
-      </div>
+      </ScrollRegion>
     </Disclosure>
   );
 }
