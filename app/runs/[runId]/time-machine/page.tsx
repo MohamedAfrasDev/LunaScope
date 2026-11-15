@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { TimeMachineView } from "@/components/TimeMachineView";
+import { LoadingState } from "@/components/ui/loading-state";
 
 export const metadata: Metadata = { title: "Mission Time Machine" };
 
@@ -15,7 +16,7 @@ async function Body({ params }: { params: PageProps<"/runs/[runId]/time-machine"
 
 export default function TimeMachinePage(props: PageProps<"/runs/[runId]/time-machine">) {
   return (
-    <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
+    <Suspense fallback={<LoadingState label="Loading…" kind="page" />}>
       <Body params={props.params} />
     </Suspense>
   );

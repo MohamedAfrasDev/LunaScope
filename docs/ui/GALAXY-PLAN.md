@@ -1,6 +1,6 @@
 # LunaScope "Calm Galaxy" redesign: shadcn components and a complete product experience
 
-Status: **plan, revised to a calm, aesthetic direction. G0 (baseline), G1 (shadcn foundation and calm tokens) and G2 (shadcn components) and G3 (calm visual system) and G4 (app shell) and G5 (command palette) are done**; see Appendices A to F. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
+Status: **plan, revised to a calm, aesthetic direction. G0 (baseline), G1 (shadcn foundation and calm tokens) and G2 (shadcn components) and G3 (calm visual system) and G4 (app shell) and G5 (command palette) and G6 (polished states) are done**; see Appendices A to G. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
 
 ## 1. The ask, and the decisions already made
 
@@ -138,7 +138,7 @@ Small, individually mergeable; each ends with unit tests, e2e, axe in both theme
 | G3 | **Done.** Calm visual system: twilight backdrop (gradient, nebula washes, still stars), soft elevation, hairline borders, spacing and type rhythm, optional slow drift with Pause, reduced-motion/transparency/contrast fallbacks | C |
 | G4 | **Done.** App shell: Sidebar, Sheet on mobile, breadcrumbs, recent runs, ToggleGroup for the view mode, status pill relocated | D |
 | G5 | **Done.** Command palette: Command dialog, entries, shortcuts, tests | D |
-| G6 | Polished states: skeletons, Sonner toasts, Empty/error/not-found, a short page fade | E |
+| G6 | **Done.** Polished states: skeletons, Sonner toasts, Empty/error/not-found, a short page fade | E |
 | G7 | Onboarding: tour, tooltips, glossary | F |
 | G8 | Calm hero: the supplied image (optimised, with a scrim), plus an optional gentle 3D layer, fallbacks and a performance guard | G |
 | G9 | Re-skin each route on the new system (Home, Run, Timeline, Sky, Compare, Time Machine, Evidence, Analyze, Explainer, notable sites) | H |
@@ -460,3 +460,35 @@ shadcn `Command` (cmdk) in a `Dialog`: `components/shell/CommandPalette.tsx`. A 
 | `next build` | passes |
 | Playwright e2e | 21 pass (new: `palette.spec.ts`: Ctrl+K opens a named dialog with the search box focused, axe clean on the dialog, filter and Enter navigate, `/` and Escape, Search button plus an action, phone fit); fallback e2e 1 passes |
 | Visual | Opened in the browser pane: frosted dialog, search box focused |
+
+## Appendix G. G6: polished states
+
+### G.1 What changed
+
+| Part | Behaviour |
+|---|---|
+| **Loading** (`components/ui/loading-state.tsx`) | One `LoadingState` replaces every "Loading…" line (the six run pages' Suspense fallbacks, the run, timeline, evidence, comparison, Time Machine baseline, shifted run, local sky and site catalog). The words say what is loading and are announced as a status; soft `Skeleton` blocks (decorative, `aria-hidden`) show the shape of the coming page. Wording is unchanged, so existing tests still find it. Small inline notes (the status pill, the reference definition, the 3D view overlay) stay as text |
+| **Skeleton motion** | A slow breathing pulse (2.6 s, down to 55 % opacity) instead of shadcn's faster `animate-pulse`; defined only under `prefers-reduced-motion: no-preference`, so it is still under reduced motion |
+| **Not found** (`app/not-found.tsx`) | Served with a real 404, inside the shell, one `h1` ("This page is not here"), plain wording, two ways out (Home, New analysis). Built on shadcn `Empty` |
+| **Error** (`app/error.tsx`) | A last-resort screen for an unexpected failure: says what happened and that nothing was changed, shows **no** technical detail, offers Try again and Home. The service being unreachable is not this: it stays the inline banner and alerts |
+| **Run not found** | The same calm `Empty` card with the same words and link as before ("Run not found", "Start a new analysis") |
+| **Toasts** (shadcn `Sonner`, mounted once in the layout) | Short confirmations only, bottom centre, 3.5 s: "Link copied" (or a plain error if the browser refuses), "Technical view on" / "Guided view on", "Recent runs cleared". **Critical states stay inline alerts**, never toasts |
+| **Page settle** (`app/template.tsx`, `.page-in`) | A new page rises 6 px over 0.2 s. None under reduced motion |
+
+### G.2 Decisions and findings
+
+- **A fade would have broken axe.** The plan said "a short fade between pages". An opacity animation made axe measure text mid-fade and report `color-contrast` on three pages (the checks run right after navigation). The settle is a transform instead, so text is never less than its full contrast, and the colour tests are unaffected.
+- **A toast steals the keyboard.** The first version also toasted "Analysis started" after starting a run. The toast list is focusable and Sonner returns focus to the last element, so Tab alternated between the footer's Pause button and the toast and the keyboard flow could never reach the page (the core-flow e2e caught it). Those toasts are removed (the run page already shows "Queued", "Running"), and the palette toasts were checked for the same loop: after the dialog closes, Tab walks the page in order from the top.
+- **`next-themes` removed.** The generated Sonner imports it for a theme switch the app does not have (it follows the system, like the rest); the dependency was uninstalled and the toaster uses `theme="system"`.
+- **Empty headings.** shadcn's `EmptyTitle` is a `div`; the screens use a real `h1` so each page still has exactly one.
+- **Not done:** `Spinner` was added but is not used (the skeletons and status text cover every wait); there is no `global-error.tsx` (it replaces the whole document and the root layout's shell rarely fails); skeletons for the 3D sky canvas keep their text-only overlay.
+
+### G.3 Verification (production build)
+
+| Check | Result |
+|---|---|
+| `vitest` | 30 files, 292 tests pass (new: `states.test.tsx`: loading status, not-found, error without detail and with retry) |
+| `tsc`, `eslint` | clean |
+| `next build` | passes (`/_not-found` prerendered) |
+| Playwright e2e | 25 pass (new: `states.spec.ts`: real 404 inside the shell and axe clean, missing run, a palette toast, skeleton motion with and without reduced motion); fallback e2e 1 passes |
+| Visual | The 404 page reviewed in the browser |

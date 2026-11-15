@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { TimelineView } from "@/components/TimelineView";
+import { LoadingState } from "@/components/ui/loading-state";
 
 export const metadata: Metadata = { title: "Timeline" };
 
@@ -17,7 +18,7 @@ async function Body({ params }: { params: PageProps<"/runs/[runId]/timeline/[sit
 
 export default function TimelinePage(props: PageProps<"/runs/[runId]/timeline/[siteId]">) {
   return (
-    <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
+    <Suspense fallback={<LoadingState label="Loading…" kind="page" />}>
       <Body params={props.params} />
     </Suspense>
   );

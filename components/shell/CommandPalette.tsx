@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/command";
 import { shortId, siteLabel } from "@/lib/format";
 import { clearRecentRuns, useRecentRuns } from "@/lib/recent-runs";
+import { toast } from "sonner";
 
 const OPEN_EVENT = "lunascope:palette";
 
@@ -121,8 +122,8 @@ export function CommandPalette() {
 
   const actions: Entry[] = [
     mode === "guided"
-      ? { id: "a-tech", label: "Switch to the Technical view", icon: Eye, run: () => setViewMode("technical"), keywords: "guided technical explanation" }
-      : { id: "a-guided", label: "Switch to the Guided view", icon: Eye, run: () => setViewMode("guided"), keywords: "guided technical explanation" },
+      ? { id: "a-tech", label: "Switch to the Technical view", icon: Eye, run: () => { setViewMode("technical"); toast("Technical view on"); }, keywords: "guided technical explanation" }
+      : { id: "a-guided", label: "Switch to the Guided view", icon: Eye, run: () => { setViewMode("guided"); toast("Guided view on"); }, keywords: "guided technical explanation" },
     {
       id: "a-motion",
       label: paused ? "Resume background motion" : "Pause background motion",
@@ -135,11 +136,13 @@ export function CommandPalette() {
       label: "Copy link to this page",
       icon: Copy,
       run: () => {
-        void navigator.clipboard?.writeText(window.location.href).catch(() => {});
+        const copy = navigator.clipboard?.writeText(window.location.href);
+        if (!copy) return void toast.error("This browser would not copy the link. Copy it from the address bar.");
+        copy.then(() => toast.success("Link copied"), () => toast.error("The link could not be copied. Copy it from the address bar."));
       },
     },
   ];
-  if (runs.length > 0) actions.push({ id: "a-clear", label: "Clear recent runs", icon: Trash2, run: clearRecentRuns });
+  if (runs.length > 0) actions.push({ id: "a-clear", label: "Clear recent runs", icon: Trash2, run: () => { clearRecentRuns(); toast("Recent runs cleared"); } });
 
   const choose = (e: Entry) => {
     setOpen(false);

@@ -13,6 +13,7 @@ import { IntervalTable, Legend, TimelineChart, type Band } from "./TimelineChart
 import { Alert } from "./ui/alert";
 import { Card } from "./ui/card";
 import { WarningItem } from "./ui/warning-item";
+import { LoadingState } from "@/components/ui/loading-state";
 
 const TARGETS: Target[] = ["sun_center", "earth_center"];
 
@@ -83,7 +84,7 @@ export function CompareView({ runId }: { runId: string }) {
         <Alert variant="destructive">{err}</Alert>
       </div>
     );
-  if (!results || !allSites || !selected) return <p className="text-muted-foreground">Loading the comparison…</p>;
+  if (!results || !allSites || !selected) return <LoadingState label="Loading the comparison…" kind="page" />;
 
   const toggle = (id: string, on: boolean) => setSelected(on ? allSites.filter((s) => s === id || selected.includes(s)) : selected.filter((s) => s !== id));
 

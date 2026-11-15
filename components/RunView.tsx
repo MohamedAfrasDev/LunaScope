@@ -14,6 +14,9 @@ import { ExcludedSites, StatusMatrix } from "./StatusMatrix";
 import { Disclosure } from "./ui/disclosure";
 import { WarningItem } from "./ui/warning-item";
 import { Progress } from "./ui/progress";
+import { LoadingState } from "@/components/ui/loading-state";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia } from "@/components/ui/empty";
+import { SearchX } from "lucide-react";
 
 const TERMINAL = new Set(["complete", "complete_with_warnings", "failed"]);
 
@@ -68,12 +71,17 @@ export function RunView({ runId }: { runId: string }) {
 
   if (notFound)
     return (
-      <div role="alert" className="surface-card p-4">
-        <h1 className="text-xl font-semibold">Run not found</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          No run with this id exists on this service. <Link className="text-primary underline" href="/analyze">Start a new analysis</Link>.
-        </p>
-      </div>
+      <Empty role="alert" className="surface-card mx-auto max-w-xl">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <SearchX aria-hidden="true" />
+          </EmptyMedia>
+          <h1 className="text-lg font-medium tracking-tight">Run not found</h1>
+          <EmptyDescription>
+            No run with this id exists on this service. <Link className="text-primary underline" href="/analyze">Start a new analysis</Link>.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
 
   return (
@@ -86,7 +94,7 @@ export function RunView({ runId }: { runId: string }) {
       </div>
 
       <div aria-live="polite" className="text-sm">
-        {!run && !error && <p className="text-muted-foreground">Loading…</p>}
+        {!run && !error && <LoadingState label="Loading…" kind="page" />}
         {error && (
           <p role="alert" className="rounded-md border border-warn/50 bg-warn-soft px-3 py-2 text-warn">
             {error} Retrying…

@@ -32,6 +32,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { NativeSelect } from "./ui/native-select";
+import { LoadingState } from "@/components/ui/loading-state";
 
 function Field({
   id,
@@ -130,7 +131,7 @@ export function AnalyzeForm() {
         {loadErr}
       </p>
     );
-  if (!d || !catalog) return <p className="text-muted-foreground">Loading the site catalog…</p>;
+  if (!d || !catalog) return <LoadingState label="Loading the site catalog…" />;
 
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => {
     const next = { ...d, [k]: v };

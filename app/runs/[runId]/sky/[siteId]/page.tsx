@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { SkyView } from "@/components/SkyView";
+import { LoadingState } from "@/components/ui/loading-state";
 
 export const metadata: Metadata = { title: "Local sky" };
 
@@ -17,7 +18,7 @@ async function Body({ params }: { params: PageProps<"/runs/[runId]/sky/[siteId]"
 
 export default function SkyPage(props: PageProps<"/runs/[runId]/sky/[siteId]">) {
   return (
-    <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
+    <Suspense fallback={<LoadingState label="Loading…" kind="page" />}>
       <Body params={props.params} />
     </Suspense>
   );
