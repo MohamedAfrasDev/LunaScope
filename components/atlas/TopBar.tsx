@@ -28,7 +28,9 @@ export function TopBar({
   onView,
   placing,
   onTogglePlacing,
+  runLabel,
 }: {
+  runLabel?: string;
   scale: Scale;
   onScale: (s: Scale) => void;
   open: PanelId[];
@@ -79,9 +81,14 @@ export function TopBar({
         </button>
       </div>
 
+      {runLabel && (
+        <span className="atlas-label ml-auto border-l border-[var(--panel-edge)] pl-3 text-[var(--ink-dim)]" data-testid="run-chip">
+          {runLabel}
+        </span>
+      )}
       <button
         type="button"
-        className="atlas-key atlas-label ml-auto flex items-center gap-2"
+        className={`atlas-key atlas-label ${runLabel ? "" : "ml-auto"} flex items-center gap-2`}
         onClick={openCommandPalette}
         aria-keyshortcuts="Control+K Meta+K"
       >

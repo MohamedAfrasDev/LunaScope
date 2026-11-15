@@ -5,16 +5,21 @@ import { toast } from "sonner";
 import { LearnPanel } from "@/components/atlas/LearnPanel";
 import { PinLayer } from "@/components/atlas/PinLayer";
 import { Readout } from "@/components/atlas/Readout";
-import { SelectedSitePanel } from "@/components/atlas/SelectedSitePanel";
+import { SelectedSitePanel, type SiteCursor } from "@/components/atlas/SelectedSitePanel";
 import { SitesPanel } from "@/components/atlas/SitesPanel";
-import { TimeDock } from "@/components/atlas/TimeDock";
+import { TimeDock, type DockRun } from "@/components/atlas/TimeDock";
 import { TopBar, type PanelId, type Scale } from "@/components/atlas/TopBar";
 import { useCatalog } from "@/components/atlas/useCatalog";
+import { useClock } from "@/components/atlas/useClock";
+import { useRun } from "@/components/atlas/useRun";
 import { ExploreLoader } from "@/components/explore/ExploreLoader";
 import type { SceneHandle } from "@/components/explore/ExploreViewer";
 import { describeError, postJson } from "@/lib/api/client";
 import type { CustomSiteCheck } from "@/lib/api/types";
 import { fromCustomCheck, inTerrainData, MAX_CUSTOM_POINTS, type AtlasSite } from "@/lib/atlas/sites";
+import { utcLabel } from "@/lib/atlas/clock";
+import { cursorAt, eventScopeWords, eventTimesFor } from "@/lib/atlas/run";
+import { shortId } from "@/lib/format";
 import type { ViewName } from "@/lib/explore/geometry";
 
 function typing(t: EventTarget | null): boolean {
@@ -36,6 +41,9 @@ const PLACED_PRECISION_M = 1000;
  */
 export function AtlasShell() {
   const catalog = useCatalog();
+  const runLoad = useRun();
+  const runData = runLoad.status === "ready" ? runLoad.run : null;
+  const { clock, actions, reducedMotion } = useClock(runData?.window ?? null);
   const [scale, setScale] = useState<Scale>("moon");
   const [open, setOpen] = useState<PanelId[]>(["sites"]);
   const [hidden, setHidden] = useState(false);
@@ -47,6 +55,33 @@ export function AtlasShell() {
 
   const sites = useMemo(() => [...catalog.sites, ...customs], [catalog.sites, customs]);
   const selected = sites.find((s) => s.id === selectedId) ?? null;
+
+  const runLabel = runLoad.status === "ready" ? (runLoad.reference ?? shortId(runLoad.run.runId)) : null;
+
+  const dockRun: DockRun = useMemo(() => {
+    if (runLoad.status === "loading") {
+      const pct = runLoad.progress == null ? "" : ` ${Math.round(runLoad.progress * 100)}%`;
+      return { kind: "loading", text: `Loading the reference run · ${runLoad.stage}${pct}` };
+    }
+    if (runLoad.status === "error") return { kind: "error", text: `No run loaded · ${runLoad.message}` };
+    return {
+      kind: "ready",
+      window: runLoad.run.window,
+      events: eventTimesFor(runLoad.run, selectedId),
+      eventScope: eventScopeWords(runLoad.run, selectedId),
+      label: runLoad.reference ?? shortId(runLoad.run.runId),
+      synthetic: runLoad.run.resultState === "synthetic_demonstration",
+    };
+  }, [runLoad, selectedId]);
+
+  const cursor: SiteCursor = useMemo(() => {
+    if (runLoad.status === "loading") return { kind: "loading" };
+    if (runLoad.status === "error") return { kind: "error", text: runLoad.message };
+    if (!selectedId) return { kind: "none" };
+    const readings = cursorAt(runLoad.run, selectedId, clock.t);
+    if (!readings) return { kind: "not-in-run", runLabel: runLabel ?? "this run" };
+    return { kind: "ready", timeLabel: utcLabel(runLoad.run.window, clock.t), runLabel: runLabel ?? "", readings };
+  }, [runLoad, selectedId, clock.t, runLabel]);
 
   const onReady = useCallback((h: SceneHandle) => setScene(h), []);
   const onView = useCallback((v: ViewName) => scene?.fly(v), [scene]);
@@ -143,6 +178,7 @@ export function AtlasShell() {
               onView={onView}
               placing={placing}
               onTogglePlacing={() => setPlacing((p) => !p)}
+              runLabel={runLabel ? `Run ${runLabel}` : undefined}
             />
           </div>
 
@@ -166,6 +202,7 @@ export function AtlasShell() {
                   <SelectedSitePanel
                     key={selected.id}
                     site={selected}
+                    cursor={cursor}
                     onCentre={() => scene?.flyToSite(selected.latDeg, selected.lonEastDeg)}
                     onReset={() => scene?.fly("south-pole")}
                     onRemove={selected.kind === "custom" ? () => removeCustom(selected.id) : undefined}
@@ -175,7 +212,7 @@ export function AtlasShell() {
               )}
             </div>
             <div className="pointer-events-none flex h-full min-h-0 w-[min(26rem,100%)] flex-col items-end gap-3">
-              <Readout scaleLabel={SCALE_LABEL[scale]} timeLabel="NO RUN LOADED" />
+              <Readout scaleLabel={SCALE_LABEL[scale]} timeLabel={runData ? utcLabel(runData.window, clock.t) : "NO RUN LOADED"} />
               {placing && (
                 <p role="status" className="atlas-panel atlas-label pointer-events-auto px-3 py-2 text-[var(--ink)]">
                   Click the Moon to place a point · latitude −90 to −80
@@ -190,7 +227,7 @@ export function AtlasShell() {
           </div>
 
           <div className="pointer-events-auto">
-            <TimeDock />
+            <TimeDock run={dockRun} clock={clock} actions={actions} reducedMotion={reducedMotion} />
           </div>
         </div>
       )}

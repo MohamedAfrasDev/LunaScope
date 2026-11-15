@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { Panel } from "@/components/atlas/Panel";
 import { Tag } from "@/components/atlas/Tag";
+import type { CursorReading } from "@/lib/atlas/run";
+import { INTERVAL } from "@/lib/status";
 import { encodeShare, referenceDraft, SHARE_PARAM } from "@/lib/draft";
 import { coverageWords, formatEastLon, formatLat, kindWords, type AtlasSite } from "@/lib/atlas/sites";
 
@@ -36,6 +38,58 @@ export function analyseHref(site: AtlasSite): string {
   return `/analyze?${SHARE_PARAM}=${encodeShare(draft)}`;
 }
 
+/** What the loaded run says about this site at the clock time. Everything here came from the science service. */
+export type SiteCursor =
+  | { kind: "none" }
+  | { kind: "loading" }
+  | { kind: "error"; text: string }
+  | { kind: "not-in-run"; runLabel: string }
+  | { kind: "ready"; timeLabel: string; runLabel: string; readings: CursorReading[] };
+
+const TARGET_WORDS = { sun_center: "Sun", earth_center: "Earth" } as const;
+
+function CursorBlock({ cursor }: { cursor: SiteCursor }) {
+  if (cursor.kind === "ready") {
+    return (
+      <section aria-label="At the cursor" className="space-y-2" data-testid="site-cursor">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h4 className="atlas-label text-[var(--ink-dim)]">At the cursor</h4>
+          <Tag kind="derived" />
+        </div>
+        <p className="atlas-number text-xs text-[var(--ink-dim)]">
+          {cursor.timeLabel} · run {cursor.runLabel}
+        </p>
+        <dl className="divide-y divide-[var(--panel-edge)] border-y border-[var(--panel-edge)]">
+          {cursor.readings.map((r) => (
+            <div key={r.target} className="grid grid-cols-[4.5rem_1fr] gap-x-3 py-1.5">
+              <dt className={`atlas-label pt-0.5 ${r.target === "sun_center" ? "text-[var(--sun)]" : "text-[var(--earth)]"}`}>
+                <span aria-hidden="true">{r.target === "sun_center" ? "● " : "◆ "}</span>
+                {TARGET_WORDS[r.target]}
+              </dt>
+              <dd className="atlas-number text-sm text-[var(--ink)]">
+                AZ {r.azDeg.toFixed(1)}° · EL {r.elDeg >= 0 ? "+" : "−"}
+                {Math.abs(r.elDeg).toFixed(2)}°
+                <span className="atlas-prose block text-xs text-[var(--ink-dim)]">
+                  {r.state ? INTERVAL[r.state].label : "No classified state at this time"} (terrain-aware)
+                </span>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    );
+  }
+  const text =
+    cursor.kind === "loading"
+      ? "Loading the run, so there is no Sun or Earth result yet."
+      : cursor.kind === "error"
+        ? `The run could not be loaded, so no Sun or Earth result is shown. ${cursor.text}`
+        : cursor.kind === "not-in-run"
+          ? `This point is not in the loaded run (${cursor.runLabel}), so there is no Sun or Earth result for it. Use Analyse this site to compute one.`
+          : "No run is loaded, so there is no Sun or Earth result for this point yet. Results arrive with a run.";
+  return <p className="atlas-prose text-xs text-[var(--ink-dim)]">{text}</p>;
+}
+
 /**
  * Selected site (spec 6.3): what the point is, where it comes from and what the terrain data covers. Results (Sun and Earth
  * outcomes) arrive with a run in a later phase; until then it says so rather than leaving a gap that looks like data.
@@ -46,8 +100,10 @@ export function SelectedSitePanel({
   onReset,
   onRemove,
   onClose,
+  cursor = { kind: "none" },
 }: {
   site: AtlasSite;
+  cursor?: SiteCursor;
   onCentre: () => void;
   onReset: () => void;
   onRemove?: () => void;
@@ -96,9 +152,7 @@ export function SelectedSitePanel({
         </Row>
       </dl>
 
-      <p className="atlas-prose text-xs text-[var(--ink-dim)]">
-        No run is loaded, so there is no Sun or Earth result for this point yet. Results arrive with a run.
-      </p>
+      <CursorBlock cursor={cursor} />
 
       <div className="flex flex-wrap gap-2">
         <button type="button" className="atlas-key atlas-label border-[var(--panel-edge)]" onClick={onCentre}>

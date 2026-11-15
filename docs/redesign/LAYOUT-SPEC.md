@@ -383,3 +383,12 @@ Production cost measured: landing JS 430 KB and images 459 KB (budgets raised fr
 - **Place a point**: a click on the Moon (latitude -90 to -80) is checked by `POST /sites/custom`; a refusal or an unreachable service is said in words and no point is invented. The precision of a hand-placed point (1,000 m) is a stated assumption.
 - Fixed: the overlay layer was catching the mouse, so the globe could not be dragged or clicked between instruments. Only the top bar, panels and dock take the mouse now.
 - Not in this phase: Sun and Earth results for a selected site, the clock, Enter site sky (all need a run; phases D to F).
+
+### Phase D (time dock), done
+- **Run:** the Atlas loads the reference run GR-001 (submitted exactly as the service holds it, polled until finished, series fetched once), or any run with `/atlas?run=<64 hex>`. If any step fails the dock says why and shows no time (`useRun`).
+- **Clock:** seconds since the start of the run window (read from the service's intervals). Play and pause, speed (1 min to 1 day per second), reverse, loop, previous and next event, a scrubber, and go to a UTC time (refused in words outside the window). At an end it loops or stops and pauses. Under reduced motion playback is off, and the scrubber and the event buttons still work. A playing clock commits to React ten times a second. Pure rules are in `lib/atlas/clock.ts`.
+- **Events:** the Next and Previous buttons jump between the service's rise and set times for the selected site, or for every site of the run when none is selected (the dock says which).
+- **At the cursor:** the Selected site panel shows each target's azimuth and elevation (interpolated between the service's samples, for display) and the service's classified state at the clock time, tagged `DERIVED`. A site that is not in the loaded run says so and shows no numbers.
+- **Keys:** Space plays or pauses (not while a button or field has focus), `.` and `,` next and previous event, `[` and `]` speed, arrows on the scrubber move ten minutes (an hour with Shift).
+- **Not in this phase:** the Moon's terminator and sub-solar point (the service returns per-site series, not a global sun position, so nothing is drawn that the service did not compute), and the charts that share the cursor (phase E).
+- Fixed on the way: a go-to time typed in the field was lost when Go was pressed, because the click blurs the field first.

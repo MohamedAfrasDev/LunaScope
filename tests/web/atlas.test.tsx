@@ -3,9 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Panel } from "@/components/atlas/Panel";
 import { TAGS, Tag, type TagKind } from "@/components/atlas/Tag";
 import { TopBar } from "@/components/atlas/TopBar";
-import { TimeDock } from "@/components/atlas/TimeDock";
 import { LearnPanel } from "@/components/atlas/LearnPanel";
-import { DataStatusProvider } from "@/components/DataStatusBanner";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/atlas", useRouter: () => ({ push: () => {} }) }));
 vi.mock("@/components/shell/CommandPalette", () => ({ openCommandPalette: vi.fn() }));
@@ -91,20 +89,6 @@ describe("TopBar", () => {
   it("reflects an open panel in aria-pressed", () => {
     render(<TopBar {...base} open={["learn"]} />);
     expect(screen.getByRole("button", { name: "Learn" })).toHaveAttribute("aria-pressed", "true");
-  });
-});
-
-describe("TimeDock", () => {
-  it("is honest: every clock control is off and it says why, and the credit is always shown", () => {
-    render(
-      <DataStatusProvider>
-        <TimeDock />
-      </DataStatusProvider>,
-    );
-    expect(screen.getByRole("button", { name: /Play \(not available yet/ })).toBeDisabled();
-    expect(screen.getByRole("slider", { name: /not available yet/ })).toBeDisabled();
-    expect(screen.getByText(/No run loaded/)).toBeInTheDocument();
-    expect(screen.getByText(/Not endorsed by NASA/)).toBeInTheDocument();
   });
 });
 
