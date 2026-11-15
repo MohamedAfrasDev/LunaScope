@@ -26,7 +26,7 @@ If the real data shows no dramatic change, show the real stability or trade-off.
 
 1. GR-001 is frozen and passes its checks (`docs/runs/GR-001-run.md`): take the pitch numbers from it, labelled `real_data_unverified`.
 2. Settle D-12 (organizer permission). D-09 and D-11 are settled for GR-001.
-3. The demo link is https://luna-scope.afras.dev (replay of the saved real-data runs; the free service sleeps when idle, so open it a minute before presenting). Fill in team roles. Slide and video content is drafted in [PITCH-PACK.md](PITCH-PACK.md), because they depend on decisions and people outside the repository.
+3. The demo link is https://luna-scope.afras.dev (replay of the saved real-data runs; the free service sleeps when idle, so open it a minute before presenting). Fill in team roles. The slides or video are made outside the repository.
 4. Re-run `CLAIMS-AUDIT.md` against the final text.
 
 ## Likely questions

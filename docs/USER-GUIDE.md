@@ -2,7 +2,6 @@
 
 A complete guide to every page, control, label and setting. It describes the product as it is built, not as it was planned, and it says plainly where something is limited.
 
-**New to the project?** Read [Explained from scratch](EXPLAINED-FROM-SCRATCH.md) first: it covers what was built, the science behind it and why it matters. This guide is the page-by-page manual.
 
 **What LunaScope is.** A screening and education tool for the Moon's south pole. For a site and a set of dates it answers two questions separately: *is the Sun above the terrain, and is Earth above the terrain?* It does not certify landing safety, electrical power, link performance or mission feasibility, and it is not endorsed by NASA.
 
@@ -640,7 +639,7 @@ Up to **6 sites**; at most **60,000 samples** (sites × 2 targets × steps); win
 - A manual screen-reader pass has not been done (keyboard and automated accessibility checks have).
 - Organizer permission for pre-event work (D-12) is **not on file**, and the submission materials (slides or video) are not written.
 
-The authoritative status is [`docs/LunaScope-Phase-Plan.md`](LunaScope-Phase-Plan.md); what may and may not be claimed is in [`docs/submission/CLAIMS-AUDIT.md`](submission/CLAIMS-AUDIT.md).
+What may and may not be claimed is in [`docs/submission/CLAIMS-AUDIT.md`](submission/CLAIMS-AUDIT.md).
 
 ---
 
