@@ -40,14 +40,14 @@ export function RunNav() {
 function RunNavFor({ runId }: { runId: string }) {
   const pathname = usePathname() ?? "";
   const { run, notFound } = useRun(runId);
-  const first = run?.matrix?.[0]?.site_id;
-  const count = run?.matrix?.length ?? 0;
+  const siteKey = run?.matrix?.map((r) => r.site_id).join("|") ?? "";
   const state = run?.result_state;
   useEffect(() => {
-    if (!first) return; // nothing the service has said about this run yet
-    const label = count > 1 ? `${siteLabel(first)} and ${count - 1} more` : siteLabel(first);
-    rememberRun({ id: runId, label, state });
-  }, [runId, first, count, state]);
+    const ids = siteKey ? siteKey.split("|") : [];
+    if (ids.length === 0) return; // nothing the service has said about this run yet
+    const label = ids.length > 1 ? `${siteLabel(ids[0])} and ${ids.length - 1} more` : siteLabel(ids[0]);
+    rememberRun({ id: runId, label, state, sites: ids });
+  }, [runId, siteKey, state]);
   if (notFound) return null; // the page itself says the run does not exist
 
   const base = `/runs/${runId}`;

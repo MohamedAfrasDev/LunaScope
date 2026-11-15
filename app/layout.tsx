@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { DataStatusAlert, DataStatusProvider } from "@/components/DataStatusBanner";
 import { AmbientToggle } from "@/components/AmbientToggle";
 import { AppSidebar } from "@/components/shell/AppSidebar";
+import { CommandPalette } from "@/components/shell/CommandPalette";
 import { ShellBar } from "@/components/shell/ShellBar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -41,6 +43,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <TooltipProvider>
             <SidebarProvider>
               <AppSidebar />
+              <Suspense fallback={null}>
+                <CommandPalette />
+              </Suspense>
               <SidebarInset className="min-w-0">
                 <DataStatusAlert />
                 <ShellBar />
