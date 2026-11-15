@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { SceneHandle } from "./ExploreViewer";
 
 /** The viewer is client-only and loads on demand, so no other page pays for it. */
 const ExploreViewer = dynamic(() => import("./ExploreViewer").then((m) => m.ExploreViewer), {
@@ -15,6 +16,6 @@ const ExploreViewer = dynamic(() => import("./ExploreViewer").then((m) => m.Expl
   ),
 });
 
-export function ExploreLoader() {
-  return <ExploreViewer />;
+export function ExploreLoader({ bleed = false, onReady }: { bleed?: boolean; onReady?: (handle: SceneHandle) => void } = {}) {
+  return <ExploreViewer bleed={bleed} onReady={onReady} />;
 }

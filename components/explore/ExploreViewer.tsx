@@ -42,7 +42,9 @@ function reducedMotion(): boolean {
  * CesiumJS is imported inside an effect, so this chunk stays small and the library loads only on this page.
  * The picture is illustration of the surface. It is never an analysis result and carries no site data yet.
  */
-export function ExploreViewer() {
+export type SceneHandle = { fly: (name: ViewName) => void };
+
+export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onReady?: (handle: SceneHandle) => void } = {}) {
   const host = useRef<HTMLDivElement>(null);
   const viewer = useRef<Viewer | null>(null);
   const cesium = useRef<CesiumNs | null>(null);
@@ -170,6 +172,10 @@ export function ExploreViewer() {
     });
   }, []);
 
+  useEffect(() => {
+    if (state === "ready") onReady?.({ fly });
+  }, [state, fly, onReady]);
+
   const zoom = useCallback((dir: 1 | -1) => {
     const v = viewer.current;
     if (!v) return;
@@ -216,9 +222,13 @@ export function ExploreViewer() {
   );
 
   return (
-    <figure className="m-0" aria-label="Interactive Moon">
+    <figure className={bleed ? "absolute inset-0 m-0" : "m-0"} aria-label="Interactive Moon">
       <div
-        className="relative h-[min(72svh,720px)] min-h-[420px] overflow-hidden rounded-xl border border-border bg-[#05060d]"
+        className={
+          bleed
+            ? "absolute inset-0 overflow-hidden bg-[#05060d]"
+            : "relative h-[min(72svh,720px)] min-h-[420px] overflow-hidden rounded-xl border border-border bg-[#05060d]"
+        }
         data-testid="explore"
         data-state={state}
         data-heading={readout.heading}
@@ -253,7 +263,7 @@ export function ExploreViewer() {
 
         {state === "ready" && (
           <>
-            <div className="chrome-glass absolute left-3 top-3 flex items-center gap-1 rounded-lg border border-border p-1">
+            <div className={bleed ? "hidden" : "chrome-glass absolute left-3 top-3 flex items-center gap-1 rounded-lg border border-border p-1"}>
               <Button type="button" variant="ghost" size="sm" onClick={() => fly("moon")}>
                 {VIEWS.moon.label}
               </Button>
@@ -262,7 +272,7 @@ export function ExploreViewer() {
               </Button>
             </div>
 
-            <div className="chrome-glass absolute right-3 top-3 flex flex-col items-center gap-1 rounded-lg border border-border p-1">
+            <div className={`chrome-glass absolute right-3 flex flex-col items-center gap-1 rounded-lg border border-border p-1 ${bleed ? "bottom-48" : "top-3"}`}>
               <Button type="button" variant="ghost" size="icon" onClick={resetNorth} aria-label={`Compass: north is ${readout.heading === 0 ? "up" : `${readout.heading} degrees from up`}. Press to turn north up.`}>
                 <Navigation2 aria-hidden="true" style={{ transform: `rotate(${-readout.heading}deg)` }} />
               </Button>
@@ -274,7 +284,7 @@ export function ExploreViewer() {
               </Button>
             </div>
 
-            <div className="chrome-glass pointer-events-none absolute bottom-3 left-3 rounded-lg border border-border px-3 py-2 font-mono text-xs leading-5 text-muted-foreground" data-testid="explore-readout">
+            <div className={bleed ? "hidden" : "chrome-glass pointer-events-none absolute bottom-3 left-3 rounded-lg border border-border px-3 py-2 font-mono text-xs leading-5 text-muted-foreground"} data-testid="explore-readout">
               {readout.centre && <div>Centre {readout.centre}</div>}
               <div>Height {readout.height}</div>
               {readout.scale && (
@@ -286,14 +296,14 @@ export function ExploreViewer() {
             </div>
 
             {lowRes && (
-              <p role="status" className="chrome-glass absolute bottom-3 right-3 max-w-xs rounded-lg border border-border px-3 py-2 text-xs leading-5 text-muted-foreground">
+              <p role="status" className={`chrome-glass absolute max-w-xs ${bleed ? "bottom-48 left-1/2 -translate-x-1/2" : "bottom-3 right-3"} rounded-lg border border-border px-3 py-2 text-xs leading-5 text-muted-foreground`}>
                 The detailed imagery could not be reached. Showing the bundled low-resolution picture of the Moon.
               </p>
             )}
           </>
         )}
       </div>
-      <figcaption className="mt-3 text-xs leading-5 text-muted-foreground">
+      <figcaption className={bleed ? "sr-only" : "mt-3 text-xs leading-5 text-muted-foreground"}>
         {CREDIT_TEXT} Moon radius {(MOON_RADIUS_M / 1000).toLocaleString("en-US")} km.
       </figcaption>
     </figure>
