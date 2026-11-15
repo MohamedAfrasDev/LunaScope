@@ -18,7 +18,7 @@ function Cell({ c, decides }: { c: MatrixCell; decides: boolean }) {
     <div className={decides ? "" : "border-l-2 border-dashed border-border pl-2"}>
       <StatusChip p={p} title={p.help} />
       <div className="mt-1 text-sm tabular-nums">{pctRange(c.availability_lower, c.availability_upper)}</div>
-      <div className="text-xs text-muted">needs at least {Math.round(c.threshold * 100)}%</div>
+      <div className="text-xs text-muted-foreground">needs at least {Math.round(c.threshold * 100)}%</div>
     </div>
   );
 }
@@ -30,11 +30,11 @@ function Cell({ c, decides }: { c: MatrixCell; decides: boolean }) {
 export function ExcludedSites({ runId, rows: excluded }: { runId: string; rows: MatrixRow[] }) {
   if (excluded.length === 0) return null;
   return (
-    <section aria-label="Excluded sites" className="rounded-md border border-border bg-surface-2 p-3 text-sm">
+    <section aria-label="Excluded sites" className="rounded-md border border-border bg-muted p-3 text-sm">
       <h3 className="font-semibold">
         <StatusChip p={SITE_STATUS.UNKNOWN_COVERAGE} /> Excluded: not enough data to decide ({excluded.length})
       </h3>
-      <p className="mt-1 text-muted">
+      <p className="mt-1 text-muted-foreground">
         Missing terrain coverage or uncertified time leaves these sites undecided. They are not counted as
         failures, and their numbers are not shown in the results.
       </p>
@@ -42,7 +42,7 @@ export function ExcludedSites({ runId, rows: excluded }: { runId: string; rows: 
         {excluded.map((r) => (
           <li key={r.site_id}>
             {siteLabel(r.site_id)}:{" "}
-            <Link href={`/runs/${runId}/timeline/${encodeURIComponent(r.site_id)}`} className="tap text-accent underline underline-offset-4">
+            <Link href={`/runs/${runId}/timeline/${encodeURIComponent(r.site_id)}`} className="tap text-primary underline underline-offset-4">
               see why on the timeline
             </Link>
           </li>
@@ -75,13 +75,13 @@ export function StatusMatrix({
     <div className="overflow-x-auto">
       {showCompareLink && all.length >= 2 && (
         <p className="mb-3 text-sm">
-          <Link href={`/runs/${runId}/compare`} className="tap font-medium text-accent underline underline-offset-4">
+          <Link href={`/runs/${runId}/compare`} className="tap font-medium text-primary underline underline-offset-4">
             Compare these sites side by side
           </Link>
         </p>
       )}
       <table className="w-full min-w-[46rem] border-collapse text-left">
-        <caption className="mb-2 text-left text-sm text-muted">
+        <caption className="mb-2 text-left text-sm text-muted-foreground">
           Availability is shown as a lower to upper bound: the lower bound counts only certified visible time,
           the upper bound adds time still inside the numerical decision band.
         </caption>
@@ -92,7 +92,7 @@ export function StatusMatrix({
             {COLS.map((c) => (
               <th key={`${c.target}-${c.horizon}`} scope="col" className="py-2 pr-3 align-top font-semibold">
                 {c.head}
-                <span className="block text-xs font-normal text-muted">{c.sub}</span>
+                <span className="block text-xs font-normal text-muted-foreground">{c.sub}</span>
               </th>
             ))}
           </tr>
@@ -106,13 +106,13 @@ export function StatusMatrix({
                   {siteLabel(r.site_id)}
                   <Link
                     href={`/runs/${runId}/timeline/${encodeURIComponent(r.site_id)}`}
-                    className="tap-block mt-1 text-sm font-normal text-accent underline underline-offset-4"
+                    className="tap-block mt-1 text-sm font-normal text-primary underline underline-offset-4"
                   >
                     Timeline and evidence
                   </Link>
                   <Link
                     href={`/runs/${runId}/sky/${encodeURIComponent(r.site_id)}`}
-                    className="tap-block mt-1 text-sm font-normal text-accent underline underline-offset-4"
+                    className="tap-block mt-1 text-sm font-normal text-primary underline underline-offset-4"
                   >
                     Local sky
                   </Link>
@@ -130,7 +130,7 @@ export function StatusMatrix({
           })}
         </tbody>
       </table>
-      {rows.length === 0 && <p className="mt-2 text-sm text-muted">No site in this run could be decided.</p>}
+      {rows.length === 0 && <p className="mt-2 text-sm text-muted-foreground">No site in this run could be decided.</p>}
       {showExcluded && <ExcludedSites runId={runId} rows={excluded} />}
     </div>
   );

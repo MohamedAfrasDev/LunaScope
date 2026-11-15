@@ -33,7 +33,7 @@ export function ComparisonSummary({ cmp }: { cmp: RunComparisonResponse }) {
       <h2 id={`${uid}-what`} className="type-section">
         Shifted by {signedDays(cmp.shift_s)}, compared in {cmp.alignment} time
       </h2>
-      <p className="mt-1 text-sm text-muted">{cmp.note}.</p>
+      <p className="mt-1 text-sm text-muted-foreground">{cmp.note}.</p>
       {cmp.overlap && (
         <p className="mt-1 text-sm">
           Shared window: {utc(cmp.overlap.start_utc)} for {duration(cmp.overlap.duration_s)}.
@@ -43,7 +43,7 @@ export function ComparisonSummary({ cmp }: { cmp: RunComparisonResponse }) {
         <p className="mt-1 text-sm font-medium text-warn">The two runs carry different result states.</p>
       )}
 
-      <div className="mt-3 rounded-md border border-border bg-surface-2 p-3 text-sm" role="group" aria-label="Outcome changes">
+      <div className="mt-3 rounded-md border border-border bg-muted p-3 text-sm" role="group" aria-label="Outcome changes">
         {changed.length === 0 ? (
           <p>No site or target changes outcome with this shift.</p>
         ) : (
@@ -78,7 +78,7 @@ export function ComparisonSummary({ cmp }: { cmp: RunComparisonResponse }) {
           <dl className="kv">
             {cmp.held_constant.map((h) => (
               <div key={h.field} className="contents">
-                <dt className="text-muted">{fieldLabel(h.field)}</dt>
+                <dt className="text-muted-foreground">{fieldLabel(h.field)}</dt>
                 <dd className="readout break-all">{fieldValue(h.field, h.value)}</dd>
               </div>
             ))}

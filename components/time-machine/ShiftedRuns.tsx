@@ -26,7 +26,7 @@ export function ShiftedRuns({
                 type="button"
                 aria-pressed={on}
                 onClick={() => onSelect(c.child_run_id)}
-                className={`rounded-md border px-3 py-1.5 ${on ? "border-accent bg-surface-2 font-medium" : "border-border"}`}
+                className={`rounded-md border px-3 py-1.5 ${on ? "border-primary bg-muted font-medium" : "border-border"}`}
               >
                 {signedDays(off)} · starts {utc(c.start_utc)}
                 <span className="sr-only">, {c.status}</span>

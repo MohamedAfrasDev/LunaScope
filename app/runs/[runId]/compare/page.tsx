@@ -15,7 +15,7 @@ async function Body({ params }: { params: PageProps<"/runs/[runId]/compare">["pa
 
 export default function ComparePage(props: PageProps<"/runs/[runId]/compare">) {
   return (
-    <Suspense fallback={<p className="text-muted">Loading…</p>}>
+    <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
       <Body params={props.params} />
     </Suspense>
   );

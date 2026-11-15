@@ -18,7 +18,7 @@ function AvailabilityBar({ cell, hue }: { cell: MatrixCell; hue: "sun" | "earth"
   const w = (x: number) => `${Math.max(0, Math.min(1, x)) * 100}%`;
   const fill = hue === "sun" ? "bg-sun" : "bg-earth";
   return (
-    <div className="relative mt-2 h-1.5 rounded-full bg-surface-2" aria-hidden="true">
+    <div className="relative mt-2 h-1.5 rounded-full bg-muted" aria-hidden="true">
       <div className={`absolute inset-y-0 left-0 rounded-full opacity-40 ${fill}`} style={{ width: w(cell.availability_upper) }} />
       <div className={`absolute inset-y-0 left-0 rounded-full ${fill}`} style={{ width: w(cell.availability_lower) }} />
       <div className="absolute -bottom-1 -top-1 w-0.5 rounded bg-foreground" style={{ left: w(cell.threshold) }} />
@@ -73,13 +73,13 @@ export function SiteCard({ runId, row }: { runId: string; row: MatrixRow }) {
       <footer className="mt-auto flex flex-wrap gap-x-5 gap-y-1 border-t border-border pt-3 text-sm">
         <Link
           href={`/runs/${runId}/timeline/${encodeURIComponent(row.site_id)}`}
-          className="tap text-accent underline underline-offset-4"
+          className="tap text-primary underline underline-offset-4"
         >
           Timeline and evidence
         </Link>
         <Link
           href={`/runs/${runId}/sky/${encodeURIComponent(row.site_id)}`}
-          className="tap text-accent underline underline-offset-4"
+          className="tap text-primary underline underline-offset-4"
         >
           Local sky
         </Link>

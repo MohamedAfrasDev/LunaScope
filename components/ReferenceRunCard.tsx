@@ -40,7 +40,7 @@ export function ReferenceRunCard({ refId, buttonLabel }: { refId: string; button
   return (
     <div className="surface-card p-5">
       <h3 className="text-base font-semibold">{ref?.title ?? refId}</h3>
-      <p className="mt-1 text-sm text-muted">{ref?.purpose ?? "Loading the definition…"}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{ref?.purpose ?? "Loading the definition…"}</p>
       {ref && (
         <p className="mt-2 text-sm">
           {ref.request.sites.map((s) => ("site_id" in s ? siteLabel(s.site_id) : "custom")).join(", ")}
@@ -50,7 +50,7 @@ export function ReferenceRunCard({ refId, buttonLabel }: { refId: string; button
         {busy ? "Opening…" : buttonLabel}
       </button>
       {ref && (
-        <p className="mt-2 text-xs text-muted">
+        <p className="mt-2 text-xs text-muted-foreground">
           {ref.reference_id} is a {ref.status} definition: named places at the IAU&rsquo;s official centre points, not landing
           recommendations. A crater centre is its floor, not its rim.
         </p>

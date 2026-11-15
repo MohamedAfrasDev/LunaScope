@@ -92,12 +92,12 @@ export function AlternativesStrip({ runId, onOpenDate }: { runId: string; onOpen
     }
   }
 
-  const input = "mt-1 w-24 rounded-md border border-border-strong bg-background px-2 py-1.5 tabular-nums";
+  const input = "mt-1 w-24 rounded-md border border-input bg-background px-2 py-1.5 tabular-nums";
   return (
     <section aria-labelledby={`${uid}-h`} className="surface-card p-4">
       <p className="eyebrow mb-1">Step 2 of 3</p>
       <h2 id={`${uid}-h`} className="type-section">Which dates pass?</h2>
-      <p className="mt-1 max-w-3xl text-sm text-muted">
+      <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
         Test a range of start dates against the same sites, requirements and terrain. Each date is a separate run
         computed a couple at a time, so a wide range takes a while.
       </p>

@@ -28,13 +28,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col">
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-surface focus:px-3 focus:py-2"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-card focus:px-3 focus:py-2"
         >
           Skip to content
         </a>
         <DataStatusProvider>
         <DataStatusAlert />
-        <header className="sticky top-0 z-40 border-b border-border bg-surface/90 backdrop-blur">
+        <header className="sticky top-0 z-40 border-b border-border bg-card/90 backdrop-blur">
           <nav
             aria-label="Main"
             className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 gap-y-1.5 px-4 py-2 sm:py-2.5"
@@ -65,7 +65,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:py-12">
           {children}
         </main>
-        <footer className="border-t border-border bg-surface px-4 py-6 text-center text-xs leading-5 text-muted">
+        <footer className="border-t border-border bg-card px-4 py-6 text-center text-xs leading-5 text-muted-foreground">
           <p className="mx-auto max-w-3xl">
             Not flight-qualified. Does not certify landing safety, electrical power, link performance or mission
             feasibility. Not endorsed by NASA. Data: JPL Horizons, LRO LOLA, NAIF SPICE.

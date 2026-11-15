@@ -44,7 +44,7 @@ function GroupCard({ g, cards }: { g: ValidationGroup; cards: ValidationCard[] }
         <h3 id={`card-${g.id}`} className="font-semibold">{g.title}</h3>
         <StatusChip p={s} title={s.help} />
       </div>
-      <p className="mt-2 text-sm text-muted">{g.scope}</p>
+      <p className="mt-2 text-sm text-muted-foreground">{g.scope}</p>
       <p className="mt-2 text-sm tabular-nums">
         {g.counts.met} met, {g.counts.not_met} not met, {g.counts.not_evaluated} not evaluated
       </p>
@@ -55,7 +55,7 @@ function GroupCard({ g, cards }: { g: ValidationGroup; cards: ValidationCard[] }
             <li key={`${c.id}-${c.site_id}-${c.target}-${i}`}>
               <StatusChip p={CARD_STATUS[c.status]} /> {c.title}
               {c.site_id ? ` (${siteLabel(c.site_id)}${c.target ? `, ${targetLabel(c.target)}` : ""})` : ""}
-              <span className="block text-muted">
+              <span className="block text-muted-foreground">
                 {c.facts.join("; ")}. Scope: {c.scope}.
               </span>
             </li>
@@ -98,7 +98,7 @@ function DiskEdgeTable({ siteId, d }: { siteId: string; d: DiskEdge }) {
               <tr key={t} className="border-b border-border/50 align-top">
                 <th scope="row" className="py-1 pr-3 font-medium">
                   {targetLabel(t)}
-                  <span className="block text-xs font-normal text-muted">radius {b.angular_radius_deg.toFixed(2)}°</span>
+                  <span className="block text-xs font-normal text-muted-foreground">radius {b.angular_radius_deg.toFixed(2)}°</span>
                 </th>
                 {READINGS.map((r) => {
                   const c = b[r.key];
@@ -108,7 +108,7 @@ function DiskEdgeTable({ siteId, d }: { siteId: string; d: DiskEdge }) {
                       <StatusChip p={OUTCOME[c.outcome]} />
                       {changed && <span className="ml-1 text-xs font-medium text-warn">changed</span>}
                       <span className="block">{pctRange(c.availability_lower, c.availability_upper, 1)}</span>
-                      <span className="block text-xs text-muted">longest hidden {duration(c.longest_known_hidden_s)}</span>
+                      <span className="block text-xs text-muted-foreground">longest hidden {duration(c.longest_known_hidden_s)}</span>
                     </td>
                   );
                 })}
@@ -127,7 +127,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
   const { p, v, err } = useEvidence(runId);
 
   const back = (
-    <Link href={`/runs/${runId}`} className="tap text-sm text-accent underline underline-offset-4">
+    <Link href={`/runs/${runId}`} className="tap text-sm text-primary underline underline-offset-4">
       ← Back to the status matrix
     </Link>
   );
@@ -138,7 +138,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
         <Alert tone="fail">{err}</Alert>
       </div>
     );
-  if (!p) return <div className="grid gap-3">{back}<p className="text-muted">Loading the evidence…</p></div>;
+  if (!p) return <div className="grid gap-3">{back}<p className="text-muted-foreground">Loading the evidence…</p></div>;
 
   const req = p.request;
   const eff = p.effective_settings ?? {};
@@ -166,7 +166,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
     <div className="grid gap-6">
       <div>
         <h1 className="type-title">Evidence</h1>
-        <p className="mt-1 max-w-3xl text-sm text-muted">
+        <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
           What was used, what was checked against what, and what was not checked. Every number in this run
           traces to the inputs below.
         </p>
@@ -178,7 +178,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
             <h2 id={`${uid}-cards`} className="type-section">Validation cards</h2>
             {v ? (
               <>
-                <p className="mt-1 text-sm text-muted">
+                <p className="mt-1 text-sm text-muted-foreground">
                   {v.note} Validated scopes: {v.scopes_closed.length ? v.scopes_closed.join(", ") : "none"}.
                 </p>
                 <div className="mt-3 grid gap-4 lg:grid-cols-3">
@@ -186,13 +186,13 @@ export function EvidencePanel({ runId }: { runId: string }) {
                 </div>
               </>
             ) : (
-              <p className="mt-1 text-sm text-muted">The validation cards could not be loaded; provenance is still shown below.</p>
+              <p className="mt-1 text-sm text-muted-foreground">The validation cards could not be loaded; provenance is still shown below.</p>
             )}
           </section>
 
           <section aria-labelledby={`${uid}-disc`}>
             <h2 id={`${uid}-disc`} className="type-section">Disc size: centre or edge?</h2>
-            <p className="mt-1 max-w-3xl text-sm text-muted">
+            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
               Every result treats the Sun and Earth as a single point, their centre. Earth is about 1.9° across and the
               Sun about 0.5°, so near the skyline that can matter. The table brackets it: the same sky and terrain with
               the edge of the disc used instead.
@@ -200,33 +200,33 @@ export function EvidencePanel({ runId }: { runId: string }) {
             {p.sites.some((s) => s.disk_edge) ? (
               p.sites.map((s) => (s.disk_edge
                 ? <DiskEdgeTable key={s.site_id} siteId={s.site_id} d={s.disk_edge} />
-                : <p key={s.site_id} className="mt-2 text-sm text-muted">{siteLabel(s.site_id)}: not computed for this result.</p>))
+                : <p key={s.site_id} className="mt-2 text-sm text-muted-foreground">{siteLabel(s.site_id)}: not computed for this result.</p>))
             ) : (
-              <p className="mt-2 text-sm text-muted">Not computed for this analysis: it was made before this check existed. Run it again to get it.</p>
+              <p className="mt-2 text-sm text-muted-foreground">Not computed for this analysis: it was made before this check existed. Run it again to get it.</p>
             )}
             {p.sites.find((s) => s.disk_edge)?.disk_edge && (
-              <p className="mt-2 text-xs text-muted">{p.sites.find((s) => s.disk_edge)?.disk_edge?.note}</p>
+              <p className="mt-2 text-xs text-muted-foreground">{p.sites.find((s) => s.disk_edge)?.disk_edge?.note}</p>
             )}
           </section>
 
           <section aria-labelledby={`${uid}-prov`} className="grid gap-3">
             <h2 id={`${uid}-prov`} className="type-section">Provenance</h2>
-            <p className="max-w-3xl text-sm text-muted">
+            <p className="max-w-3xl text-sm text-muted-foreground">
               Where every number comes from, one click each: the hashes that pin this run, the inputs and method, and
               the geometry and skyline behind each site.
             </p>
           <section aria-label="Identity and pinned resources">
             <Disclosure summary="Identity and pinned resources">
             <dl className="kv mt-2 text-sm">
-              <dt className="text-muted">Run (hash of request, resources and algorithm)</dt>
+              <dt className="text-muted-foreground">Run (hash of request, resources and algorithm)</dt>
               <dd><Hash v={p.run_id} n={24} /></dd>
-              <dt className="text-muted">Result (sealed at completion)</dt>
+              <dt className="text-muted-foreground">Result (sealed at completion)</dt>
               <dd><Hash v={p.result_id} n={24} /></dd>
-              <dt className="text-muted">Algorithm</dt>
+              <dt className="text-muted-foreground">Algorithm</dt>
               <dd>{p.algorithm_id}</dd>
               {p.resources.map((r) => (
                 <div key={r.role} className="contents">
-                  <dt className="text-muted">{fieldLabel(`resource.${r.role}`)}</dt>
+                  <dt className="text-muted-foreground">{fieldLabel(`resource.${r.role}`)}</dt>
                   <dd><Hash v={r.sha256} n={24} /></dd>
                 </div>
               ))}
@@ -240,7 +240,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
               <dl className="kv mt-2 text-sm">
                 {method.map(([k, val]) => (
                   <div key={k} className="contents">
-                    <dt className="text-muted">{k}</dt>
+                    <dt className="text-muted-foreground">{k}</dt>
                     <dd className="tabular-nums">{val}</dd>
                   </div>
                 ))}
@@ -255,7 +255,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
               {p.sites.map((s) => (
                 <article key={s.site_id} aria-label={`Evidence for ${siteLabel(s.site_id)}`} className="rounded-md border border-border p-3 text-sm">
                   <h3 className="font-semibold">{siteLabel(s.site_id)}</h3>
-                  <p className="text-muted">
+                  <p className="text-muted-foreground">
                     {s.observer.lat_deg}°, {s.observer.lon_deg_east}° E planetocentric
                     {s.observer.body_frame ? `, frame ${s.observer.body_frame}` : ""}; ground {s.observer.ground_height_m.toFixed(1)} m
                     {s.observer.reference_radius_km ? ` above the ${s.observer.reference_radius_km} km sphere` : ""}
@@ -288,14 +288,14 @@ export function EvidencePanel({ runId }: { runId: string }) {
                   {s.warnings && s.warnings.length > 0 && (
                     <p className="mt-2 text-xs">
                       {s.warnings.map((w) => (
-                        <span key={w} className="mr-2"><code className="break-all rounded bg-surface-2 px-1">{w}</code> <span className="text-muted">{WARNING_TEXT[w] ?? ""}</span></span>
+                        <span key={w} className="mr-2"><code className="break-all rounded bg-muted px-1">{w}</code> <span className="text-muted-foreground">{WARNING_TEXT[w] ?? ""}</span></span>
                       ))}
                     </p>
                   )}
                 </article>
               ))}
             </div>
-            <p className="mt-2 text-xs text-muted">
+            <p className="mt-2 text-xs text-muted-foreground">
               Geometry agreement checks the Sun and Earth directions only. It does not validate the terrain horizon.
             </p>
             </Disclosure>
@@ -312,7 +312,7 @@ export function EvidencePanel({ runId }: { runId: string }) {
 
           <section aria-labelledby={`${uid}-export`}>
             <h2 id={`${uid}-export`} className="type-section">Export</h2>
-            <p className="mt-1 max-w-3xl text-sm text-muted">
+            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
               The bundle holds the request, settings, resource pins, provider response hashes, angle series, skyline,
               classified intervals, events, metrics and caveats, plus a frozen snapshot of the validation cards above.
               It is designated <strong>investigative</strong>: a verified export is refused until a validation scope
@@ -348,7 +348,7 @@ export function EvidenceLink({ runId }: { runId: string }) {
         </ul>
       )}
       <p className="mt-3">
-        <Link href={`/runs/${runId}/evidence`} className="tap font-medium text-accent underline underline-offset-4">
+        <Link href={`/runs/${runId}/evidence`} className="tap font-medium text-primary underline underline-offset-4">
           Open the evidence: provenance, validation cards and export
         </Link>
       </p>

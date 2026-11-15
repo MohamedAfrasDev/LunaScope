@@ -5,7 +5,7 @@ const TONE: Record<Presentation["tone"], string> = {
   fail: "border-fail/40 bg-fail-soft text-fail",
   warn: "border-warn/40 bg-warn-soft text-warn",
   info: "border-info/40 bg-info-soft text-info",
-  muted: "border-border bg-surface-2 text-muted",
+  muted: "border-border bg-muted text-muted-foreground",
 };
 
 /** Icon + word + tone. The icon is decorative (the word carries the meaning). */

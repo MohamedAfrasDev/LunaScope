@@ -69,8 +69,8 @@ export function RunView({ runId }: { runId: string }) {
     return (
       <div role="alert" className="surface-card p-4">
         <h1 className="text-xl font-semibold">Run not found</h1>
-        <p className="mt-2 text-sm text-muted">
-          No run with this id exists on this service. <Link className="text-accent underline" href="/analyze">Start a new analysis</Link>.
+        <p className="mt-2 text-sm text-muted-foreground">
+          No run with this id exists on this service. <Link className="text-primary underline" href="/analyze">Start a new analysis</Link>.
         </p>
       </div>
     );
@@ -79,13 +79,13 @@ export function RunView({ runId }: { runId: string }) {
     <div className="grid gap-6">
       <div>
         <h1 className="type-title">Analysis {shortId(runId)}</h1>
-        <p className="mt-1 text-sm text-muted">
+        <p className="mt-1 text-sm text-muted-foreground">
           This run is an immutable snapshot identified by its inputs; submitting the same inputs again returns it.
         </p>
       </div>
 
       <div aria-live="polite" className="text-sm">
-        {!run && !error && <p className="text-muted">Loading…</p>}
+        {!run && !error && <p className="text-muted-foreground">Loading…</p>}
         {error && (
           <p role="alert" className="rounded-md border border-warn/50 bg-warn-soft px-3 py-2 text-warn">
             {error} Retrying…
@@ -99,7 +99,7 @@ export function RunView({ runId }: { runId: string }) {
             </p>
             <progress className="mt-2 w-full" max={1} value={run.progress ?? 0}
               aria-label="Analysis progress" />
-            <p className="mt-1 text-xs text-muted">
+            <p className="mt-1 text-xs text-muted-foreground">
               Seven-day runs on real data take roughly 20–60 seconds per site. You can leave and come back to this
               address.
             </p>
@@ -122,7 +122,7 @@ export function RunView({ runId }: { runId: string }) {
       {run?.matrix && (run.status === "complete" || run.status === "complete_with_warnings") && (
         <>
           <p className="text-sm">
-            <Link href={`/runs/${runId}/time-machine`} className="tap font-medium text-accent underline underline-offset-4">
+            <Link href={`/runs/${runId}/time-machine`} className="tap font-medium text-primary underline underline-offset-4">
               What if the date slips? Open the Time Machine
             </Link>
           </p>
@@ -133,7 +133,7 @@ export function RunView({ runId }: { runId: string }) {
               <ExcludedSites runId={runId} rows={run.matrix.filter((r) => r.site_status === "UNKNOWN_COVERAGE")} />
               {run.matrix.length >= 2 && (
                 <p className="text-sm">
-                  <Link href={`/runs/${runId}/compare`} className="tap font-medium text-accent underline underline-offset-4">
+                  <Link href={`/runs/${runId}/compare`} className="tap font-medium text-primary underline underline-offset-4">
                     Compare these sites side by side
                   </Link>
                 </p>

@@ -116,13 +116,13 @@ export function DataStatusPill() {
             <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" />
           </svg>
         </summary>
-        <div className="absolute inset-x-4 top-full z-50 mt-2 rounded-lg sm:inset-x-auto sm:right-0 sm:w-[26rem] border border-border bg-surface p-4 text-sm leading-6 shadow-lg">
+        <div className="absolute inset-x-4 top-full z-50 mt-2 rounded-lg sm:inset-x-auto sm:right-0 sm:w-[26rem] border border-border bg-card p-4 text-sm leading-6 shadow-lg">
           <p>
             <span className="font-medium">Data status: </span>
             {synthetic ? SYNTHETIC_TEXT : REAL_TEXT}
           </p>
           {replay && <p className="mt-2">{REPLAY_TEXT}</p>}
-          <p className="mt-2 text-xs text-muted">
+          <p className="mt-2 text-xs text-muted-foreground">
             Every result also carries its own label.
           </p>
         </div>

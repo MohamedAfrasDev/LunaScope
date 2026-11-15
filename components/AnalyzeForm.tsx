@@ -49,7 +49,7 @@ function Field({
       </label>
       {children}
       {hint && !error && (
-        <p id={`${id}-hint`} className="text-xs text-muted">
+        <p id={`${id}-hint`} className="text-xs text-muted-foreground">
           {hint}
         </p>
       )}
@@ -67,7 +67,7 @@ function Field({
 const isAdvancedKey = (k: string) => /^(requirements|terrain|options)\./.test(k);
 
 const input =
-  "rounded-md border border-border-strong bg-surface px-3 py-2 text-sm aria-[invalid=true]:border-fail aria-[invalid=true]:bg-fail-soft";
+  "rounded-md border border-input bg-card px-3 py-2 text-sm aria-[invalid=true]:border-fail aria-[invalid=true]:bg-fail-soft";
 
 /** The catalog grouped for display: demonstration points first, then each named group in catalog order. */
 function siteGroups(catalog: SitesResponse): [string, SitesResponse["sites"]][] {
@@ -129,7 +129,7 @@ export function AnalyzeForm() {
         {loadErr}
       </p>
     );
-  if (!d || !catalog) return <p className="text-muted">Loading the site catalog…</p>;
+  if (!d || !catalog) return <p className="text-muted-foreground">Loading the site catalog…</p>;
 
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => {
     const next = { ...d, [k]: v };
@@ -209,8 +209,8 @@ export function AnalyzeForm() {
 
       <fieldset className={fieldset}>
         <legend className={legend}>Mission window (UTC)</legend>
-        <p className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted">
-          <button type="button" className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium"
+        <p className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+          <button type="button" className="rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium"
             onClick={() => {
               const n = nowStart();
               const next = { ...d, ...n };
@@ -248,34 +248,34 @@ export function AnalyzeForm() {
 
       <fieldset className={fieldset} aria-describedby={errors.sites ? fid("sites-err") : undefined}>
         <legend className={legend}>Sites</legend>
-        <p className="text-xs text-muted">{catalog.note}</p>
+        <p className="text-xs text-muted-foreground">{catalog.note}</p>
         {siteGroups(catalog).map(([heading, sites]) => (
           <div key={heading} className="mt-4">
             <h2 className="text-sm font-semibold">{heading}</h2>
             <ul className="mt-2 grid gap-2 sm:grid-cols-2">
               {sites.map((s) => (
                 <li key={s.site_id}>
-                  <label className="flex cursor-pointer items-start gap-3 rounded-md border border-border p-3 text-sm transition-colors hover:border-border-strong hover:bg-surface-2 has-[:checked]:border-accent has-[:checked]:bg-info-soft">
+                  <label className="flex cursor-pointer items-start gap-3 rounded-md border border-border p-3 text-sm transition-colors hover:border-input hover:bg-muted has-[:checked]:border-primary has-[:checked]:bg-info-soft">
                     <input type="checkbox" className="mt-1" checked={d.siteIds.includes(s.site_id)}
                       onChange={(e) => set("siteIds", e.target.checked ? [...d.siteIds, s.site_id]
                         : d.siteIds.filter((x) => x !== s.site_id))} />
                     <span>
                       <strong>{siteLabel(s.site_id)}</strong>
                       {s.name && (
-                        <span className="block text-xs text-muted">
+                        <span className="block text-xs text-muted-foreground">
                           {s.feature_type?.split(",")[0]}
                           {s.diameter_km ? `, ${s.diameter_km} km across` : ""}; {s.lat_deg.toFixed(2)}°, {s.lon_east_deg.toFixed(2)}°E
                           {s.iau_url && (
                             <>
                               {" "}
-                              <a href={s.iau_url} target="_blank" rel="noreferrer" className="text-accent underline">
+                              <a href={s.iau_url} target="_blank" rel="noreferrer" className="text-primary underline">
                                 IAU entry
                               </a>
                             </>
                           )}
                         </span>
                       )}
-                      <span className="block text-xs text-muted">
+                      <span className="block text-xs text-muted-foreground">
                         Source: {s.source}. Precision ±{s.precision_m} m. Terrain footprint{" "}
                         {s.dem_coverage_150km.fully_covered ? "fully covered" : "partly outside the data"}.
                       </span>
@@ -288,7 +288,7 @@ export function AnalyzeForm() {
         ))}
 
         {d.custom.map((c, i) => (
-          <div key={i} className="mt-4 grid gap-3 rounded-md border border-border bg-surface-2 p-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div key={i} className="mt-4 grid gap-3 rounded-md border border-border bg-muted p-4 sm:grid-cols-2 lg:grid-cols-5">
             <Field id={fid(`clat${i}`)} label="Latitude (°)" error={errors[`custom.${i}.lat`]}>
               <input id={fid(`clat${i}`)} className={input} value={c.lat}
                 aria-invalid={errors[`custom.${i}.lat`] ? true : undefined}
@@ -327,7 +327,7 @@ export function AnalyzeForm() {
             <CustomCoverage c={c} index={i} errors={customErrors(d, i)} />
           </div>
         ))}
-        <button type="button" className="mt-3 rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium"
+        <button type="button" className="mt-3 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium"
           onClick={() => set("custom", [...d.custom, emptyCustom()])}>
           Add a custom point
         </button>
@@ -367,13 +367,13 @@ export function AnalyzeForm() {
               onChange={(e) => set("earthMinPct", e.target.value)} inputMode="decimal" />
           </Field>
         </div>
-        <p className="mt-3 text-xs text-muted">
+        <p className="mt-3 text-xs text-muted-foreground">
           Sunlight and Earth are judged separately. There is no combined score.
         </p>
       </fieldset>
       <fieldset className="grid gap-3">
         <legend className={legend}>Terrain</legend>
-        <p className="text-xs text-muted">
+        <p className="text-xs text-muted-foreground">
           Terrain is always on. The flat-horizon result is shown beside it for comparison.
         </p>
         <div className="mt-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -413,28 +413,28 @@ export function AnalyzeForm() {
       </details>
 
       {/* the primary action and its cost stay in view; the secondary actions sit just below, not sticky */}
-      <div className="sticky bottom-0 z-30 -mx-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-lg sm:border sm:bg-surface/95">
+      <div className="sticky bottom-0 z-30 -mx-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-lg sm:border sm:bg-card/95">
         <button type="submit" disabled={busy}
           className="btn-primary">
           {busy ? "Submitting…" : "Run analysis"}
         </button>
-        <p className="text-sm text-muted" aria-live="polite">
+        <p className="text-sm text-muted-foreground" aria-live="polite">
           {samples.toLocaleString("en")} samples ({d.siteIds.length + d.custom.length} site(s) × 2 targets), limit{" "}
           {MAX_SAMPLES.toLocaleString("en")}
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" onClick={reset} className="rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium">
+        <button type="button" onClick={reset} className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium">
           Reset to the reference mission
         </button>
-        <button type="button" onClick={share} className="rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium">
+        <button type="button" onClick={share} className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium">
           Copy a link to these inputs
         </button>
       </div>
       {shareUrl && (
         <label className="grid gap-1 text-sm">
           <span className="font-medium">Link to these inputs</span>
-          <input readOnly value={shareUrl} onFocus={(e) => e.currentTarget.select()} className="rounded-md border border-border-strong bg-surface px-3 py-2 font-mono text-xs" />
+          <input readOnly value={shareUrl} onFocus={(e) => e.currentTarget.select()} className="rounded-md border border-input bg-card px-3 py-2 font-mono text-xs" />
         </label>
       )}
     </form>
@@ -474,7 +474,7 @@ function CustomCoverage({ c, index, errors }: { c: CustomDraft; index: number; e
         className="rounded-md border border-border px-3 py-1.5 text-sm disabled:opacity-50">
         {busy ? "Checking…" : `Check terrain coverage for point ${index + 1}`}
       </button>
-      {invalid && <span className="ml-3 text-xs text-muted">Fix this point&rsquo;s fields first.</span>}
+      {invalid && <span className="ml-3 text-xs text-muted-foreground">Fix this point&rsquo;s fields first.</span>}
       {err && <p role="alert" className="mt-2 text-sm text-fail">{err}</p>}
       {r && cov && (
         <p className="mt-2 text-sm">

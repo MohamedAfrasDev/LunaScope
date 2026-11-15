@@ -31,13 +31,13 @@ export function SkylineFigure({
         role="img"
         aria-labelledby={titleId}
         aria-describedby={descId}
-        className="hero-sketch h-auto w-full rounded-lg border border-border bg-surface"
+        className="hero-sketch h-auto w-full rounded-lg border border-border bg-card"
       >
         <title id={titleId}>{title}</title>
         <desc id={descId}>{desc}</desc>
 
         {/* a few faint stars: decoration only */}
-        <g style={{ fill: "var(--muted)" }} opacity="0.55" aria-hidden="true">
+        <g style={{ fill: "var(--muted-foreground)" }} opacity="0.55" aria-hidden="true">
           <circle cx="36" cy="40" r="1.2" />
           <circle cx="92" cy="104" r="1" />
           <circle cx="212" cy="46" r="1.2" />
@@ -50,14 +50,14 @@ export function SkylineFigure({
         {/* ground */}
         <path
           d="M0 270 L60 268 L120 262 L170 240 L215 190 L245 150 L275 195 L330 252 L400 262 L480 258 L480 320 L0 320 Z"
-          style={{ fill: "var(--surface-2)", stroke: "var(--border-strong)" }}
+          style={{ fill: "var(--muted)", stroke: "var(--input)" }}
           strokeWidth="1.5"
           strokeLinejoin="round"
         />
 
         {/* flat horizon */}
-        <line x1="60" y1="262" x2="480" y2="262" strokeDasharray="6 5" strokeWidth="1.2" style={{ stroke: "var(--muted)" }} />
-        <text x="476" y="282" textAnchor="end" fontSize="15" style={{ fill: "var(--muted)" }}>
+        <line x1="60" y1="262" x2="480" y2="262" strokeDasharray="6 5" strokeWidth="1.2" style={{ stroke: "var(--muted-foreground)" }} />
+        <text x="476" y="282" textAnchor="end" fontSize="15" style={{ fill: "var(--muted-foreground)" }}>
           flat horizon (0°)
         </text>
 

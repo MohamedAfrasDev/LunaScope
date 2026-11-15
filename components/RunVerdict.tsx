@@ -70,7 +70,7 @@ export function RunVerdict({ rows }: { rows: MatrixRow[] }) {
       <h2 className="type-section">
         {v.pass} of {sites(v.total)} {v.total === 1 ? "meets" : "meet"} both requirements
       </h2>
-      <p className="mt-1 text-sm leading-6 text-muted">
+      <p className="mt-1 text-sm leading-6 text-muted-foreground">
         Each requirement is judged on its own: {detail.join("; ")}.
         {v.excluded > 0 && ` ${sites(v.excluded)} excluded for lack of data (not failures).`}
       </p>

@@ -20,7 +20,7 @@ export function RunComparison({ baseId, childId, alignment }: { baseId: string; 
   );
 
   if (childErr) return <Alert tone="warn">{childErr} Retrying…</Alert>;
-  if (!child) return <p className="text-muted">Loading the shifted run…</p>;
+  if (!child) return <p className="text-muted-foreground">Loading the shifted run…</p>;
   if (child.status === "failed")
     return (
       <Alert tone="fail" size="block">

@@ -42,7 +42,7 @@ export default function WhySouthPoleIsHard() {
     <article className="mx-auto max-w-3xl">
       <p className="eyebrow">Background</p>
       <h1 className="type-title mt-2">Why the south pole is hard</h1>
-      <p className="mt-3 text-lg leading-8 text-muted">
+      <p className="mt-3 text-lg leading-8 text-muted-foreground">
         Near the Moon’s south pole, whether a spot gets sunlight, or can see Earth, is decided by a few degrees of sky
         and by the shape of the ground around it. A simple estimate gets that wrong in a predictable way.
       </p>
@@ -73,7 +73,7 @@ export default function WhySouthPoleIsHard() {
       </p>
 
       <h2 className={H2}>4. What follows</h2>
-      <ul className="mt-2 list-disc space-y-2 pl-6 leading-7 marker:text-muted">
+      <ul className="mt-2 list-disc space-y-2 pl-6 leading-7 marker:text-muted-foreground">
         <li>
           <strong>A flat horizon overestimates.</strong> Treating the horizon as level can count a target as visible
           when a ridge hides it.
@@ -101,7 +101,7 @@ export default function WhySouthPoleIsHard() {
 
       <aside className="surface-card mt-8 p-4 text-sm leading-6">
         <p className="font-semibold">What this page is not</p>
-        <p className="mt-1 text-muted">
+        <p className="mt-1 text-muted-foreground">
           A short explanation for learners, not a result. The figures above are rounded textbook values and a worked
           example; the numbers for a particular site come from a run, and carry that run’s label. LunaScope is a
           screening and education tool, not a landing-safety, power, link or mission-feasibility assessment.
@@ -109,15 +109,15 @@ export default function WhySouthPoleIsHard() {
       </aside>
 
       <h2 className={H2}>Data behind the tool</h2>
-      <ul className="mt-2 list-disc space-y-1 pl-6 text-sm leading-6 marker:text-muted">
+      <ul className="mt-2 list-disc space-y-1 pl-6 text-sm leading-6 marker:text-muted-foreground">
         <li>Sun and Earth directions: JPL Horizons, checked against NAIF SPICE.</li>
         <li>Terrain: Lunar Orbiter Laser Altimeter (LOLA) elevation data from the LRO mission, via the NASA PDS.</li>
         <li>NASA’s LROC QuickMap and Moon Trek are used to look at the terrain; they are not numerical inputs.</li>
       </ul>
 
       <p className="mt-10 flex flex-wrap gap-6 text-sm">
-        <Link href="/" className="tap font-medium text-accent underline underline-offset-4">Start the reference mission</Link>
-        <Link href="/analyze" className="tap font-medium text-accent underline underline-offset-4">Set up your own analysis</Link>
+        <Link href="/" className="tap font-medium text-primary underline underline-offset-4">Start the reference mission</Link>
+        <Link href="/analyze" className="tap font-medium text-primary underline underline-offset-4">Set up your own analysis</Link>
       </p>
     </article>
   );

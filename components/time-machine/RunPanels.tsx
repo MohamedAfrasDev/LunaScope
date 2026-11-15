@@ -57,7 +57,7 @@ export function RunPanels({
           <label className="text-sm">
             <span className="mr-2 font-medium">Site</span>
             <select value={siteId} onChange={(e) => onSite(e.target.value)}
-              className="rounded-md border border-border-strong bg-background px-2 py-1">
+              className="rounded-md border border-input bg-background px-2 py-1">
               {sites.map((s) => <option key={s.site_id} value={s.site_id}>{siteLabel(s.site_id)}</option>)}
             </select>
           </label>
@@ -70,7 +70,7 @@ export function RunPanels({
           return (
             <article key={p.key} aria-label={`${p.title} run`} className="surface-card p-4">
               <h3 className="font-semibold">
-                {p.title} <span className="readout text-xs text-muted">{shortId(p.run.run_id)}</span>
+                {p.title} <span className="readout text-xs text-muted-foreground">{shortId(p.run.run_id)}</span>
               </h3>
               <p className="text-sm">Starts {start ? utc(start) : "—"}</p>
               {p.site && (

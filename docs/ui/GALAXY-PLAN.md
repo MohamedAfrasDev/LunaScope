@@ -1,6 +1,6 @@
 # LunaScope "Calm Galaxy" redesign: shadcn components and a complete product experience
 
-Status: **plan, revised to a calm, aesthetic direction. G0 (baseline) is done**; see Appendix A. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
+Status: **plan, revised to a calm, aesthetic direction. G0 (baseline) and G1 (shadcn foundation and calm tokens) are done**; see Appendices A and B. No product code changed yet. Follows the shipped redesign ([UI-REDESIGN.md](UI-REDESIGN.md)).
 
 ## 1. The ask, and the decisions already made
 
@@ -133,7 +133,7 @@ Small, individually mergeable; each ends with unit tests, e2e, axe in both theme
 | Phase | Title | PR |
 |---|---|---|
 | G0 | **Done.** Baseline: all suites, "pre-galaxy" screenshots, inventory of what the token rename touches, hero asset audit | A |
-| G1 | shadcn foundation: `init`, `cn`, deps, `components.json`; token migration codemod; **calm twilight palette**; update `tokens.test.ts` | A |
+| G1 | **Done.** shadcn foundation: `init`, `cn`, deps, `components.json`; token migration codemod; **calm twilight palette**; `tokens.test.ts` updated | A |
 | G2 | Replace primitives with shadcn: Button, Card, Badge (status chips), Alert, Separator, Skeleton, Progress, Input, Label, Select, Checkbox, RadioGroup; restyle native Disclosure | B |
 | G3 | Calm visual system: twilight backdrop (gradient, nebula washes, still stars), soft elevation, hairline borders, spacing and type rhythm, optional slow drift with Pause, reduced-motion/transparency/contrast fallbacks | C |
 | G4 | App shell: Sidebar, Sheet on mobile, breadcrumbs, recent runs, ToggleGroup for the view mode, status pill relocated | D |
@@ -225,3 +225,66 @@ light theme needs its own set. The Sun and Earth hues also differ slightly betwe
 1. Hero image: confirm its **source and licence**, and whether to keep the 22.7 MB original in the repo (a smaller committed copy or Git LFS are the options).
 2. Update `LICENCES-AND-CITATIONS.md` ("No images are used") and, if the image was AI-generated, `DISCLOSURES.md`, when the hero ships.
 3. Unify the Sun and Earth hues across the tokens, the SVGs and the 3D view in G1.
+
+## Appendix B. G1: shadcn foundation and the calm token system
+
+### B.1 What was set up
+
+| Item | Result |
+|---|---|
+| `shadcn init` | `-t next -b radix -p nova` (Radix primitives; the **Nova** preset, Lucide icons and Geist, which the project already uses). Writes `components.json` (style `radix-nova`, RSC, CSS variables, aliases `@/components`, `@/components/ui`, `@/lib/utils`) and `lib/utils.ts` |
+| Dependencies added | `radix-ui`, `class-variance-authority`, `lucide-react`, `tw-animate-css`, and **`cn`** (shadcn's own small replacement for clsx + tailwind-merge, from `shadcn-ui/cn`; `lib/utils.ts` re-exports it). `shadcn` (the CLI) was already a dev dependency; the stylesheet now imports `shadcn/tailwind.css` at build time, and the Docker build installs dev dependencies, so deploys are unaffected |
+| What init did that was reverted | It overwrote `components/ui/Button.tsx` with shadcn's button (case-insensitive file system), which would have broken every `<Button variant="primary">`. Restored; shadcn's button arrives in G2. It also wrote a **circular** `--font-sans: var(--font-sans)` and mixed neutral light defaults into the dark `:root`; both were replaced when the token section was rebuilt |
+
+### B.2 Tokens: shadcn's semantic names, calm twilight palette
+
+`app/globals.css` was rebuilt: one `:root` (dark, the default) and one `@media (prefers-color-scheme: light)` block, mapped into Tailwind with `@theme inline`.
+shadcn's `dark:` variant is defined as `@custom-variant dark (@media not (prefers-color-scheme: light))`, so shadcn components follow this app's own theme
+switch (there is no `.dark` class). Radius is now `0.75rem` (the shadcn scale derives from it), so every box is a little softer.
+
+| Token | Dark (twilight) | Light (lunar day) |
+|---|---|---|
+| `background` / `card` / `popover` / `muted` | `#0b1020` / `#111830` / `#151d38` / `#182142` | `#f7f5f0` / `#ffffff` / `#ffffff` / `#efece5` |
+| `foreground` / `muted-foreground` | `#e9edfa` / `#a9b2d3` | `#1a1f36` / `#585e78` |
+| `primary` / `primary-foreground` / `ring` | `#a5b4ff` / `#0b1020` / `#a5b4ff` | `#4350c8` / `#ffffff` / `#4350c8` |
+| `secondary` / `accent` (hover and selected backgrounds) | `#1b2448` / `#212b57` | `#ece9e1` / `#e7e3da` |
+| `border` (hairline) / `input` (control edge) | `#2a3560` / `#6d7bb0` | `#dcd8cc` / `#7a7466` |
+| `sun` / `earth` | `#f4c873` / `#86b8ff` | `#8a5500` / `#1d4f9c` |
+| `ok` `fail` `warn` `info` | `#86dcae` `#ff9aa5` `#f4d27e` `#9db7ff` | `#0f6b3a` `#a4262c` `#7c5200` `#2f4bb3` |
+
+Also defined for later phases: `destructive`, `chart-1..5`, and the full `sidebar-*` set. Status colours keep their soft fills (`ok-soft` and the rest).
+
+### B.3 The rename (codemod, reviewed)
+
+225 replacements in 45 files, in one pass so nothing converts twice:
+`text-muted` to `text-muted-foreground` (119), `text-accent` to `text-primary` (25), `bg-surface-2` to `bg-muted` (18), `bg-surface` to `bg-card` (16),
+`border-border-strong` to `border-input` (11), `border-accent` to `border-primary` (6); and in SVG and inline styles `var(--muted)` to `var(--muted-foreground)` (17),
+`var(--surface)` to `var(--card)` (9), `var(--surface-2)` to `var(--muted)` (4), `var(--border-strong)` to `var(--input)` (1). A search afterwards finds no stale names.
+The hand-written CSS classes (`btn-primary`, `surface-card`, `nav-link`, `eyebrow`, type styles, `readout-unit`) were repointed to the new tokens; the focus ring is `--ring`.
+Two test assertions followed the rename (`border-primary`, `.bg-muted`); the other two class assertions (`btn-primary`, `text-warn`) were unaffected.
+
+### B.4 Contrast guard
+
+`tests/web/tokens.test.ts` was rewritten for the new token set and now checks, in both themes and on every surface text can sit on (`background`, `card`,
+`popover`, `muted`): all text and status colours at 4.5:1, the control edge (`input`) at 3:1 (also on `secondary` and `accent`), status text on its own soft fill, text on the
+hover and selected backgrounds, the primary button label on `primary`, and the focus ring at 3:1; plus that every token is mapped into Tailwind and that the `dark:` variant uses the media query.
+Result: lowest text pair **4.99:1** (light) and **6.46:1** (dark); lowest control edge **3.30:1** (dark) and **3.63:1** (light).
+
+### B.5 Verification (production build)
+
+| Check | Result |
+|---|---|
+| `vitest` | 26 files, 268 tests pass (the guard grew from 26 to 34 checks) |
+| `tsc`, `eslint` | clean |
+| `next build` | passes; the served stylesheet contains the new palette and the tw-animate keyframes |
+| Playwright e2e | 14 pass; fallback e2e 1 passes |
+| axe, dark and light, 9 routes | 0 violations |
+| Visual | the same 30 views were re-captured and compared with `pre-galaxy/`: layout is unchanged; only colour, softer corners and the warm paper light theme differ |
+
+### B.6 Findings for the next phases
+
+- **File-name casing (for G2).** shadcn files are lower-case (`button.tsx`), the hand-written primitives are PascalCase (`Button.tsx`). On a case-insensitive file system
+  these are the same file, and on Linux (Docker, CI) they would be two. G2 renames the primitives to lower-case with a two-step `git mv`, then adds shadcn's.
+- **Not yet done by design.** No shadcn component is used yet (that is G2), shadows and the calm elevation are G3, and the **3D sky view** still draws with hard-coded
+  hex colours (it does not follow either theme, and its Sun and Earth hues differ slightly from the tokens): its palette moves onto the tokens in G9.
+- **Prerequisite for G2.** The `dark:` variant was verified by test (the string) and by the build; it will be exercised for real once shadcn components that use `dark:` classes are added.

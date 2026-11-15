@@ -73,7 +73,7 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
   const bands = useMemo(() => (site ? buildBands(site) : []), [site]);
 
   const back = (
-    <Link href={`/runs/${runId}`} className="tap text-sm text-accent underline underline-offset-4">
+    <Link href={`/runs/${runId}`} className="tap text-sm text-primary underline underline-offset-4">
       ← Back to the status matrix
     </Link>
   );
@@ -85,7 +85,7 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
         <p role="alert" className="rounded-md border border-fail/40 bg-fail-soft px-3 py-2 text-fail">{err}</p>
       </div>
     );
-  if (!data || !site) return <div className="grid gap-3">{back}<p className="text-muted">Loading the timeline…</p></div>;
+  if (!data || !site) return <div className="grid gap-3">{back}<p className="text-muted-foreground">Loading the timeline…</p></div>;
 
   const sp = SITE_STATUS[site.site_status];
   const download = () => {
@@ -102,7 +102,7 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="type-title">Timeline: {siteLabel(siteId)}</h1>
         <StatusChip p={sp} title={sp.help} />
-        <Link href={`/runs/${runId}/sky/${encodeURIComponent(siteId)}`} className="tap text-sm text-accent underline underline-offset-4">
+        <Link href={`/runs/${runId}/sky/${encodeURIComponent(siteId)}`} className="tap text-sm text-primary underline underline-offset-4">
           Local sky
         </Link>
       </div>
@@ -143,7 +143,7 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
               <Legend />
               <Button onClick={download}>Download intervals (CSV)</Button>
             </div>
-            <p className="mt-2 text-xs text-muted">
+            <p className="mt-2 text-xs text-muted-foreground">
               Black ticks are predicted rise or set times under this terrain model. The bracket above a
               terrain-aware band marks its longest known outage. Times are UTC. The
               unresolved band around each crossing is the numerical decision band, not an outage.
@@ -173,17 +173,17 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
                     </div>
                   )}
                   <dl className="kv mt-2">
-                    <dt className="text-muted">Availability, terrain</dt>
+                    <dt className="text-muted-foreground">Availability, terrain</dt>
                     <dd className="tabular-nums">{pctRange(m.availability_lower, m.availability_upper, 2)} (needs at least {Math.round(m.threshold * 100)}%)</dd>
-                    <dt className="text-muted">Availability, flat horizon</dt>
+                    <dt className="text-muted-foreground">Availability, flat horizon</dt>
                     <dd className="tabular-nums">{pctRange(f.metrics.availability_lower, f.metrics.availability_upper, 2)}</dd>
-                    <dt className="text-muted">Longest known hidden</dt>
+                    <dt className="text-muted-foreground">Longest known hidden</dt>
                     <dd>{duration(m.longest_known_hidden_s)}</dd>
-                    <dt className="text-muted">Total known hidden</dt>
+                    <dt className="text-muted-foreground">Total known hidden</dt>
                     <dd>{duration(m.hidden_s)}{m.unknown_s > 0 ? ` (plus ${duration(m.unknown_s)} unresolved or unknown)` : ""}</dd>
-                    <dt className="text-muted">Best clearance over the skyline</dt>
+                    <dt className="text-muted-foreground">Best clearance over the skyline</dt>
                     <dd>{r.clearance_at_nodes ? degrees(r.clearance_at_nodes.max_deg) : "unknown"}</dd>
-                    <dt className="text-muted">At the start</dt>
+                    <dt className="text-muted-foreground">At the start</dt>
                     <dd>{r.countdown_at_start.text}{r.countdown_at_start.remaining_s != null ? `, in ${duration(r.countdown_at_start.remaining_s)}` : ""}</dd>
                   </dl>
                   <div className="mt-2">
@@ -191,7 +191,7 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
                       label={`${targetLabel(t)}, terrain-aware`} />
                   </div>
                   {m.exclusion_reasons.length > 0 && (
-                    <p className="mt-2 text-xs text-muted">Excluded because: {m.exclusion_reasons.join(", ")}.</p>
+                    <p className="mt-2 text-xs text-muted-foreground">Excluded because: {m.exclusion_reasons.join(", ")}.</p>
                   )}
                 </section>
               );
@@ -210,7 +210,7 @@ export function TimelineView({ runId, siteId }: { runId: string; siteId: string 
                   b.events.map((e) => (
                     <li key={`${b.target}-${e.t_s}`}>
                       {targetLabel(b.target)} {e.type}: <span className="readout">{utc(e.t_utc)}</span>{" "}
-                      <span className="text-muted">
+                      <span className="text-muted-foreground">
                         (solver bracket {e.solver_bracket_s} s
                         {e.geometry_timing_bound_s != null ? `, geometry timing bound ${e.geometry_timing_bound_s.toExponential(1)} s` : ", no timing bound claimed"})
                       </span>

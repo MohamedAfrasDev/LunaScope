@@ -64,9 +64,9 @@ export function ShiftForm({ runId, onShifted }: { runId: string; onShifted: (chi
           onChange={(e) => setDays(e.target.value)}
           aria-invalid={daysErr ? true : undefined}
           aria-describedby={`${uid}-days-help${daysErr ? ` ${uid}-days-err` : ""}`}
-          className="mt-1 w-32 rounded-md border border-border-strong bg-background px-2 py-1.5 tabular-nums"
+          className="mt-1 w-32 rounded-md border border-input bg-background px-2 py-1.5 tabular-nums"
         />
-        <p id={`${uid}-days-help`} className="mt-1 text-xs text-muted">
+        <p id={`${uid}-days-help`} className="mt-1 text-xs text-muted-foreground">
           Negative moves it earlier. Up to {MAX_DAYS} days.
         </p>
         {daysErr && (
