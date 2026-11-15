@@ -684,7 +684,7 @@ The Atlas is the same analysis with a different interface: the Moon fills the sc
 
 **Opening it.** The landing page (`/`) is the Moon, the name and one **Enter** button. Enter opens `/atlas`, which loads the reference mission GR-001. `/atlas?run=<64 characters>` opens a given run and `/atlas?ref=GR-002` a reference. The address follows the run you choose, so a view can be shared.
 
-**The screen.** Top bar: scale (**Moon**, **System**, **Site sky**), panels, **Whole Moon** and **South pole**, **Place a point**, the **run chip** (opens the Runs panel) and **Search** (Ctrl+K). Top right: the time, the scale, and in Site sky the Sun's and Earth's direction. Bottom: the time dock and the data status. **H** hides the interface.
+**The screen.** Top bar: scale (**Moon**, **Site sky**), panels, **Whole Moon** and **South pole**, **Place a point**, the **run chip** (opens the Runs panel) and **Search** (Ctrl+K). Top right: the time, the scale, and in Site sky the Sun's and Earth's direction. Bottom: the time dock and the data status. **H** hides the interface.
 
 **Sites.** Every catalog site is a pin. Choose one on the Moon or in the **Sites** list (which is also the keyboard route). A solid ring means the terrain data covers the whole 150 km footprint, a dashed ring that it does not or has not been checked. **Place a point** then a click on the Moon (latitude −90 to −80) adds a custom point, checked by the service; **Add a point** in the Sites panel does the same by coordinates. The **Selected site** card shows coordinates, precision, terrain coverage and source, and has **Centre on site**, **Enter site sky**, **Analyse this site** and, for a custom point, **Remove point**.
 
@@ -698,4 +698,4 @@ The Atlas is the same analysis with a different interface: the Moon fills the sc
 
 **On a phone.** The bar folds behind **Menu**, one panel at a time is a bottom sheet, the dock keeps play, the scrubber, the time, the data label and the imagery credit, and **More** reveals the rest. Nothing scrolls sideways from 320 px.
 
-**Not in the Atlas.** The **System** scale (needs Earth–Moon–Sun geometry the service does not return), the Guided/Technical switch, the page tour, the status matrix and the A/B clock for the Time Machine. The classic pages cover them.
+**Not in the Atlas.** A System scale (needs Earth–Moon–Sun geometry the service does not return, so it is not offered), the Guided/Technical switch, the page tour, the status matrix and the A/B clock for the Time Machine.
