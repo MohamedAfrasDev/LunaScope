@@ -129,7 +129,7 @@ export function EvidencePanel({ runId, embedded = false }: { runId: string; embe
   const { p, v, err } = useEvidence(runId);
 
   const back = (
-    <Link href={`/runs/${runId}`} className="tap text-sm text-primary underline underline-offset-4">
+    <Link href={`/atlas?run=${runId}`} className="tap text-sm text-primary underline underline-offset-4">
       ← Back to the status matrix
     </Link>
   );
@@ -351,7 +351,7 @@ export function EvidenceLink({ runId }: { runId: string }) {
         </ul>
       )}
       <p className="mt-3">
-        <Link href={`/runs/${runId}/evidence`} className="tap font-medium text-primary underline underline-offset-4">
+        <Link href={`/atlas?run=${runId}`} className="tap font-medium text-primary underline underline-offset-4">
           Open the evidence: provenance, validation cards and export
         </Link>
       </p>

@@ -61,12 +61,10 @@ test("choosing another reference loads it into the Atlas and puts it in the addr
   await expect(region(page, "Runs").getByText(/Opened on this device/)).toBeVisible();
 });
 
-test("?ref= opens a reference, and a classic run page links into the Atlas", async ({ page, request }) => {
+test("an old run address opens the same run in the Atlas", async ({ page, request }) => {
   test.setTimeout(420_000);
   const id = await gr001(request);
   await page.goto(`/runs/${id}`);
-  await expect(page.getByRole("region", { name: /Result state/ }).first()).toBeVisible({ timeout: 120_000 });
-  await page.getByRole("link", { name: "Open in the Atlas" }).click();
   await page.waitForURL(/\/atlas\?run=/);
   await expect(page.getByTestId("dock-status")).toContainText("Paused", { timeout: 280_000 });
   await expect(page.getByTestId("run-chip")).toHaveText(`Run ${id.slice(0, 12)}`);

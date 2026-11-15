@@ -30,12 +30,6 @@ export default function Home() {
               <Link href="/atlas" className={linkClass}>
                 Open the Atlas
               </Link>
-              <Link href="/analyze" className={linkClass}>
-                Set up your own analysis
-              </Link>
-              <Link href="/why-the-south-pole-is-hard" className={linkClass}>
-                Why the south pole is hard
-              </Link>
             </p>
           </div>
           <div>

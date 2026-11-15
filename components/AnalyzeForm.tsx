@@ -155,7 +155,7 @@ export function AnalyzeForm({ onStarted, seed }: { onStarted?: (runId: string) =
   };
   async function share() {
     if (!d) return;
-    const url = `${window.location.origin}/analyze?${SHARE_PARAM}=${encodeShare(d)}`;
+    const url = `${window.location.origin}/atlas?${SHARE_PARAM}=${encodeShare(d)}`;
     setShareUrl(url);
     try {
       await navigator.clipboard.writeText(url);
@@ -190,7 +190,7 @@ export function AnalyzeForm({ onStarted, seed }: { onStarted?: (runId: string) =
       if (onStarted) {
         onStarted(run.run_id);
         setBusy(false);
-      } else router.push(`/runs/${run.run_id}`);
+      } else router.push(`/atlas?run=${run.run_id}`);
     } catch (e) {
       const key = e instanceof ApiError ? fieldKeyFromService(e.field) : null;
       if (key) {

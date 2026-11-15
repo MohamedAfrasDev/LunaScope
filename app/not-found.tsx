@@ -1,34 +1,21 @@
 import { Compass } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ShellFrame } from "@/components/shell/ShellFrame";
-import { Button } from "@/components/ui/button";
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia } from "@/components/ui/empty";
 
 export const metadata: Metadata = { title: "Page not found" };
 
 export default function NotFound() {
   return (
-    <ShellFrame>
-    <Empty className="surface-card mx-auto max-w-xl">
-      <EmptyHeader>
-        <EmptyMedia variant="icon">
-          <Compass aria-hidden="true" />
-        </EmptyMedia>
+    <main id="main" className="atlas grid min-h-svh place-items-center bg-black px-4">
+      <div className="atlas-panel atlas-prose max-w-md p-6 text-center">
+        <Compass aria-hidden="true" className="mx-auto mb-3 size-6 text-[var(--ink-dim)]" />
         <h1 className="text-lg font-medium tracking-tight">This page is not here</h1>
-        <EmptyDescription>
-          The address may be mistyped, or an old link. Nothing was lost: you can start from Home, or set up a new analysis.
-        </EmptyDescription>
-      </EmptyHeader>
-      <EmptyContent className="flex-row justify-center">
-        <Button asChild>
-          <Link href="/">Go to Home</Link>
-        </Button>
-        <Button asChild variant="outline">
-          <Link href="/analyze">New analysis</Link>
-        </Button>
-      </EmptyContent>
-    </Empty>
-    </ShellFrame>
+        <p className="mt-2 text-sm text-[var(--ink-dim)]">The address may be mistyped, or an old link. Nothing was lost: open the Atlas to carry on.</p>
+        <p className="mt-5 flex justify-center gap-6 text-sm">
+          <Link href="/atlas" className="tap text-[var(--ink)] underline underline-offset-4">Open the Atlas</Link>
+          <Link href="/" className="tap text-[var(--ink)] underline underline-offset-4">Home</Link>
+        </p>
+      </div>
+    </main>
   );
 }

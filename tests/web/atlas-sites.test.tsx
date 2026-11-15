@@ -205,7 +205,7 @@ describe("SelectedSitePanel", () => {
 
   it("Analyse this site links to the form with only this site filled in, and starts nothing", () => {
     const href = analyseHref(haworth);
-    expect(href.startsWith(`/analyze?${SHARE_PARAM}=`)).toBe(true);
+    expect(href.startsWith(`/atlas?${SHARE_PARAM}=`)).toBe(true);
     const draft = decodeShare(href.split("=")[1]);
     expect(draft?.siteIds).toEqual(["iau-haworth"]);
     expect(draft?.custom).toEqual([]);

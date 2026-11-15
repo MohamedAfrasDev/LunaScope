@@ -48,7 +48,7 @@ describe("notable places card", () => {
     expect(screen.getByText(/not landing\s+recommendations/)).toBeInTheDocument();
     expect(screen.getByText(/crater centre is its floor, not its rim/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Compare the Artemis III features" }));
-    await waitFor(() => expect(push).toHaveBeenCalledWith(`/runs/${RUN}`));
+    await waitFor(() => expect(push).toHaveBeenCalledWith(`/atlas?run=${RUN}`));
     expect(posts).toEqual([gr002.request]);
   });
 

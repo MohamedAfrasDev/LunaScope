@@ -7,9 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Disclosure } from "@/components/ui/disclosure";
 import { Progress } from "@/components/ui/progress";
-import { ResultBadge } from "@/components/ui/result-badge";
 import { SectionHeader } from "@/components/ui/section-header";
-import { Stat } from "@/components/ui/stat";
 import { SunEarthKey } from "@/components/ui/sun-earth-key";
 import { WarningItem } from "@/components/ui/warning-item";
 
@@ -113,24 +111,6 @@ describe("SectionHeader", () => {
     expect(screen.getByText("Step 1")).toBeInTheDocument();
     expect(screen.getByText("Move the start")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Go" })).toBeInTheDocument();
-  });
-});
-
-describe("Stat", () => {
-  it("pairs a label with a readout value, unit and hint", () => {
-    render(<dl><Stat label="Availability" value="74.5" unit="%" hint="needs at least 50%" /></dl>);
-    expect(screen.getByText("Availability")).toBeInTheDocument();
-    expect(screen.getByText("74.5").className).toContain("readout");
-    expect(screen.getByText("%")).toBeInTheDocument();
-    expect(screen.getByText("needs at least 50%")).toBeInTheDocument();
-  });
-});
-
-describe("ResultBadge", () => {
-  it("shows icon, word and the explanation as a title (never colour alone)", () => {
-    render(<ResultBadge state="real_data_unverified" />);
-    const badge = screen.getByText("Real data, unverified");
-    expect(badge.closest("span[title]")).toHaveAttribute("title", expect.stringContaining("no validation gate"));
   });
 });
 

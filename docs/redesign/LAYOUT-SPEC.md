@@ -471,3 +471,11 @@ dark (imagery night alpha 0.07), with a clear terminator that moves as the clock
 `lib/atlas/sun-light.ts` gives the sub-solar point (low precision, about a degree: a display estimate, not a service result; it
 never says whether anything is visible from a site). The imagery is also brightened and given more contrast, and the globe uses a
 finer tile level of detail. The Explorer page keeps its unlit look.
+
+## The Atlas replaces the sidebar layout
+
+The `(shell)` route group (sidebar, top bar, run, timeline, sky, compare, time machine, evidence, analyse, explore and explainer
+pages) and every component only they used were deleted. `/` is still the Moon landing and `/atlas` is the app. `next.config.ts`
+redirects the old addresses: `/runs/:id/...` to `/atlas?run=:id`, and `/analyze`, `/explore` and `/why-the-south-pole-is-hard` to
+`/atlas`. The explainer and key terms now live in the Learn panel. The Atlas keeps the evidence, dates, compare and analyse tools as
+panels. The classic pages remain on `main`.

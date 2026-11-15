@@ -150,6 +150,8 @@ Each state has its own **pattern** on the timeline (solid, hatched, dotted, cros
 
 Pages are reached through the **side navigation** (**Home**, **New analysis**, your **Recent runs**, **Why the south pole is hard**), the **top bar** (breadcrumbs, **Search**, the data-status pill, the **Guided / Technical** switch) and, inside a run, a tab bar (see 4.4) and links on each result page.
 
+> **Historical (sections 4.1 to 4.10).** These describe the classic sidebar pages of the `main` branch, which the Atlas replaces on `redesign-layout`.
+
 ### 4.1 Header, footer and global controls
 
 - **Skip to content** link: the first thing a keyboard user tabs to.
@@ -678,7 +680,7 @@ What may and may not be claimed is in [`docs/submission/CLAIMS-AUDIT.md`](submis
 
 ## 15. The Atlas (the new layout, on the `redesign-layout` branch)
 
-The Atlas is the same analysis with a different interface: the Moon fills the screen, and every tool is a small panel floating on it. Nothing about the science, the labels or the claims changes. The classic pages above still work and link into it (**Open in the Atlas** on every run page).
+The Atlas is the same analysis with a different interface: the Moon fills the screen, and every tool is a small panel floating on it. Nothing about the science, the labels or the claims changes. The classic sidebar pages (sections 4.1 to 4.10) were removed from the redesign branch: the Atlas is now the whole app, and the old addresses (`/runs/...`, `/analyze`, `/explore`, `/why-the-south-pole-is-hard`) open it, a run id carrying over.
 
 **Opening it.** The landing page (`/`) is the Moon, the name and one **Enter** button. Enter opens `/atlas`, which loads the reference mission GR-001. `/atlas?run=<64 characters>` opens a given run and `/atlas?ref=GR-002` a reference. The address follows the run you choose, so a view can be shared.
 
@@ -696,4 +698,4 @@ The Atlas is the same analysis with a different interface: the Moon fills the sc
 
 **On a phone.** The bar folds behind **Menu**, one panel at a time is a bottom sheet, the dock keeps play, the scrubber, the time, the data label and the imagery credit, and **More** reveals the rest. Nothing scrolls sideways from 320 px.
 
-**Not in the Atlas yet.** The **System** scale (needs Earth–Moon–Sun geometry the service does not return), the Guided/Technical switch, the page tour, the status matrix and the A/B clock for the Time Machine. The classic pages cover them.
+**Not in the Atlas.** The **System** scale (needs Earth–Moon–Sun geometry the service does not return), the Guided/Technical switch, the page tour, the status matrix and the A/B clock for the Time Machine. The classic pages cover them.

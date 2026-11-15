@@ -65,7 +65,7 @@ describe("Landing page", () => {
     expect(screen.getByText(/No hidden score/)).toBeInTheDocument();
     expect(screen.getByText(/Not a landing-safety, power, link-budget/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Start the reference mission" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Set up your own analysis" })).toHaveAttribute("href", "/analyze");
+    expect(screen.queryByRole("link", { name: "Set up your own analysis" })).toBeNull(); // the Atlas has the Analyse panel
     expect(screen.getByRole("link", { name: "Open the Atlas" })).toHaveAttribute("href", "/atlas");
     expect(screen.getAllByText(/Not endorsed by NASA/).length).toBeGreaterThan(0);
   });

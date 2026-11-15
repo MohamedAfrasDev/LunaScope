@@ -39,7 +39,7 @@ export function analyseDraft(site: AtlasSite): Draft {
 
 /** A link to the classic analysis form with just this site filled in. */
 export function analyseHref(site: AtlasSite): string {
-  return `/analyze?${SHARE_PARAM}=${encodeShare(analyseDraft(site))}`;
+  return `/atlas?${SHARE_PARAM}=${encodeShare(analyseDraft(site))}`;
 }
 
 /** What the loaded run says about this site at the clock time. Everything here came from the science service. */

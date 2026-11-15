@@ -12,7 +12,6 @@ async function gr001(request: APIRequestContext): Promise<string> {
 }
 
 const KB = 1024;
-const SITE = "rule-89.5S-E0";
 
 async function measure(page: Page, path: string, ready: () => Promise<unknown>) {
   let js = 0;
@@ -44,13 +43,8 @@ async function measure(page: Page, path: string, ready: () => Promise<unknown>) 
 const PAGES: { name: string; path: (id: string) => string; ready: (p: Page) => Promise<unknown>; jsKB: number }[] = [
   // the landing carries the Moon: three.js (loaded on demand) and the 458 KB surface picture. Measured on the production build: JS 430 KB, images 459 KB
   { name: "home", path: () => "/", ready: (p) => p.getByRole("heading", { level: 1 }).waitFor(), jsKB: 560 },
-  { name: "analyze", path: () => "/analyze", ready: (p) => p.getByRole("heading", { level: 1 }).waitFor(), jsKB: 300 },
   // the Atlas carries CesiumJS (loaded on this route only). Measured on the production build: JS 1710 KB
   { name: "atlas", path: () => "/atlas", ready: (p) => p.getByTestId("explore").waitFor(), jsKB: 2200 },
-  { name: "run", path: (id) => `/runs/${id}`, ready: (p) => p.getByRole("region", { name: /Result state/ }).first().waitFor({ timeout: 120_000 }), jsKB: 330 },
-  { name: "timeline", path: (id) => `/runs/${id}/timeline/${SITE}`, ready: (p) => p.getByRole("heading", { level: 1 }).waitFor(), jsKB: 330 },
-  { name: "compare", path: (id) => `/runs/${id}/compare`, ready: (p) => p.getByRole("heading", { level: 1 }).waitFor(), jsKB: 330 },
-  { name: "evidence", path: (id) => `/runs/${id}/evidence`, ready: (p) => p.getByRole("heading", { name: "Validation cards" }).waitFor(), jsKB: 330 },
 ];
 
 for (const [label, width, height] of [["desktop", 1440, 900], ["phone", 375, 812]] as const) {

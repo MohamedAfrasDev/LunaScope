@@ -142,7 +142,7 @@ describe("Home reference mission", () => {
     expect(await screen.findByText(/Reference GR-001: 7 days from 2027-01-10 UTC.*3 sites, with sensitivity checks/)).toBeInTheDocument();
     expect(screen.getByText(/GR-001 is a draft\. Its three sites are rule-chosen points, not candidate landing sites/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Start the reference mission" }));
-    await waitFor(() => expect(push).toHaveBeenCalledWith(`/runs/${RUN}`));
+    await waitFor(() => expect(push).toHaveBeenCalledWith(`/atlas?run=${RUN}`));
     expect(posts).toEqual([gr001.request]);
   });
 });

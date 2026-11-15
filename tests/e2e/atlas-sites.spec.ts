@@ -45,7 +45,7 @@ test("the sites are pins on the Moon, and choosing one selects it", async ({ pag
   await expect(panel.getByText(/87\.\d{3}° S/)).toBeVisible();
   // with no Sun or Earth result for this point, the panel says why (the run is loading, or the point is not in it)
   await expect(panel.getByText(/Loading the run|not in the loaded run|No run is loaded/)).toBeVisible();
-  await expect(panel.getByRole("link", { name: "Analyse this site" })).toHaveAttribute("href", /\/analyze\?d=/);
+  await expect(panel.getByRole("link", { name: "Analyse this site" })).toHaveAttribute("href", /\/atlas\?d=/);
 
   // the selected pin is on screen and marked
   const pin = page.locator('button[data-site="iau-haworth"]');
