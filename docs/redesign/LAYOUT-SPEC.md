@@ -402,3 +402,11 @@ Production cost measured: landing JS 430 KB and images 459 KB (budgets raised fr
 - The right-hand panels share one column. A site panel with nothing to show says why (no run, no site selected, or a site the run does not hold).
 - **Parity:** `tests/e2e/atlas-panels.spec.ts` loads the Timeline run page for the same site and checks that availability, longest and total hidden time, best clearance and the countdown at the start are the same text on both. Sky path's position is checked against the Selected site readout.
 - Fixed: scrollable panel bodies are now keyboard-focusable (axe `scrollable-region-focusable`).
+
+### Phase F (Site sky), done
+- **Scale:** Site sky is on in the top bar once a site that the loaded run holds is selected (otherwise it is off and says why). Enter it there, or with Enter site sky on the Selected site card. Losing the site leaves Site sky and selecting again does not jump back in.
+- **Scene:** the run pages' 3D sky (`Sky3D`), now embeddable full-bleed with host-controlled look mode, exaggeration and path visibility. The wall is the service's terrain skyline (an unknown sector is left open), Sun and Earth sit where the service's series puts them at the clock time, and a target behind the wall is hidden only because the data put it there. Three.js loads on the first visit only. Without WebGL it says so and points to the Sky path plots.
+- **Controls:** Face the Sun, Face the Earth, N E S W, Sun path, Earth path, All paths, Look around or From outside, Exaggerate heights ×3 (stated on screen and in the scale readout whenever on), and Return to Moon. A compass line shows the heading ("151° SE, facing south-east").
+- **Readout:** time, the Sun's and Earth's azimuth and elevation (tagged `DERIVED`), and the scale. **Mission window** panel: day N of M, time left, and for each target the service's state now and its availability over the whole window. No combined "both visible" figure (rule 3).
+- **Not built:** the generic lander model. It is decoration the spec marked `ILLUSTRATION`, and it adds nothing the data shows; the observer pin of the 3D sky stays.
+- Fixed on the way: the compass uses the eight points the reference uses (151 degrees is SE), not sixteen.

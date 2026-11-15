@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import type { Sky3DHandle } from "@/components/Sky3D";
 import { LearnPanel } from "@/components/atlas/LearnPanel";
+import { MissionWindowPanel } from "@/components/atlas/MissionWindowPanel";
+import { SiteSky, type SkyLook } from "@/components/atlas/SiteSky";
+import { SkyControls } from "@/components/atlas/SkyControls";
 import { PinLayer } from "@/components/atlas/PinLayer";
 import { Readout } from "@/components/atlas/Readout";
 import { SelectedSitePanel, type SiteCursor } from "@/components/atlas/SelectedSitePanel";
@@ -26,6 +30,7 @@ import type { CustomSiteCheck } from "@/lib/api/types";
 import { fromCustomCheck, inTerrainData, MAX_CUSTOM_POINTS, type AtlasSite } from "@/lib/atlas/sites";
 import { utcLabel } from "@/lib/atlas/clock";
 import { cursorAt, eventScopeWords, eventTimesFor } from "@/lib/atlas/run";
+import { skyScaleLabel } from "@/lib/atlas/sky";
 import { shortId } from "@/lib/format";
 import type { ViewName } from "@/lib/explore/geometry";
 
@@ -58,6 +63,11 @@ export function AtlasShell() {
   const [customs, setCustoms] = useState<AtlasSite[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [placing, setPlacing] = useState(false);
+  const [skyLook, setSkyLook] = useState<SkyLook>("look");
+  const [skyK, setSkyK] = useState(1);
+  const [skyPaths, setSkyPaths] = useState({ sun_center: true, earth_center: true });
+  const [skyYaw, setSkyYaw] = useState(0);
+  const skyHandle = useRef<Sky3DHandle | null>(null);
   const nextCustom = useRef(1);
 
   const sites = useMemo(() => [...catalog.sites, ...customs], [catalog.sites, customs]);
@@ -83,7 +93,13 @@ export function AtlasShell() {
 
   const tracks = runData && selectedId ? (runData.sites[selectedId] ?? null) : null;
   const rightOpen = RIGHT_PANELS.find((p) => open.includes(p)) ?? null;
-  const needHorizon = !!tracks && (open.includes("clearance") || open.includes("sky-path"));
+  // Site sky needs a run and a selected site the run holds; without them the scale falls back to the Moon
+  const skyReady = !!tracks && !!selected;
+  const effScale: Scale = scale === "sky" && !skyReady ? "moon" : scale;
+  const inSky = effScale === "sky";
+  // losing the site (deselected, or not in the run) leaves Site sky for good, so selecting again does not jump back into it
+  if (scale === "sky" && !skyReady) setScale("moon");
+  const needHorizon = !!tracks && (open.includes("clearance") || open.includes("sky-path") || inSky);
   const horizon = useHorizon(runData?.runId ?? null, selectedId, needHorizon);
   const readings = runData && selectedId ? cursorAt(runData, selectedId, clock.t) : null;
 
@@ -116,6 +132,10 @@ export function AtlasShell() {
   }, [runLoad, selectedId, clock.t, runLabel]);
 
   const onReady = useCallback((h: SceneHandle) => setScene(h), []);
+  const onSkyReady = useCallback((h: Sky3DHandle) => {
+    skyHandle.current = h;
+  }, []);
+  const onSkyView = useCallback((yaw: number) => setSkyYaw((cur) => (Math.round(cur) === Math.round(yaw) ? cur : yaw)), []);
   const onView = useCallback((v: ViewName) => scene?.fly(v), [scene]);
   // the right-hand panels share one column: opening one closes the others
   const toggle = useCallback(
@@ -192,10 +212,24 @@ export function AtlasShell() {
   }, []);
 
   return (
-    <div className="atlas absolute inset-0 overflow-hidden" data-testid="atlas" data-scale={scale} data-hidden={hidden} data-placing={placing}>
+    <div className="atlas absolute inset-0 overflow-hidden" data-testid="atlas" data-scale={effScale} data-hidden={hidden} data-placing={placing}>
       <h1 className="sr-only">LunaScope Atlas: the lunar south pole</h1>
       <ExploreLoader bleed onReady={onReady} />
-      <PinLayer scene={scene} sites={sites} selectedId={selectedId} onSelect={select} />
+      {!inSky && <PinLayer scene={scene} sites={sites} selectedId={selectedId} onSelect={select} />}
+      {inSky && tracks && runData && selected && (
+        <SiteSky
+          siteName={selected.label}
+          tracks={tracks}
+          horizon={horizon}
+          window={runData.window}
+          t={clock.t}
+          look={skyLook}
+          exaggeration={skyK}
+          paths={skyPaths}
+          onReady={onSkyReady}
+          onView={onSkyView}
+        />
+      )}
 
       <p role="status" className="sr-only">
         {hidden ? "Interface hidden. Press H to show it." : ""}
@@ -211,8 +245,9 @@ export function AtlasShell() {
           {/* only the instruments take the mouse; everything between them is the globe (drag, zoom, click a pin) */}
           <div className="pointer-events-auto">
             <TopBar
-              scale={scale}
+              scale={effScale}
               onScale={setScale}
+              skyReady={skyReady}
               open={open}
               onTogglePanel={toggle}
               onView={onView}
@@ -222,8 +257,31 @@ export function AtlasShell() {
             />
           </div>
 
+          {inSky && (
+            <div className="pointer-events-auto">
+              <SkyControls
+                look={skyLook}
+                onLook={setSkyLook}
+                exaggeration={skyK}
+                onExaggeration={setSkyK}
+                paths={skyPaths}
+                onPaths={setSkyPaths}
+                onFaceTarget={(t) => skyHandle.current?.faceTarget(t)}
+                onFace={(az) => skyHandle.current?.face(az)}
+                onReturn={() => setScale("moon")}
+                yaw={skyYaw}
+                has={{ sun_center: !!tracks?.sun_center, earth_center: !!tracks?.earth_center }}
+              />
+            </div>
+          )}
+
           <div className="pointer-events-none flex min-h-0 flex-1 items-start justify-between gap-3">
             <div className="pointer-events-none flex h-full min-h-0 w-[min(24rem,100%)] flex-col gap-3 [&>*]:pointer-events-auto">
+              {inSky && tracks && runData && (
+                <div className="flex max-h-[45%] shrink-0 flex-col">
+                  <MissionWindowPanel window={runData.window} t={clock.t} tracks={tracks} readings={readings} onClose={() => setScale("moon")} />
+                </div>
+              )}
               {open.includes("sites") && (
                 <div className="flex min-h-0 flex-1 flex-col">
                   <SitesPanel
@@ -247,6 +305,7 @@ export function AtlasShell() {
                     onReset={() => scene?.fly("south-pole")}
                     onRemove={selected.kind === "custom" ? () => removeCustom(selected.id) : undefined}
                     onClose={() => setSelectedId(null)}
+                    onEnterSky={tracks ? () => setScale("sky") : undefined}
                   />
                 </div>
               )}
@@ -261,7 +320,19 @@ export function AtlasShell() {
               )}
             </div>
             <div className="pointer-events-none flex h-full min-h-0 w-[min(26rem,100%)] flex-col items-end gap-3">
-              <Readout scaleLabel={SCALE_LABEL[scale]} timeLabel={runData ? utcLabel(runData.window, clock.t) : "NO RUN LOADED"} />
+              <Readout
+                scaleLabel={inSky ? skyScaleLabel(skyK) : SCALE_LABEL[effScale]}
+                timeLabel={runData ? utcLabel(runData.window, clock.t) : "NO RUN LOADED"}
+                extra={
+                  inSky && readings
+                    ? readings.map((r) => ({
+                        label: r.target === "sun_center" ? "Sun" : "Earth",
+                        tag: "derived" as const,
+                        value: `AZ ${r.azDeg.toFixed(1)}° · EL ${r.elDeg >= 0 ? "+" : "−"}${Math.abs(r.elDeg).toFixed(2)}°`,
+                      }))
+                    : []
+                }
+              />
               {placing && (
                 <p role="status" className="atlas-panel atlas-label pointer-events-auto px-3 py-2 text-[var(--ink)]">
                   Click the Moon to place a point · latitude −90 to −80

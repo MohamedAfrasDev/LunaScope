@@ -14,7 +14,7 @@ export const RIGHT_PANELS: PanelId[] = ["metrics", "clearance", "sky-path", "com
 const SCALES: { id: Scale; label: string; ready: boolean; note: string }[] = [
   { id: "moon", label: "Moon", ready: true, note: "" },
   { id: "system", label: "System", ready: false, note: "Arrives in a later phase" },
-  { id: "sky", label: "Site sky", ready: false, note: "Arrives in a later phase" },
+  { id: "sky", label: "Site sky", ready: true, note: "" },
 ];
 
 const PANELS: { id: PanelId; label: string }[] = [
@@ -37,8 +37,11 @@ export function TopBar({
   placing,
   onTogglePlacing,
   runLabel,
+  skyReady = false,
 }: {
   runLabel?: string;
+  /** Site sky needs a run and a selected site that the run holds. */
+  skyReady?: boolean;
   scale: Scale;
   onScale: (s: Scale) => void;
   open: PanelId[];
@@ -61,8 +64,8 @@ export function TopBar({
             type="button"
             className="atlas-key atlas-label"
             aria-pressed={scale === s.id}
-            disabled={!s.ready}
-            title={s.ready ? undefined : s.note}
+            disabled={s.id === "sky" ? !skyReady && scale !== "sky" : !s.ready}
+            title={s.id === "sky" ? (skyReady || scale === "sky" ? undefined : "Select a site that is in the loaded run") : s.ready ? undefined : s.note}
             onClick={() => onScale(s.id)}
           >
             {s.label}

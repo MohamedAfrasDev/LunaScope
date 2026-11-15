@@ -59,7 +59,7 @@ describe("TopBar", () => {
   it("marks the current scale, and disables the scales that are not built yet, saying so", () => {
     render(<TopBar {...base} />);
     expect(screen.getByRole("button", { name: "Moon" })).toHaveAttribute("aria-pressed", "true");
-    for (const name of ["System", "Site sky"]) {
+    for (const name of ["System"]) {
       const b = screen.getByRole("button", { name });
       expect(b).toBeDisabled();
       expect(b).toHaveAttribute("title", expect.stringMatching(/later phase/i));

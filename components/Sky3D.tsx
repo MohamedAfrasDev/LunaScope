@@ -41,21 +41,41 @@ interface Handles {
   setView: (yaw: number, pitch: number) => void;
 }
 
-export function Sky3D({ profile, tracks, t, siteName, clock }: {
+/** What a host (the Atlas) can ask of the view. */
+export type Sky3DHandle = { faceTarget: (target: string) => void; face: (yawDeg: number, pitchDeg?: number) => void };
+
+export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode: modeProp, exaggeration, showPaths, onReady, onView }: {
   profile: HorizonProfileResponse;
   tracks: Track3D[]; // keep this array stable: the scene is rebuilt when it changes
   t: number;
   siteName: string;
   clock: string;
+  /** Fill the parent and draw no controls or text of its own: the host supplies them (Atlas Site sky). */
+  bleed?: boolean;
+  /** Host-controlled look mode, exaggeration and path visibility. When omitted the view keeps its own controls. */
+  mode?: Mode;
+  exaggeration?: number;
+  showPaths?: Partial<Record<string, boolean>>;
+  onReady?: (h: Sky3DHandle) => void;
+  /** Where the view is looking (degrees), on every drawn frame. */
+  onView?: (yawDeg: number, pitchDeg: number) => void;
 }) {
   const box = useRef<HTMLDivElement>(null);
-  const [mode, setMode] = useState<Mode>("look");
-  const [k, setK] = useState(1);
+  const [modeState, setMode] = useState<Mode>("look");
+  const [kState, setK] = useState(1);
+  const mode = modeProp ?? modeState;
+  const k = exaggeration ?? kState;
+  const sunPath = showPaths?.sun_center !== false;
+  const earthPath = showPaths?.earth_center !== false;
+  const onViewRef = useRef(onView);
+  useEffect(() => {
+    onViewRef.current = onView;
+  }, [onView]);
   const [ok, setOk] = useState<boolean | null>(null);
   const scheme = useColorScheme(); // rebuild the scene when the system theme changes
   const handles = useRef<Handles | null>(null);
   const view = useRef({ yaw: 0, pitch: 4, fov: 70, dist: 30 });
-  const live = useRef({ tracks, t, k, mode });
+  const live = useRef({ tracks, t, k, mode, paths: { sun_center: sunPath, earth_center: earthPath } as Record<string, boolean> });
 
   const cursor = useMemo(() => tracks.map((x) => ({ target: x.target, ...interpAzEl(x.series, t), cls: (classAt(x.intervals, t) ?? "none") as IntervalClass | "none" })), [tracks, t]);
   const label = describeScene({
@@ -65,9 +85,9 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
 
   // The scene reads the latest props through this ref; it is updated in an effect, before any frame is drawn.
   useEffect(() => {
-    live.current = { tracks, t, k, mode };
+    live.current = { tracks, t, k, mode, paths: { sun_center: sunPath, earth_center: earthPath } };
     handles.current?.render();
-  }, [tracks, t, k, mode]);
+  }, [tracks, t, k, mode, sunPath, earthPath]);
 
   const faceTarget = useCallback((target: string) => {
     const c = live.current.tracks.find((x) => x.target === target);
@@ -84,6 +104,10 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
     handles.current?.render();
   }, []);
 
+  useEffect(() => {
+    onReady?.({ faceTarget, face });
+  }, [onReady, faceTarget, face]);
+
   // The scene: rebuilt when the data, the exaggeration or the mode changes; markers move on t without a rebuild.
   useEffect(() => {
     const el = box.current;
@@ -94,7 +118,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
     (async () => {
       const THREE = (await import("three")) as typeof THREE_NS;
       if (cancelled) return;
-      const pal = readSkyPalette(); // the theme's colours, read now
+      const pal = readSkyPalette(el); // the theme's colours, read now (from the scope the view sits in)
       const COLORS: Record<string, string> = { sun_center: pal.sun, earth_center: pal.earth };
       let renderer: THREE_NS.WebGLRenderer;
       try {
@@ -105,7 +129,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
       }
       setOk(true);
       const canvas = renderer.domElement;
-      canvas.className = "block h-full w-full touch-none rounded-md";
+      canvas.className = bleed ? "block h-full w-full touch-none" : "block h-full w-full touch-none rounded-md";
       canvas.tabIndex = 0;
       canvas.setAttribute("role", "img");
       canvas.setAttribute("aria-label", "3D sky. Drag to look around; arrow keys also turn the view.");
@@ -152,13 +176,15 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
       }
 
       // paths: visible runs bright and depth-tested; everything else dim and always drawn (so you can see where it is)
+      const pathObjs = new Map<string, THREE_NS.Object3D[]>();
       for (const tr of tracks) {
         for (const run of trackRuns(tr.series, tr.intervals, R_SKY, k)) {
           const g = new THREE.BufferGeometry();
           g.setAttribute("position", new THREE.BufferAttribute(run.positions, 3));
           const vis = run.cls === "V";
           const m = new THREE.LineBasicMaterial({ color: COLORS[tr.target], transparent: !vis, opacity: vis ? 1 : 0.4, depthTest: vis });
-          add(new THREE.Line(g, m));
+          const line = add(new THREE.Line(g, m));
+          pathObjs.set(tr.target, [...(pathObjs.get(tr.target) ?? []), line]);
           disposables.push(g, m);
         }
       }
@@ -243,10 +269,12 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
           camera.lookAt(0, 1.5, 0);
         }
         camera.updateProjectionMatrix();
+        for (const [target, objs] of pathObjs) for (const o of objs) o.visible = live.current.paths[target] !== false;
         placeMarkers();
         renderer.render(scene, camera);
         frames += 1;
         el.setAttribute("data-frames", String(frames));
+        onViewRef.current?.(v.yaw, v.pitch);
       };
       const request = () => {
         if (!raf) raf = requestAnimationFrame(draw);
@@ -256,7 +284,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
       const resize = () => {
         const r = el.getBoundingClientRect();
         const w = Math.max(160, Math.floor(r.width));
-        const h = Math.max(220, Math.floor(w < 520 ? w * 0.9 : w * 0.56));
+        const h = bleed ? Math.max(220, Math.floor(r.height)) : Math.max(220, Math.floor(w < 520 ? w * 0.9 : w * 0.56));
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         renderer.setSize(w, h, false);
         canvas.style.height = `${h}px`;
@@ -340,15 +368,29 @@ export function Sky3D({ profile, tracks, t, siteName, clock }: {
       cancelled = true;
       cleanup?.();
     };
-  }, [profile, tracks, k, scheme]);
+  }, [profile, tracks, k, scheme, bleed]);
 
   const btn = "rounded-md border border-border px-2.5 py-1 text-sm transition-colors hover:border-input hover:bg-muted";
+  if (ok === false && bleed)
+    return (
+      <p role="status" className="atlas-panel atlas-prose absolute left-1/2 top-1/2 max-w-md -translate-x-1/2 -translate-y-1/2 px-4 py-3 text-sm text-[var(--ink)]">
+        The 3D sky needs WebGL, which this browser or device does not offer. The Sky path panel draws the same sky as flat plots.
+      </p>
+    );
   if (ok === false)
     return (
       <p role="status" className="rounded-md border border-border bg-muted px-3 py-3 text-sm">
         The 3D view needs WebGL, which this browser or device does not offer. The polar and unrolled views show the same
         sky.
       </p>
+    );
+
+  if (bleed)
+    return (
+      <div ref={box} data-frames="0" className="absolute inset-0" data-testid="sky3d">
+        <div data-canvas-slot className="absolute inset-0" role="group" aria-label={label} />
+        {ok === null && <p role="status" className="atlas-label absolute inset-0 grid place-items-center text-[var(--ink-dim)]">Loading the 3D sky…</p>}
+      </div>
     );
 
   return (

@@ -100,8 +100,11 @@ export function SelectedSitePanel({
   onReset,
   onRemove,
   onClose,
+  onEnterSky,
   cursor = { kind: "none" },
 }: {
+  /** Present when the loaded run holds this site: enters Site sky. */
+  onEnterSky?: () => void;
   site: AtlasSite;
   cursor?: SiteCursor;
   onCentre: () => void;
@@ -161,7 +164,13 @@ export function SelectedSitePanel({
         <button type="button" className="atlas-key atlas-label border-[var(--panel-edge)]" onClick={onReset}>
           Reset view
         </button>
-        <button type="button" className="atlas-key atlas-label border-[var(--panel-edge)]" disabled title="Arrives in a later phase">
+        <button
+          type="button"
+          className="atlas-key atlas-label border-[var(--panel-edge)]"
+          disabled={!onEnterSky}
+          title={onEnterSky ? undefined : "Needs a loaded run that holds this site"}
+          onClick={onEnterSky}
+        >
           Enter site sky
         </button>
         <Link href={analyseHref(site)} className="atlas-key atlas-label inline-flex items-center border border-[var(--panel-edge)]">
