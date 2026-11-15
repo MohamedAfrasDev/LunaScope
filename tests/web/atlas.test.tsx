@@ -56,14 +56,21 @@ describe("Panel", () => {
 describe("TopBar", () => {
   const base = { scale: "moon" as const, onScale: vi.fn(), open: [] as ("learn" | "sites")[], onTogglePanel: vi.fn(), onView: vi.fn(), placing: false, onTogglePlacing: vi.fn() };
 
-  it("marks the current scale, and disables the scales that are not built yet, saying so", () => {
+  it("marks the current scale, and does not offer the scales that are not built yet", () => {
     render(<TopBar {...base} />);
     expect(screen.getByRole("button", { name: "Moon" })).toHaveAttribute("aria-pressed", "true");
-    for (const name of ["System"]) {
-      const b = screen.getByRole("button", { name });
-      expect(b).toBeDisabled();
-      expect(b).toHaveAttribute("title", expect.stringMatching(/later phase/i));
-    }
+    expect(screen.queryByRole("button", { name: "System" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Site sky" })).toBeInTheDocument();
+  });
+
+  it("explains on hover why Place a point is off on an offline copy, and works normally otherwise", () => {
+    const { rerender } = render(<TopBar {...base} canPlace={false} />);
+    const wrap = screen.getByTestId("place-wrap");
+    expect(wrap).toHaveAttribute("title", expect.stringMatching(/offline.*run LunaScope on your computer/i));
+    expect(screen.getByRole("button", { name: /Place a point/ })).toBeDisabled();
+    rerender(<TopBar {...base} />);
+    expect(screen.getByTestId("place-wrap")).not.toHaveAttribute("title");
+    expect(screen.getByRole("button", { name: "Place a point" })).toBeEnabled();
   });
 
   it("toggles panels and reports the camera views", () => {

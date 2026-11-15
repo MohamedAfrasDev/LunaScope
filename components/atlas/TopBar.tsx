@@ -15,6 +15,9 @@ export const RIGHT_PANELS: PanelId[] = ["metrics", "clearance", "sky-path", "com
 /** Panels that need more room than the narrow right column. */
 export const WIDE_PANELS: PanelId[] = ["dates", "evidence", "analyse"];
 
+/** Why Place a point is off on an offline copy. */
+const PLACE_OFFLINE_NOTE = "Needs the live science service. This copy is offline, so a new point cannot be computed. Run LunaScope on your computer to add your own points.";
+
 const SCALES: { id: Scale; label: string; ready: boolean; note: string }[] = [
   { id: "moon", label: "Moon", ready: true, note: "" },
   { id: "system", label: "System", ready: false, note: "Arrives in a later phase" },
@@ -100,7 +103,8 @@ export function TopBar({
       <div id={menuId} hidden={compact && !menu} className={compact ? "flex w-full flex-wrap items-center gap-x-1 gap-y-1 border-t border-[var(--panel-edge)] pt-1.5" : "contents"}>
 
       <div role="group" aria-label="Scale" className="flex flex-wrap items-center gap-0.5 border-l border-[var(--panel-edge)] pl-2">
-        {SCALES.map((s) => (
+        {/* a scale that is not built (System) is not offered at all */}
+        {SCALES.filter((s) => s.ready || s.id === "sky").map((s) => (
           <button
             key={s.id}
             type="button"
@@ -129,16 +133,19 @@ export function TopBar({
             {VIEWS[v].label}
           </button>
         ))}
-        <button
-          type="button"
-          className="atlas-key atlas-label"
-          aria-pressed={placing}
-          disabled={!canPlace}
-          title={canPlace ? undefined : "This copy is offline and cannot compute a new point"}
-          onClick={() => closing(onTogglePlacing)()}
-        >
-          Place a point
-        </button>
+        {/* a disabled button swallows the pointer, so the tooltip sits on the wrapper that does not */}
+        <span className="inline-flex" title={canPlace ? undefined : PLACE_OFFLINE_NOTE} data-testid="place-wrap">
+          <button
+            type="button"
+            className="atlas-key atlas-label disabled:pointer-events-none"
+            aria-pressed={placing}
+            disabled={!canPlace}
+            aria-label={canPlace ? undefined : `Place a point. ${PLACE_OFFLINE_NOTE}`}
+            onClick={() => closing(onTogglePlacing)()}
+          >
+            Place a point
+          </button>
+        </span>
       </div>
 
       {!compact && chip}
