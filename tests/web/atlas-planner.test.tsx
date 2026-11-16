@@ -34,8 +34,10 @@ describe("PlannerPanel", () => {
   it("says what is missing when the run does not hold the site, and explains an offline copy", () => {
     render(<PlannerPanel {...base} selectedId="a" canCompute={false} />);
     fireEvent.click(screen.getByRole("tab", { name: /2 When/ }));
-    expect(screen.getByRole("button", { name: "See the answer" })).toBeDisabled();
-    expect(screen.getByText(/cannot compute a new window/)).toBeInTheDocument();
+    // offline: the button reads the answer from the loaded run instead of computing a new one
+    expect(screen.queryByRole("button", { name: "See the answer" })).toBeNull();
+    expect(screen.getByRole("button", { name: "See the answer in the loaded run" })).toBeEnabled();
+    expect(screen.getByText(/cannot compute a new date or window/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("tab", { name: /3 Answer/ }));
     expect(screen.getByText(/does not hold this site/)).toBeInTheDocument();
   });

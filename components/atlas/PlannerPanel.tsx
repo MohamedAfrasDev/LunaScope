@@ -252,18 +252,27 @@ export function PlannerPanel(p: Props) {
           )}
           {!p.canCompute && (
             <p className="atlas-label text-[var(--ink-dim)]">
-              This copy cannot compute a new window. Open GR-001, GR-002 or GR-003 from Runs, then read the answer for a site in it.
+              This copy is replaying saved runs, so it cannot compute a new date or window{p.runWindow ? `; your dates and limits above are not used` : ""}. The answer
+              comes from the run that is loaded{p.runLabel ? ` (${p.runLabel}: ${windowText ?? ""})` : ""}. To compute your own window, run the live science service.
             </p>
           )}
           <div className="flex justify-between gap-2">
             <button type="button" className="atlas-key atlas-label" onClick={() => setStep(0)}>Back</button>
-            <button type="button" className="atlas-key atlas-label" disabled={!selected || !p.canCompute || busy} onClick={run}>
-              {busy ? "Starting…" : "See the answer"}
-            </button>
+            {p.canCompute ? (
+              <button type="button" className="atlas-key atlas-label" disabled={!selected || busy} onClick={run}>
+                {busy ? "Starting…" : "See the answer"}
+              </button>
+            ) : (
+              <button type="button" className="atlas-key atlas-label" disabled={!selected} onClick={() => setStep(2)}>
+                See the answer in the loaded run
+              </button>
+            )}
           </div>
-          <button type="button" className="atlas-label self-start text-[var(--ink-dim)] underline underline-offset-4" onClick={() => setStep(2)}>
-            Or read the answer in the run that is already loaded
-          </button>
+          {p.canCompute && (
+            <button type="button" className="atlas-label self-start text-[var(--ink-dim)] underline underline-offset-4" onClick={() => setStep(2)}>
+              Or read the answer in the run that is already loaded
+            </button>
+          )}
         </section>
       )}
 

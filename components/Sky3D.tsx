@@ -221,7 +221,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
           const colors = new Float32Array(mesh.positions.length);
           tg.setAttribute("color", new THREE.BufferAttribute(colors, 3));
           const tm = new THREE.MeshBasicMaterial({ ...(regTex ? { map: regTex } : {}), vertexColors: true, side: THREE.DoubleSide });
-          tm.color.setScalar(2.0); // the regolith picture is mid-grey: lift it so sunlit ground reads white
+          tm.color.setScalar(2.3); // the regolith picture is mid-grey: lift it so sunlit ground reads white
           add(new THREE.Mesh(tg, tm));
           disposables.push(tg, tm);
           groundMesh.position.y = mesh.minY - 0.05; // the flat disc stays only under holes
@@ -267,10 +267,10 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
       disposables.push(wallGeo, wallMat);
       if (photo) {
         const wallLit = new THREE.Color(wallMat.color);
-        const groundLit = new THREE.Color(groundMat.color).multiplyScalar(2.0);
+        const groundLit = new THREE.Color(groundMat.color).multiplyScalar(2.3);
         lightHook = (direct) => {
-          wallMat.color.copy(wallLit).multiplyScalar(direct > 0 ? 1.2 : 0.06);
-          groundMat.color.copy(groundLit).multiplyScalar(direct > 0 ? 1 : 0.06);
+          wallMat.color.copy(wallLit).multiplyScalar(direct > 0 ? 1.2 : 0.2);
+          groundMat.color.copy(groundLit).multiplyScalar(direct > 0 ? 1 : 0.2);
         };
       }
 

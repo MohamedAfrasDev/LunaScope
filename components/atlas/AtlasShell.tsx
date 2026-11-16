@@ -39,7 +39,7 @@ import { useRunRequest, useSiteRuns } from "@/components/atlas/useSiteRuns";
 import { AnalyzeForm } from "@/components/AnalyzeForm";
 import { EvidencePanel } from "@/components/EvidencePanel";
 import { TimeMachineView } from "@/components/TimeMachineView";
-import { searchFor, targetFromSearch, type RunTarget } from "@/lib/atlas/run-target";
+import { DEFAULT_TARGET, searchFor, targetFromSearch, type RunTarget } from "@/lib/atlas/run-target";
 import { SHARE_PARAM, type Draft } from "@/lib/draft";
 import { rememberRun } from "@/lib/recent-runs";
 import { ExploreLoader } from "@/components/explore/ExploreLoader";
@@ -183,6 +183,20 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
   }, [runLoad, runData, selectedId, clock.t, runLabel]);
 
   /** Load another run into the Atlas, and keep the address in step so the view can be shared. */
+  // A run the service no longer holds (it was restarted, or a different stack is running) cannot be shown: go back to the default reference
+  // run and say so, instead of leaving every panel saying "the run could not be loaded".
+  const missingRun = runLoad.status === "error" && runLoad.missing ? target : null;
+  useEffect(() => {
+    if (!missingRun || missingRun.kind !== "run") return;
+    toast.message("That run is not on this service any more, so the reference run is shown instead.");
+    setTarget(DEFAULT_TARGET);
+    try {
+      window.history.replaceState(null, "", window.location.pathname);
+    } catch {
+      /* the address is a convenience */
+    }
+  }, [missingRun]);
+
   const chooseRun = useCallback((t: RunTarget) => {
     setTarget(t);
     try {

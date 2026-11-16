@@ -105,8 +105,8 @@ export function sunVector(azDeg: number, elDeg: number): [number, number, number
 }
 
 /** How bright the ground is with no Sun on it (a little is left so the shape is not lost), and the level of sunlit flat ground. */
-export const NIGHT_LEVEL = 0.05;
-export const SUNLIT_LEVEL = 0.74;
+export const NIGHT_LEVEL = 0.16;
+export const SUNLIT_LEVEL = 0.84;
 
 /**
  * Brightness per vertex from its normal. `direct` is 0 when the service says the Sun is not visible from the site (below the horizon
