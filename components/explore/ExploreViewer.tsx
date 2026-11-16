@@ -3,7 +3,10 @@
 import { Minus, Navigation2, Plus } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { sunDirection, subSolarPoint } from "@/lib/atlas/sun-light";
+import { sunDirection, subSolarPoint, subEarthPoint } from "@/lib/atlas/sun-light";
+import { subLunarPoint } from "@/lib/atlas/earth-orient";
+import { EARTH_IMAGE } from "@/lib/atlas/sky-look";
+import { glowCanvas, sunBloomCanvas } from "@/lib/atlas/textures";
 import {
   CREDIT_TEXT,
   FALLBACK_TEXTURE,
@@ -50,15 +53,30 @@ export type ScreenPoint = { x: number; y: number; visible: boolean };
  * whether the Moon itself hides it), turn a click into a surface point, and hear about every frame. Plain numbers in and
  * out, so nothing outside this file touches Cesium.
  */
+/** The Atlas lets the camera go much farther out than the explorer page, so the Sun and Earth round the Moon can be seen whole. */
+/** The camera distance at the opening view: the Sun and Earth pictures are drawn at their set size there, and scale with the distance from it. */
+const REF_VIEW_M = 6_500_000;
+const ATLAS_MAX_HEIGHT_M = 80_000_000;
+
 export type SceneHandle = {
   fly: (name: ViewName) => void;
   flyToSite: (latDeg: number, lonDeg: number) => void;
+  /** Fly down onto a place (the way into Site sky). Resolves its duration in seconds. */
+  dive: (latDeg: number, lonDeg: number) => number;
+  /** Fly straight up and away from where the camera is (the way out to the System scale). Returns its duration in seconds. */
+  zoomOut: () => number;
   project: (latDeg: number, lonDeg: number) => ScreenPoint | null;
   pick: (x: number, y: number) => { latDeg: number; lonDeg: number } | null;
   onFrame: (cb: () => void) => () => void;
   setClickHandler: (cb: ((x: number, y: number) => void) | null) => void;
   /** Light the Moon from the Sun at this UTC time (milliseconds): the sunlit half bright, the other half dark. */
   setSunTime: (utcMs: number) => void;
+  /**
+   * Tell the view how the clock is running (playing, and sim milliseconds per real millisecond, negative in reverse, inside [lo, hi]).
+   * While it plays the view draws every frame from its own steady time, so the light and the Sun and Earth move smoothly; setSunTime
+   * then only corrects it when something real changed (a jump, a loop).
+   */
+  setPlayback: (playing: boolean, rate: number, lo: number, hi: number) => void;
 };
 
 export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onReady?: (handle: SceneHandle) => void } = {}) {
@@ -118,7 +136,7 @@ export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onR
         if (scene.moon) scene.moon.show = false;
         const ctl = scene.screenSpaceCameraController;
         ctl.minimumZoomDistance = MIN_HEIGHT_M;
-        ctl.maximumZoomDistance = MAX_HEIGHT_M;
+        ctl.maximumZoomDistance = bleed ? ATLAS_MAX_HEIGHT_M : MAX_HEIGHT_M;
         ctl.enableTilt = true;
 
         // the bundled low-resolution picture sits underneath, so the globe is never blank while tiles load or if they cannot
@@ -143,14 +161,35 @@ export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onR
           // the Atlas lights the Moon from the Sun: sharper tiles, brighter picture, and an unlit side that stays dark
           scene.globe.maximumScreenSpaceError = 1;
           scene.globe.enableLighting = true;
-          for (let i = 0; i < v.imageryLayers.length; i++) {
-            const layer = v.imageryLayers.get(i);
-            layer.brightness = 1.35;
-            layer.contrast = 1.18;
-            layer.gamma = 0.95;
+          // Far out, the Moon is the same soft, warm picture the System scale shows (the bundled one); closing in, the sharp tiles fade in over it
+          const baseLayer = v.imageryLayers.get(0);
+          const tileLayer = v.imageryLayers.get(1);
+          baseLayer.brightness = 1.25;
+          baseLayer.contrast = 1.0;
+          baseLayer.gamma = 1.0;
+          tileLayer.brightness = 1.45;
+          tileLayer.contrast = 1.04;
+          tileLayer.gamma = 0.92;
+          for (const layer of [baseLayer, tileLayer]) {
             layer.nightAlpha = 0.07;
             layer.dayAlpha = 1;
           }
+          scene.preRender.addEventListener(() => {
+            const h = scene.camera.positionCartographic.height;
+            const k = Math.min(Math.max((1_800_000 - h) / 1_200_000, 0), 1); // 0 above 1,800 km, 1 below 600 km
+            tileLayer.alpha = k * k * (3 - 2 * k);
+          });
+          // the Sun and Earth pictures keep their size relative to the Moon: bigger when the camera comes in, smaller when it goes out
+          const entityList = v.entities;
+          scene.preRender.addEventListener(() => {
+            const cam = scene.camera.positionWC;
+            for (const ent of entityList.values) {
+              const pos = ent.position?.getValue(scene.lastRenderTime ?? C.JulianDate.now());
+              if (!ent.billboard || !pos) continue;
+              const k = Math.min(Math.max(REF_VIEW_M / C.Cartesian3.distance(cam, pos), 0.05), 12);
+              ent.billboard.scale = new C.ConstantProperty(k);
+            }
+          });
         }
 
         // the Atlas is about the south pole, so it opens there; the explorer page opens on the whole Moon
@@ -218,6 +257,129 @@ export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onR
     const moon = C.Ellipsoid.MOON;
     // a handle outlives its viewer when the viewer is rebuilt (hot reload, remount): every method then does nothing
     const dead = () => v.isDestroyed();
+
+    // The Atlas also draws the Sun and the Earth round the Moon, where they really are in the Moon's sky (body-fixed frame, so the
+    // lighting and the Sun marker always agree): the Sun goes once round in a lunar day, the Earth hangs near the middle of the near side
+    // (the Moon always faces it) and wobbles a little. Both leave their path as a faint ring.
+    const play = { t: Date.now(), at: performance.now(), playing: false, rate: 0, lo: 0, hi: 0 };
+    const current = () => (play.playing ? Math.min(Math.max(play.t + (performance.now() - play.at) * play.rate, play.lo), play.hi) : play.t);
+    const extras: import("cesium").Entity[] = [];
+    let setBodies: ((utcMs: number) => void) | null = null;
+    let earthPrimitiveRef: import("cesium").Primitive | null = null;
+    if (bleed) {
+      const R = 1_737_400;
+      const SUN_R = R * 2.15;
+      const EARTH_R = R * 1.75;
+      const at = (d: [number, number, number], r: number) => new C.Cartesian3(d[0] * r, d[1] * r, d[2] * r);
+      const sunAt = (t: number) => sunDirection(subSolarPoint(t));
+      const earthAt = (t: number) => sunDirection(subEarthPoint(t));
+      const label = (text: string, color: string) => ({
+        text,
+        font: "600 13px ui-monospace, Menlo, Consolas, monospace",
+        fillColor: C.Color.fromCssColorString(color),
+        outlineColor: C.Color.BLACK,
+        outlineWidth: 3,
+        style: C.LabelStyle.FILL_AND_OUTLINE,
+        pixelOffset: new C.Cartesian2(14, -4),
+        horizontalOrigin: C.HorizontalOrigin.LEFT,
+      });
+      // the same Sun and Earth pictures the System scale draws: the glowing Sun, and the Blue Marble Earth with clouds and a blue rim
+      const sunPic = sunBloomCanvas(256);
+      const sun = v.entities.add({
+        position: at(sunAt(Date.now()), SUN_R),
+        ...(sunPic
+          ? { billboard: { image: sunPic, width: 150, height: 150 } }
+          : { point: { pixelSize: 22, color: C.Color.fromCssColorString("#ffd27a"), outlineColor: C.Color.fromCssColorString("#fff3d0"), outlineWidth: 3 } }),
+        label: { ...label("SUN", "#ffc46e"), pixelOffset: new C.Cartesian2(34, -4) },
+      });
+      // the Earth is a real sphere with the Blue Marble picture, turned each frame so the face toward the Moon is the right one; the Sun's
+      // light (the scene light) shades it, so its lit side matches the Moon's
+      const EARTH_RADIUS_M = 300_000;
+      const orientationAt = (t: number) => {
+        const e = earthAt(t); // from the Moon toward the Earth
+        const f = new C.Cartesian3(-e[0], -e[1], -e[2]); // from the Earth toward the Moon
+        const d = f.z;
+        const n = C.Cartesian3.normalize(new C.Cartesian3(-d * f.x, -d * f.y, 1 - d * f.z), new C.Cartesian3()); // the Moon's north, squared to f
+        const ew = C.Cartesian3.cross(n, f, new C.Cartesian3());
+        const sp = subLunarPoint(t);
+        const la = (sp.latDeg * Math.PI) / 180;
+        const lo = (sp.lonDeg * Math.PI) / 180;
+        const r = [Math.cos(la) * Math.cos(lo), Math.cos(la) * Math.sin(lo), Math.sin(la)];
+        const eL = [-Math.sin(lo), Math.cos(lo), 0];
+        const nL = [-Math.sin(la) * Math.cos(lo), -Math.sin(la) * Math.sin(lo), Math.cos(la)];
+        const W = [ew, n, f];
+        const L = [eL, nL, r];
+        const m = new Array<number>(9).fill(0);
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) for (let k = 0; k < 3; k++) m[i * 3 + j] += [W[k].x, W[k].y, W[k].z][i] * L[k][j];
+        return C.Quaternion.fromRotationMatrix(new C.Matrix3(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]));
+      };
+      // The sphere is a primitive whose model matrix is set each frame (cheap); an entity geometry would be rebuilt whenever its position
+      // changes, and so would never be drawn while time plays. The entity only carries the label.
+      const earthPrimitive = v.scene.primitives.add(
+        new C.Primitive({
+          geometryInstances: new C.GeometryInstance({
+            geometry: new C.EllipsoidGeometry({
+              radii: new C.Cartesian3(EARTH_RADIUS_M, EARTH_RADIUS_M, EARTH_RADIUS_M),
+              vertexFormat: C.MaterialAppearance.MaterialSupport.TEXTURED.vertexFormat,
+              stackPartitions: 48,
+              slicePartitions: 48,
+            }),
+          }),
+          appearance: new C.MaterialAppearance({
+            // slightly dimmed: the scene light is strong, tuned for the Moon
+            material: C.Material.fromType("Image", { image: EARTH_IMAGE, color: new C.Color(0.75, 0.75, 0.78, 1) }),
+            materialSupport: C.MaterialAppearance.MaterialSupport.TEXTURED,
+            translucent: false,
+            closed: true,
+          }),
+          asynchronous: false,
+          modelMatrix: C.Matrix4.IDENTITY,
+        }),
+      );
+      earthPrimitiveRef = earthPrimitive;
+      const placeEarth = (t: number) => {
+        earthPrimitive.modelMatrix = C.Matrix4.fromRotationTranslation(C.Matrix3.fromQuaternion(orientationAt(t)), at(earthAt(t), EARTH_R));
+      };
+      placeEarth(Date.now());
+      const earth = v.entities.add({
+        position: at(earthAt(Date.now()), EARTH_R),
+        label: { ...label("EARTH", "#7fb4ff"), pixelOffset: new C.Cartesian2(38, -4) },
+      });
+      // a soft blue glow just behind the Earth (a picture that keeps its size relative to the Moon, drawn behind the sphere)
+      const haloPic = glowCanvas(128, "rgba(120,170,255,0)", "rgba(110,170,255,0.32)");
+      const halo = v.entities.add({
+        position: at(earthAt(Date.now()), EARTH_R),
+        ...(haloPic ? { billboard: { image: haloPic, width: 150, height: 150, eyeOffset: new C.Cartesian3(0, 0, 700_000) } } : {}),
+      });
+      const ring = (id: string, positions: import("cesium").Cartesian3[], color: string) =>
+        v.entities.add({ id, polyline: { positions, width: 1.5, material: new C.PolylineDashMaterialProperty({ color: C.Color.fromCssColorString(color).withAlpha(0.7), dashLength: 14 }) } });
+      const start = Date.now();
+      const DAY = 86400000;
+      const sunPath = Array.from({ length: 121 }, (_, i) => at(sunAt(start + (i / 120) * 29.53 * DAY), SUN_R));
+      const earthPath = Array.from({ length: 121 }, (_, i) => at(earthAt(start + (i / 120) * 27.55 * DAY), EARTH_R));
+      extras.push(sun, earth, halo, ring("sun-path", sunPath, "#ffc46e"), ring("earth-path", earthPath, "#7fb4ff"));
+      setBodies = (t) => {
+        sun.position = new C.ConstantPositionProperty(at(sunAt(t), SUN_R));
+        const ep = at(earthAt(t), EARTH_R);
+        earth.position = new C.ConstantPositionProperty(ep);
+        halo.position = new C.ConstantPositionProperty(ep);
+        placeEarth(t);
+      };
+    }
+    const light = new C.DirectionalLight({ direction: new C.Cartesian3(-1, 0, 0), intensity: 4.6 });
+    v.scene.light = light;
+    const applyTime = (t: number) => {
+      const [x, y, z] = sunDirection(subSolarPoint(t));
+      light.direction = new C.Cartesian3(-x, -y, -z);
+      setBodies?.(t);
+      v.scene.requestRender();
+    };
+    let frame = 0;
+    const loop = () => {
+      if (dead() || !play.playing) return;
+      applyTime(current());
+      frame = requestAnimationFrame(loop);
+    };
     onReady?.({
       fly,
       flyToSite(latDeg, lonDeg) {
@@ -227,6 +389,29 @@ export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onR
           orientation: { heading: 0, pitch: C.Math.toRadians(-90), roll: 0 },
           duration: reducedMotion() ? 0 : 1.4,
         });
+      },
+      dive(latDeg, lonDeg) {
+        if (dead()) return 0;
+        const duration = reducedMotion() ? 0 : 1.3;
+        v.camera.flyTo({
+          destination: C.Cartesian3.fromDegrees(lonDeg, latDeg, 40_000, moon),
+          orientation: { heading: 0, pitch: C.Math.toRadians(-90), roll: 0 },
+          duration,
+          easingFunction: C.EasingFunction.CUBIC_IN_OUT,
+        });
+        return duration;
+      },
+      zoomOut() {
+        if (dead()) return 0;
+        const duration = reducedMotion() ? 0 : 1.1;
+        const here = C.Cartographic.fromCartesian(v.camera.positionWC, moon);
+        v.camera.flyTo({
+          destination: C.Cartesian3.fromRadians(here.longitude, here.latitude, 16_000_000, moon),
+          orientation: { heading: 0, pitch: C.Math.toRadians(-90), roll: 0 },
+          duration,
+          easingFunction: C.EasingFunction.CUBIC_IN,
+        });
+        return duration;
       },
       project(latDeg, lonDeg) {
         if (dead()) return null;
@@ -253,20 +438,41 @@ export function ExploreViewer({ bleed = false, onReady }: { bleed?: boolean; onR
       },
       setSunTime(utcMs) {
         if (dead()) return;
-        const [x, y, z] = sunDirection(subSolarPoint(utcMs));
-        v.scene.light = new C.DirectionalLight({ direction: new C.Cartesian3(-x, -y, -z), intensity: 2.6 });
-        v.scene.requestRender();
+        // while time plays the view runs its own steady time: take the clock's value only when it really moved (a jump or a loop)
+        if (play.playing && Math.abs(utcMs - current()) <= Math.max(600 * Math.abs(play.rate), 1000)) return;
+        play.t = utcMs;
+        play.at = performance.now();
+        applyTime(utcMs);
+      },
+      setPlayback(playing, rate, lo, hi) {
+        if (dead()) return;
+        play.t = current();
+        play.at = performance.now();
+        play.playing = playing;
+        play.rate = rate;
+        play.lo = lo;
+        play.hi = hi;
+        cancelAnimationFrame(frame);
+        if (playing) frame = requestAnimationFrame(loop);
       },
     });
-  }, [state, fly, onReady]);
+    return () => {
+      cancelAnimationFrame(frame);
+      if (!v.isDestroyed()) {
+        for (const e of extras) v.entities.remove(e);
+        if (earthPrimitiveRef) v.scene.primitives.remove(earthPrimitiveRef);
+      }
+    };
+  }, [state, fly, onReady, bleed]);
 
   const zoom = useCallback((dir: 1 | -1) => {
     const v = viewer.current;
     if (!v) return;
     const h = v.camera.positionCartographic.height;
+    const maxH = bleed ? ATLAS_MAX_HEIGHT_M : MAX_HEIGHT_M;
     const step = keyStep(h).zoomM;
     if (dir === 1) v.camera.zoomIn(Math.max(0, Math.min(step, h - MIN_HEIGHT_M)));
-    else v.camera.zoomOut(Math.min(step, MAX_HEIGHT_M - h > 0 ? MAX_HEIGHT_M - h : 0));
+    else v.camera.zoomOut(Math.min(step, (maxH - h > 0 ? maxH - h : 0)));
     v.scene.requestRender();
   }, []);
 

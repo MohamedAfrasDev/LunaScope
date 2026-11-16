@@ -29,3 +29,15 @@ export function sunDirection({ latDeg, lonEastDeg }: SubSolar): [number, number,
   const lo = lonEastDeg * RAD;
   return [Math.cos(la) * Math.cos(lo), Math.cos(la) * Math.sin(lo), Math.sin(la)];
 }
+
+/**
+ * Where the Earth sits in the Moon's sky, as the point of the Moon it is overhead (the sub-Earth point), in the same body-fixed frame.
+ * The Moon always shows one face to the Earth, so this stays near 0 N 0 E; it wobbles a few degrees each month (libration) because
+ * the Moon's orbit is not a circle and is tilted. Low-precision (a degree or so), a DISPLAY estimate.
+ */
+export function subEarthPoint(utcMs: number): SubSolar {
+  const T = (utcMs / 86400000 + 2440587.5 - 2451545.0) / 36525;
+  const anomaly = (134.963 + 477198.867 * T) * RAD; // the Moon's mean anomaly
+  const latArg = (93.272 + 483202.018 * T) * RAD; // the Moon's argument of latitude
+  return { latDeg: -6.7 * Math.sin(latArg), lonEastDeg: 6.29 * Math.sin(anomaly) };
+}

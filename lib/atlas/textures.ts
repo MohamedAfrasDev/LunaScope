@@ -197,3 +197,134 @@ export function hillsideCanvas(w = 512, h = 256): HTMLCanvasElement | null {
   g.putImageData(img, 0, 0);
   return c;
 }
+
+/** Soft, drifting white cloud cover for the Earth: tiled value noise (wraps sideways), transparent where the sky is clear. */
+export function cloudCanvas(w = 1024, h = 512): HTMLCanvasElement | null {
+  const made = canvas(w, h);
+  if (!made) return null;
+  const { c, g } = made;
+  const hash = (x: number, y: number, s: number): number => {
+    let n = (x * 374761393 + y * 668265263 + s * 982451653) | 0;
+    n = (n ^ (n >>> 13)) * 1274126177;
+    return (((n ^ (n >>> 16)) >>> 0) % 100000) / 100000;
+  };
+  const smooth = (t: number) => t * t * (3 - 2 * t);
+  const noise = (u: number, v: number, cells: number, s: number): number => {
+    const x = u * cells;
+    const y = v * (cells / 2);
+    const x0 = Math.floor(x);
+    const y0 = Math.floor(y);
+    const fx = smooth(x - x0);
+    const fy = smooth(y - y0);
+    const wrap = (i: number) => ((i % cells) + cells) % cells;
+    const a = hash(wrap(x0), y0, s);
+    const b = hash(wrap(x0 + 1), y0, s);
+    const d = hash(wrap(x0), y0 + 1, s);
+    const e = hash(wrap(x0 + 1), y0 + 1, s);
+    return a + (b - a) * fx + (d - a) * fy + (a - b - d + e) * fx * fy;
+  };
+  const img = g.createImageData(w, h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const u = x / w;
+      const v = y / h;
+      let amp = 0.55;
+      let sum = 0;
+      let norm = 0;
+      for (let o = 0; o < 5; o++) {
+        sum += amp * noise(u, v, 4 << o, o + 3);
+        norm += amp;
+        amp *= 0.5;
+      }
+      const f = sum / norm;
+      const a = Math.min(Math.max((f - 0.5) / 0.22, 0), 1);
+      const i = (y * w + x) * 4;
+      img.data[i] = img.data[i + 1] = img.data[i + 2] = 255;
+      img.data[i + 3] = Math.round(a * a * 170);
+    }
+  }
+  g.putImageData(img, 0, 0);
+  return c;
+}
+
+/** The Sun as the System scale draws it: a white-hot core in layered warm bloom, on a transparent square. */
+export function sunBloomCanvas(size = 256): HTMLCanvasElement | null {
+  const made = canvas(size, size);
+  if (!made) return null;
+  const { c, g } = made;
+  const layer = (radius: number, stops: [number, string][]) => {
+    const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, radius);
+    for (const [at, col] of stops) grad.addColorStop(at, col);
+    g.fillStyle = grad;
+    g.fillRect(0, 0, size, size);
+  };
+  layer(size / 2, [[0, "rgba(255,214,150,0.30)"], [0.25, "rgba(255,170,90,0.12)"], [1, "rgba(255,140,60,0)"]]);
+  layer(size * 0.2, [[0, "rgba(255,250,235,0.95)"], [0.2, "rgba(255,226,170,0.55)"], [0.55, "rgba(255,180,100,0.16)"], [1, "rgba(255,150,70,0)"]]);
+  layer(size * 0.08, [[0, "rgba(255,255,255,1)"], [0.35, "rgba(255,248,225,0.95)"], [0.7, "rgba(255,225,170,0.4)"], [1, "rgba(255,210,150,0)"]]);
+  return c;
+}
+
+/** Pixels of a picture, read once, for sampling a sphere. */
+export type PixelMap = { w: number; h: number; data: Uint8ClampedArray };
+export function readPixels(img: CanvasImageSource & { width: number; height: number }, w: number, h: number): PixelMap | null {
+  const made = canvas(w, h);
+  if (!made) return null;
+  made.g.drawImage(img, 0, 0, w, h);
+  return { w, h, data: made.g.getImageData(0, 0, w, h).data };
+}
+
+/**
+ * The Earth as a round picture seen from space: the equirectangular map turned so (latDeg, lonDeg) is at the centre, clouds over it,
+ * soft light from the upper left and a blue glow round the edge. Used for the Earth marker in the Moon view.
+ */
+export function earthDiscImage(map: PixelMap, clouds: PixelMap | null, latDeg: number, lonDeg: number, size = 192): HTMLCanvasElement | null {
+  const made = canvas(size, size);
+  if (!made) return null;
+  const { c, g } = made;
+  const R = size * 0.37;
+  const C = size / 2;
+  const halo = g.createRadialGradient(C, C, R * 0.9, C, C, C);
+  halo.addColorStop(0, "rgba(90,160,255,0.55)");
+  halo.addColorStop(0.35, "rgba(70,130,255,0.18)");
+  halo.addColorStop(1, "rgba(60,110,255,0)");
+  g.fillStyle = halo;
+  g.fillRect(0, 0, size, size);
+  const img = g.getImageData(0, 0, size, size);
+  const la0 = (latDeg * Math.PI) / 180;
+  const sin0 = Math.sin(la0);
+  const cos0 = Math.cos(la0);
+  const sample = (m: PixelMap, lat: number, lon: number, i: number): number => {
+    const u = (((lon + 540) % 360) / 360) * m.w;
+    const v = ((90 - lat) / 180) * m.h;
+    return m.data[(Math.min(m.h - 1, Math.max(0, Math.floor(v))) * m.w + (Math.floor(u) % m.w)) * 4 + i];
+  };
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const nx = (x - C) / R;
+      const ny = (C - y) / R;
+      const r2 = nx * nx + ny * ny;
+      if (r2 > 1) continue;
+      const nz = Math.sqrt(1 - r2);
+      const lat = (Math.asin(Math.max(-1, Math.min(1, ny * cos0 + nz * sin0))) * 180) / Math.PI;
+      const lon = lonDeg + (Math.atan2(nx, nz * cos0 - ny * sin0) * 180) / Math.PI;
+      let r = sample(map, lat, lon, 0);
+      let gr = sample(map, lat, lon, 1);
+      let b = sample(map, lat, lon, 2);
+      if (clouds) {
+        const a = sample(clouds, lat, lon, 3) / 255;
+        r += (255 - r) * a * 0.5;
+        gr += (255 - gr) * a * 0.5;
+        b += (255 - b) * a * 0.5;
+      }
+      const light = 0.62 + 0.75 * Math.max(0, -0.45 * nx + 0.4 * ny + 0.8 * nz); // soft light from the upper left
+      const rim = Math.pow(1 - nz, 3) * 0.9; // blue haze at the limb
+      const i = (y * size + x) * 4;
+      img.data[i] = Math.min(255, r * light + rim * 70);
+      img.data[i + 1] = Math.min(255, gr * light + rim * 130);
+      img.data[i + 2] = Math.min(255, b * light + rim * 255);
+      img.data[i + 3] = 255;
+    }
+  }
+  g.putImageData(img, 0, 0);
+  return c;
+}

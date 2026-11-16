@@ -4,6 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
 import type { Sky3DHandle } from "@/components/Sky3D";
+import { MoonOrbitHud } from "@/components/atlas/MoonOrbitHud";
+import { Presence } from "@/components/atlas/Presence";
+import { SystemDatePanel } from "@/components/atlas/SystemDatePanel";
 import { LearnPanel } from "@/components/atlas/LearnPanel";
 import { MissionWindowPanel } from "@/components/atlas/MissionWindowPanel";
 import { SiteSky } from "@/components/atlas/SiteSky";
@@ -43,7 +46,7 @@ import type { SceneHandle } from "@/components/explore/ExploreViewer";
 import { describeError, postJson } from "@/lib/api/client";
 import type { CustomSiteCheck } from "@/lib/api/types";
 import { fromCustomCheck, inTerrainData, MAX_CUSTOM_POINTS, type AtlasSite } from "@/lib/atlas/sites";
-import { utcLabel, type RunWindow } from "@/lib/atlas/clock";
+import { speedSeconds, utcLabel, type RunWindow } from "@/lib/atlas/clock";
 import { cursorAt, eventScopeWords, eventTimesFor } from "@/lib/atlas/run";
 import { mergeRuns, runIdFor, serviceSiteId } from "@/lib/atlas/site-run";
 import { skyScaleLabel } from "@/lib/atlas/sky";
@@ -82,9 +85,13 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
   const runData = useMemo(() => (baseRun ? mergeRuns(baseRun, siteRuns.extras) : null), [baseRun, siteRuns.extras]);
   const [scale, setScale] = useState<Scale>("moon");
   // The System scale needs no run: without one it plays a month from the current hour, so the orbit works with the service down
-  const [orbitWindow] = useState<RunWindow>(() => ({ startMs: Math.floor(Date.now() / 3600000) * 3600000, totalS: 28 * 86400 }));
-  const orbitOnly = scale === "system" && !runData;
-  const clockWindow = runData?.window ?? (orbitOnly ? orbitWindow : null);
+  const [defaultStart] = useState(() => Math.floor(Date.now() / 3600000) * 3600000);
+  // a date picked in the System scale replaces the run window there, and playing it covers a month from that date
+  const [pickedStart, setPickedStart] = useState<number | null>(null);
+  const orbitWindow = useMemo<RunWindow>(() => ({ startMs: pickedStart ?? defaultStart, totalS: 28 * 86400 }), [pickedStart, defaultStart]);
+  // no run to play (the service is down): the clock plays the orbit preview instead, so the Moon scale and the System scale still move
+  const orbitOnly = (scale === "system" && (!runData || pickedStart != null)) || (!runData && runLoad.status === "error");
+  const clockWindow = orbitOnly ? orbitWindow : (runData?.window ?? null);
   const { clock, actions, reducedMotion } = useClock(clockWindow);
   // a link carrying analysis inputs (the classic share link) opens the Analyse panel with them filled in
   const [open, setOpen] = useState<PanelId[]>(() => (new URLSearchParams(initialSearch).has(SHARE_PARAM) ? ["sites", "analyse"] : ["sites"]));
@@ -194,16 +201,74 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
   }, [readyRunId, readyState, readySites]);
 
   // the Moon is lit by the Sun at the clock's time (the run's start until a run is loaded, otherwise the present)
-  const sunMs = runData ? runData.window.startMs + clock.t * 1000 : null;
+  const sunMs = clockWindow ? clockWindow.startMs + clock.t * 1000 : null;
   useEffect(() => {
     scene?.setSunTime(sunMs ?? Date.now());
   }, [scene, sunMs]);
+  // tell the Moon view how the clock runs, so it draws every frame while time plays
+  const rateNow = (clock.reverse ? -1 : 1) * speedSeconds(clock.speed);
+  const loMs = clockWindow?.startMs ?? 0;
+  const hiMs = clockWindow ? clockWindow.startMs + clockWindow.totalS * 1000 : 0;
+  useEffect(() => {
+    scene?.setPlayback(clock.playing && !!clockWindow, rateNow, loMs, hiMs);
+  }, [scene, clock.playing, clockWindow, rateNow, loMs, hiMs]);
   const onReady = useCallback((h: SceneHandle) => setScene(h), []);
   const onSkyReady = useCallback((h: Sky3DHandle) => {
     skyHandle.current = h;
   }, []);
   const onSkyView = useCallback((yaw: number) => setSkyYaw((cur) => (Math.round(cur) === Math.round(yaw) ? cur : yaw)), []);
   const onView = useCallback((v: ViewName) => scene?.fly(v), [scene]);
+
+  /**
+   * Change scale as one move, not a cut (the way a place search flies in Google Earth): into Site sky the Moon dives onto the site first;
+   * into System it pulls away from the Moon first, and the System view then arrives close to the Moon and pulls back; out of either, the
+   * Moon flies back to where it was while the other scene fades and dives away. Clicks during the move are ignored.
+   */
+  const moving = useRef<number | null>(null);
+  const scaleRef = useRef(scale);
+  const playingRef = useRef(clock.playing);
+  useEffect(() => {
+    playingRef.current = clock.playing;
+  }, [clock.playing]);
+  useEffect(() => {
+    scaleRef.current = scale;
+  }, [scale]);
+  useEffect(() => () => {
+    if (moving.current != null) window.clearTimeout(moving.current);
+  }, []);
+  const goScale = useCallback(
+    (next: Scale) => {
+      const from = scaleRef.current;
+      if (moving.current != null || next === from) return;
+      const site = sites.find((x) => x.id === selectedId);
+      const commit = () => {
+        moving.current = null;
+        setScale(next);
+      };
+      if (!scene) return commit();
+      let wait = 0;
+      if (from === "moon" && next === "sky" && site) wait = scene.dive(site.latDeg, site.lonEastDeg);
+      else if (from === "moon" && next === "system") wait = scene.zoomOut();
+      else if (next === "moon" && site) scene.flyToSite(site.latDeg, site.lonEastDeg);
+      else if (next === "moon") scene.fly("moon");
+      if (wait <= 0) return commit();
+      moving.current = window.setTimeout(commit, wait * 1000 * 0.9);
+    },
+    [scene, sites, selectedId],
+  );
+  // arriving in System (or picking a new date there) starts the orbit: a day of time per second, so the Moon goes round in about half a minute
+  const autoPlayed = useRef<string | null>(null);
+  useEffect(() => {
+    if (scale !== "system") {
+      autoPlayed.current = null;
+      return;
+    }
+    const key = clockWindow ? String(clockWindow.startMs) : null;
+    if (!key || autoPlayed.current === key) return;
+    autoPlayed.current = key;
+    actions.setSpeed("1d");
+    if (!playingRef.current) actions.toggle();
+  }, [scale, clockWindow, actions]);
   // the right-hand panels share one column: opening one closes the others
   const toggle = useCallback(
     (p: PanelId) =>
@@ -307,12 +372,17 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
   );
   const leftStack = (
     <>
+              {inSystem && clockWindow && (
+                <div className={phone ? "flex min-h-0 flex-col" : "flex min-h-0 flex-1 flex-col"}>
+                  <SystemDatePanel utcMs={clockWindow.startMs + clock.t * 1000} custom={pickedStart != null} onPick={setPickedStart} onReset={() => setPickedStart(null)} />
+                </div>
+              )}
               {inSky && tracks && runData && (!phone || open.length === 0) && (
                 <div className={phone ? "flex min-h-0 flex-col" : "flex max-h-[45%] shrink-0 flex-col"}>
                   <MissionWindowPanel window={runData.window} t={clock.t} tracks={tracks} readings={readings} onClose={() => setScale("moon")} />
                 </div>
               )}
-              {open.includes("sites") && (
+              {!inSystem && open.includes("sites") && (
                 <div className="flex min-h-0 flex-1 flex-col">
                   <SitesPanel
                     catalog={catalog}
@@ -325,7 +395,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
                   />
                 </div>
               )}
-              {selected && (!phone || open.length === 0) && (
+              {!inSystem && selected && (!phone || open.length === 0) && (
                 <div className={phone ? "flex min-h-0 flex-col" : "flex max-h-[40%] shrink-0 flex-col"}>
                   <SelectedSitePanel
                     key={selected.id}
@@ -335,7 +405,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
                     onReset={() => scene?.fly("south-pole")}
                     onRemove={selected.kind === "custom" ? () => removeCustom(selected.id) : undefined}
                     onClose={() => setSelectedId(null)}
-                    onEnterSky={tracks ? () => setScale("sky") : undefined}
+                    onEnterSky={tracks ? () => goScale("sky") : undefined}
                     savedRun={(() => {
                       const ref = referenceFor(selected.id);
                       return ref ? { label: ref.label, onOpen: () => chooseRun({ kind: "reference", id: ref.id }) } : undefined;
@@ -456,13 +526,17 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
       <h1 className="sr-only">LunaScope Atlas: the lunar south pole</h1>
       <ExploreLoader bleed onReady={onReady} />
       {!inSky && !inSystem && <PinLayer scene={scene} sites={sites} selectedId={selectedId} onSelect={select} />}
-      {inSystem && clockWindow && <SystemView startMs={clockWindow.startMs} totalS={clockWindow.totalS} utcMs={clockWindow.startMs + clock.t * 1000} />}
+      {scale === "moon" && !hidden && clockWindow && <MoonOrbitHud utcMs={clockWindow.startMs + clock.t * 1000} playing={clock.playing} rate={(clock.reverse ? -1 : 1) * speedSeconds(clock.speed)} lo={clockWindow.startMs} hi={clockWindow.startMs + clockWindow.totalS * 1000} />}
+      <Presence show={inSystem && !!clockWindow}>
+        {clockWindow && <SystemView startMs={clockWindow.startMs} totalS={clockWindow.totalS} utcMs={clockWindow.startMs + clock.t * 1000} playing={clock.playing} rate={(clock.reverse ? -1 : 1) * speedSeconds(clock.speed)} />}
+      </Presence>
       {inSystem && (
         <p className="atlas-panel atlas-label pointer-events-none absolute bottom-[9.5rem] right-3 z-10 max-w-sm px-3 py-2 text-right text-[var(--ink-dim)]" data-testid="system-note">
-          Scaled 6× for visibility: the Moon and Earth are drawn at 6× their true size relative to their orbital distance. The Sun is far beyond the frame; its direction and the lighting are real. Positions are a display estimate.
+          Not to scale: the Earth and Moon are drawn 6× larger, and the Sun-Earth distance and the Moon's orbit are shortened so all three fit. Where the Sun is, the Moon's phase and the lighting are real. Positions are a display estimate.
         </p>
       )}
-      {inSky && tracks && runData && selected && (
+      <Presence show={inSky && !!tracks && !!runData && !!selected}>
+      {tracks && runData && selected && (
         <SiteSky
           siteName={selected.label}
           tracks={tracks}
@@ -478,6 +552,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
           onView={onSkyView}
         />
       )}
+      </Presence>
 
       <p role="status" className="sr-only">
         {hidden ? "Interface hidden. Press H to show it." : ""}
@@ -494,7 +569,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
           <div className="pointer-events-auto">
             <TopBar
               scale={effScale}
-              onScale={setScale}
+              onScale={goScale}
               skyReady={skyReady}
               open={open}
               onTogglePanel={toggle}
@@ -519,7 +594,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
                 onLander={setSkyLander}
                 onFaceTarget={(t) => skyHandle.current?.faceTarget(t)}
                 onFace={(az) => skyHandle.current?.face(az)}
-                onReturn={() => setScale("moon")}
+                onReturn={() => goScale("moon")}
                 yaw={skyYaw}
                 has={{ sun_center: !!tracks?.sun_center, earth_center: !!tracks?.earth_center }}
                 compact={phone}

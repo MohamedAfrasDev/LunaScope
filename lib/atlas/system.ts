@@ -78,3 +78,59 @@ export function moonDistanceKm(utcMs: number): number {
   const m = moonPosition(utcMs);
   return Math.hypot(m[0], m[1], m[2]) * UNIT_KM;
 }
+
+const norm360 = (d: number): number => ((d % 360) + 360) % 360;
+const eclLon = (v: Vec3): number => norm360(Math.atan2(-v[2], v[0]) / RAD);
+
+/** Moon phase angle: degrees the Moon is ahead of the Sun along the ecliptic. 0 new, 90 first quarter, 180 full, 270 last quarter. */
+export function phaseAngle(utcMs: number): number {
+  return norm360(eclLon(moonPosition(utcMs)) - eclLon(sunDirection(utcMs)));
+}
+
+export const PHASES = [
+  { name: "New Moon", angle: 0 },
+  { name: "First quarter", angle: 90 },
+  { name: "Full Moon", angle: 180 },
+  { name: "Last quarter", angle: 270 },
+] as const;
+
+/** Plain-words phase from the phase angle. */
+export function phaseName(angle: number): string {
+  const a = norm360(angle);
+  if (a < 6 || a >= 354) return "New Moon";
+  if (a < 84) return "Waxing crescent";
+  if (a < 96) return "First quarter";
+  if (a < 174) return "Waxing gibbous";
+  if (a < 186) return "Full Moon";
+  if (a < 264) return "Waning gibbous";
+  if (a < 276) return "Last quarter";
+  return "Waning crescent";
+}
+
+/** Days since the last New Moon (mean month scaled by the phase angle). */
+export const moonAgeDays = (angle: number): number => (norm360(angle) / 360) * 29.530589;
+
+/** The next time (UTC ms) after utcMs that the phase angle reaches `target`, found by stepping and bisecting. Null if none within 32 days. */
+export function nextPhaseTime(utcMs: number, target: number): number | null {
+  const step = 6 * 3600000;
+  const diff = (t: number) => ((phaseAngle(t) - target + 540) % 360) - 180; // 0 at the target, rising through it
+  let a = utcMs;
+  let da = diff(a);
+  for (let i = 0; i < 32 * 4; i++) {
+    const b = a + step;
+    const db = diff(b);
+    if (da < 0 && db >= 0) {
+      let lo = a;
+      let hi = b;
+      for (let k = 0; k < 24; k++) {
+        const mid = (lo + hi) / 2;
+        if (diff(mid) < 0) lo = mid;
+        else hi = mid;
+      }
+      return hi;
+    }
+    a = b;
+    da = db;
+  }
+  return null;
+}

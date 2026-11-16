@@ -74,7 +74,7 @@ export function SiteSky({
   }
 
   return (
-    <div className="atlas-fade-in absolute inset-0" data-testid="site-sky">
+    <div className="absolute inset-0" data-testid="site-sky">
       <Sky3D
         bleed
         profile={horizon.profile}
