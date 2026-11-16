@@ -161,7 +161,10 @@ export function discFromImage(img: CanvasImageSource & { width: number; height: 
   g.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
   g.clip();
   const cut = Math.round(img.width * inset);
+  // the SDO frame is dim and orange-brown: lift it so the Sun reads as the brightest thing in the sky (ignored where canvas filters are unsupported)
+  g.filter = "brightness(1.55) contrast(1.12) saturate(1.2)";
   g.drawImage(img, cut, cut, img.width - 2 * cut, img.height - 2 * cut, 0, 0, size, size);
+  g.filter = "none";
   g.restore();
   return c;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { toast } from "sonner";
 import type { Sky3DHandle } from "@/components/Sky3D";
 import { LearnPanel } from "@/components/atlas/LearnPanel";
@@ -42,7 +43,7 @@ import type { SceneHandle } from "@/components/explore/ExploreViewer";
 import { describeError, postJson } from "@/lib/api/client";
 import type { CustomSiteCheck } from "@/lib/api/types";
 import { fromCustomCheck, inTerrainData, MAX_CUSTOM_POINTS, type AtlasSite } from "@/lib/atlas/sites";
-import { utcLabel } from "@/lib/atlas/clock";
+import { utcLabel, type RunWindow } from "@/lib/atlas/clock";
 import { cursorAt, eventScopeWords, eventTimesFor } from "@/lib/atlas/run";
 import { mergeRuns, runIdFor, serviceSiteId } from "@/lib/atlas/site-run";
 import { skyScaleLabel } from "@/lib/atlas/sky";
@@ -54,6 +55,9 @@ function typing(t: EventTarget | null): boolean {
   if (!el || !el.tagName) return false;
   return el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName);
 }
+
+/** three.js loads here, on the first visit to the System scale. */
+const SystemView = dynamic(() => import("@/components/atlas/SystemView").then((m) => m.SystemView), { ssr: false });
 
 const SCALE_LABEL: Record<Scale, string> = { moon: "MOON SCALE", system: "SYSTEM SCALE", sky: "SITE SKY" };
 
@@ -76,8 +80,12 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
   const baseRequest = useRunRequest(baseRun?.runId ?? null);
   const siteRuns = useSiteRuns(baseRun?.runId ?? null, baseRun?.window ?? null, baseRequest);
   const runData = useMemo(() => (baseRun ? mergeRuns(baseRun, siteRuns.extras) : null), [baseRun, siteRuns.extras]);
-  const { clock, actions, reducedMotion } = useClock(runData?.window ?? null);
   const [scale, setScale] = useState<Scale>("moon");
+  // The System scale needs no run: without one it plays a month from the current hour, so the orbit works with the service down
+  const [orbitWindow] = useState<RunWindow>(() => ({ startMs: Math.floor(Date.now() / 3600000) * 3600000, totalS: 28 * 86400 }));
+  const orbitOnly = scale === "system" && !runData;
+  const clockWindow = runData?.window ?? (orbitOnly ? orbitWindow : null);
+  const { clock, actions, reducedMotion } = useClock(clockWindow);
   // a link carrying analysis inputs (the classic share link) opens the Analyse panel with them filled in
   const [open, setOpen] = useState<PanelId[]>(() => (new URLSearchParams(initialSearch).has(SHARE_PARAM) ? ["sites", "analyse"] : ["sites"]));
   // on a phone nothing opens on its own, so the Moon is the first thing seen (adjusted once, during render, not in an effect)
@@ -105,6 +113,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
   const runLabel = runLoad.status === "ready" ? (runLoad.reference ?? shortId(runLoad.run.runId)) : null;
 
   const dockRun: DockRun = useMemo(() => {
+    if (orbitOnly) return { kind: "ready", window: orbitWindow, events: [], eventScope: "the orbit preview", label: "Orbit preview", synthetic: false };
     if (runLoad.status === "loading") {
       const pct = runLoad.progress == null ? "" : ` ${Math.round(runLoad.progress * 100)}%`;
       return { kind: "loading", text: `Loading the reference run · ${runLoad.stage}${pct}` };
@@ -118,7 +127,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
       label: runLoad.reference ?? shortId(runLoad.run.runId),
       synthetic: runLoad.run.resultState === "synthetic_demonstration",
     };
-  }, [runLoad, runData, selectedId]);
+  }, [runLoad, runData, selectedId, orbitOnly, orbitWindow]);
 
   const tracks = runData && selectedId ? (runData.sites[selectedId] ?? null) : null;
   const rightOpen = RIGHT_PANELS.find((p) => open.includes(p)) ?? null;
@@ -126,6 +135,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
   const skyReady = !!tracks && !!selected;
   const effScale: Scale = scale === "sky" && !skyReady ? "moon" : scale;
   const inSky = effScale === "sky";
+  const inSystem = effScale === "system";
   // losing the site (deselected, or not in the run) leaves Site sky for good, so selecting again does not jump back into it
   if (scale === "sky" && !skyReady) setScale("moon");
   const needHorizon = !!tracks && (open.includes("clearance") || open.includes("sky-path") || inSky);
@@ -274,7 +284,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
   const readoutEl = (
               <Readout compact={phone}
                 scaleLabel={inSky ? skyScaleLabel(skyK) : SCALE_LABEL[effScale]}
-                timeLabel={runData ? utcLabel(runData.window, clock.t) : "NO RUN LOADED"}
+                timeLabel={clockWindow ? utcLabel(clockWindow, clock.t) : "NO RUN LOADED"}
                 extra={
                   inSky && readings
                     ? readings.map((r) => ({
@@ -445,7 +455,13 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
     <div className="atlas absolute inset-0 overflow-hidden" data-testid="atlas" data-scale={effScale} data-hidden={hidden} data-placing={placing}>
       <h1 className="sr-only">LunaScope Atlas: the lunar south pole</h1>
       <ExploreLoader bleed onReady={onReady} />
-      {!inSky && <PinLayer scene={scene} sites={sites} selectedId={selectedId} onSelect={select} />}
+      {!inSky && !inSystem && <PinLayer scene={scene} sites={sites} selectedId={selectedId} onSelect={select} />}
+      {inSystem && clockWindow && <SystemView startMs={clockWindow.startMs} totalS={clockWindow.totalS} utcMs={clockWindow.startMs + clock.t * 1000} />}
+      {inSystem && (
+        <p className="atlas-panel atlas-label pointer-events-none absolute bottom-[9.5rem] right-3 z-10 max-w-sm px-3 py-2 text-right text-[var(--ink-dim)]" data-testid="system-note">
+          Scaled 6× for visibility: the Moon and Earth are drawn at 6× their true size relative to their orbital distance. The Sun is far beyond the frame; its direction and the lighting are real. Positions are a display estimate.
+        </p>
+      )}
       {inSky && tracks && runData && selected && (
         <SiteSky
           siteName={selected.label}

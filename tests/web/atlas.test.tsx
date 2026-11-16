@@ -56,10 +56,10 @@ describe("Panel", () => {
 describe("TopBar", () => {
   const base = { scale: "moon" as const, onScale: vi.fn(), open: [] as ("learn" | "sites")[], onTogglePanel: vi.fn(), onView: vi.fn(), placing: false, onTogglePlacing: vi.fn() };
 
-  it("marks the current scale, and does not offer the scales that are not built yet", () => {
+  it("marks the current scale, and offers System as an enabled scale", () => {
     render(<TopBar {...base} />);
     expect(screen.getByRole("button", { name: "Moon" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.queryByRole("button", { name: "System" })).toBeNull();
+    expect(screen.getByRole("button", { name: "System" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Site sky" })).toBeInTheDocument();
   });
 

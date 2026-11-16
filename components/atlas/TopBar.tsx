@@ -20,7 +20,7 @@ const PLACE_OFFLINE_NOTE = "Needs the live science service. This copy is offline
 
 const SCALES: { id: Scale; label: string; ready: boolean; note: string }[] = [
   { id: "moon", label: "Moon", ready: true, note: "" },
-  { id: "system", label: "System", ready: false, note: "Arrives in a later phase" },
+  { id: "system", label: "System", ready: true, note: "" },
   { id: "sky", label: "Site sky", ready: true, note: "" },
 ];
 
@@ -103,8 +103,7 @@ export function TopBar({
       <div id={menuId} hidden={compact && !menu} className={compact ? "flex w-full flex-wrap items-center gap-x-1 gap-y-1 border-t border-[var(--panel-edge)] pt-1.5" : "contents"}>
 
       <div role="group" aria-label="Scale" className="flex flex-wrap items-center gap-0.5 border-l border-[var(--panel-edge)] pl-2">
-        {/* a scale that is not built (System) is not offered at all */}
-        {SCALES.filter((s) => s.ready || s.id === "sky").map((s) => (
+        {SCALES.map((s) => (
           <button
             key={s.id}
             type="button"

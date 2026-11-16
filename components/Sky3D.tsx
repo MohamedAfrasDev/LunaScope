@@ -326,6 +326,8 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
             const tex = new THREE.CanvasTexture(dc);
             tex.colorSpace = THREE.SRGBColorSpace;
             discMat.map = tex;
+            discMat.color.setScalar(1.25); // push past 1 so the disc glows instead of looking flat
+            discMat.toneMapped = false;
             discMat.visible = true;
             discMat.needsUpdate = true;
             core.visible = false;
