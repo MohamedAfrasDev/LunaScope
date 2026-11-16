@@ -40,6 +40,13 @@ describe("procedural pictures", () => {
           createRadialGradient: () => ({ addColorStop: () => (rec.stops += 1) }),
           fillRect: () => {},
           set fillStyle(_v: unknown) {},
+          set strokeStyle(_v: unknown) {},
+          set lineWidth(_v: unknown) {},
+          beginPath: () => {},
+          arc: () => {},
+          ellipse: () => {},
+          fill: () => {},
+          stroke: () => {},
         }),
       };
       return el as unknown as HTMLCanvasElement;

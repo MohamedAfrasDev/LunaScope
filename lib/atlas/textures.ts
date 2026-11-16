@@ -57,32 +57,95 @@ function canvas(w: number, h: number): { c: HTMLCanvasElement; g: CanvasRenderin
   return g ? { c, g } : null;
 }
 
-/** A tiling grey regolith: soft mottling, darker patches and fine grain. */
+/**
+ * A tiling lunar regolith, the way the ground looks close up: fine grain at many scales, hundreds of small craters with a shadowed
+ * inner wall and a bright rim on the sunward side, and scattered pebbles with a shadow each. No large blotches (they read as spots
+ * on a cow once the picture repeats). Tileable: anything that crosses an edge is drawn again on the other side.
+ */
 export function regolithCanvas(size = 512): HTMLCanvasElement | null {
   const made = canvas(size, size);
   if (!made) return null;
   const { c, g } = made;
-  const n1 = tiledNoise(11, 8);
-  const n2 = tiledNoise(23, 16);
-  const n3 = tiledNoise(37, 64);
+  const n1 = tiledNoise(11, 6);
+  const n2 = tiledNoise(23, 24);
+  const n3 = tiledNoise(37, 96);
   const grain = rng(5);
   const img = g.createImageData(size, size);
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       const u = x / size;
       const v = y / size;
-      const base = 0.82 + 0.2 * (n1(u * 8, v * 8) - 0.5) + 0.18 * (n2(u * 16, v * 16) - 0.5) + 0.08 * (n3(u * 64, v * 64) - 0.5);
-      const patch = n2(u * 16 + 3.3, v * 16 + 1.7);
-      const shade = patch > 0.66 ? 0.84 + (0.66 - patch) * 0.5 : 1; // darker mottled patches
-      const g0 = Math.max(0, Math.min(1, base * shade + (grain() - 0.5) * 0.05));
+      const base = 0.8 + 0.09 * (n1(u * 6, v * 6) - 0.5) + 0.1 * (n2(u * 24, v * 24) - 0.5) + 0.1 * (n3(u * 96, v * 96) - 0.5);
+      const g0 = Math.max(0, Math.min(1, base + (grain() - 0.5) * 0.12)); // grain
       const o = (y * size + x) * 4;
-      img.data[o] = 214 * g0 + 8;
-      img.data[o + 1] = 210 * g0 + 8;
-      img.data[o + 2] = 200 * g0 + 8;
+      img.data[o] = 196 * g0 + 12;
+      img.data[o + 1] = 191 * g0 + 12;
+      img.data[o + 2] = 182 * g0 + 12;
       img.data[o + 3] = 255;
     }
   }
   g.putImageData(img, 0, 0);
+
+  const rnd = rng(77);
+  const wrapped = (cx: number, cy: number, r: number, draw: (x: number, y: number) => void) => {
+    for (const dx of [-size, 0, size]) {
+      for (const dy of [-size, 0, size]) {
+        const x = cx + dx;
+        const y = cy + dy;
+        if (x + r < 0 || x - r > size || y + r < 0 || y - r > size) continue;
+        draw(x, y);
+      }
+    }
+  };
+  const scale = size / 512;
+  // craters: many small, few large; the wall away from the Sun (upper left) in shadow, the wall toward it (lower right) lit
+  const count = Math.round(520 * scale * scale);
+  for (let i = 0; i < count; i++) {
+    const r = (2.5 + 38 * Math.pow(rnd(), 3.4)) * scale;
+    const cx = rnd() * size;
+    const cy = rnd() * size;
+    const depth = 0.55 + rnd() * 0.45;
+    wrapped(cx, cy, r * 1.3, (x, y) => {
+      const shadow = g.createRadialGradient(x - r * 0.28, y - r * 0.28, r * 0.05, x, y, r);
+      shadow.addColorStop(0, `rgba(0,0,0,${0.42 * depth})`);
+      shadow.addColorStop(0.65, `rgba(0,0,0,${0.16 * depth})`);
+      shadow.addColorStop(1, "rgba(0,0,0,0)");
+      g.fillStyle = shadow;
+      g.beginPath();
+      g.arc(x, y, r, 0, Math.PI * 2);
+      g.fill();
+      const lit = g.createRadialGradient(x + r * 0.55, y + r * 0.55, r * 0.05, x + r * 0.35, y + r * 0.35, r * 0.75);
+      lit.addColorStop(0, `rgba(255,250,238,${0.3 * depth})`);
+      lit.addColorStop(1, "rgba(255,250,238,0)");
+      g.fillStyle = lit;
+      g.beginPath();
+      g.arc(x, y, r, 0, Math.PI * 2);
+      g.fill();
+      g.strokeStyle = `rgba(255,250,238,${0.18 * depth})`; // the raised rim on the sunward side
+      g.lineWidth = Math.max(0.8, r * 0.14);
+      g.beginPath();
+      g.arc(x, y, r * 1.02, Math.PI * 0.05, Math.PI * 0.6);
+      g.stroke();
+    });
+  }
+  // pebbles and small rocks, each with its shadow
+  const rocks = Math.round(900 * scale * scale);
+  for (let i = 0; i < rocks; i++) {
+    const r = (0.7 + 2.6 * Math.pow(rnd(), 2.4)) * scale;
+    const cx = rnd() * size;
+    const cy = rnd() * size;
+    const tone = 105 + Math.round(rnd() * 60);
+    wrapped(cx, cy, r + 3, (x, y) => {
+      g.fillStyle = "rgba(0,0,0,0.38)";
+      g.beginPath();
+      g.ellipse(x + r * 0.9, y + r * 0.9, r * 1.1, r * 0.8, 0.5, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = `rgb(${tone},${tone - 4},${tone - 12})`;
+      g.beginPath();
+      g.ellipse(x, y, r, r * 0.8, 0.5, 0, Math.PI * 2);
+      g.fill();
+    });
+  }
   return c;
 }
 
@@ -161,7 +224,10 @@ export function discFromImage(img: CanvasImageSource & { width: number; height: 
   g.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
   g.clip();
   const cut = Math.round(img.width * inset);
+  // the SDO frame is dim and orange-brown: lift it so the Sun reads as the brightest thing in the sky (ignored where canvas filters are unsupported)
+  g.filter = "brightness(1.55) contrast(1.12) saturate(1.2)";
   g.drawImage(img, cut, cut, img.width - 2 * cut, img.height - 2 * cut, 0, 0, size, size);
+  g.filter = "none";
   g.restore();
   return c;
 }
@@ -189,6 +255,137 @@ export function hillsideCanvas(w = 512, h = 256): HTMLCanvasElement | null {
       img.data[o + 1] = 210 * g0 + 8;
       img.data[o + 2] = 200 * g0 + 8;
       img.data[o + 3] = 255;
+    }
+  }
+  g.putImageData(img, 0, 0);
+  return c;
+}
+
+/** Soft, drifting white cloud cover for the Earth: tiled value noise (wraps sideways), transparent where the sky is clear. */
+export function cloudCanvas(w = 1024, h = 512): HTMLCanvasElement | null {
+  const made = canvas(w, h);
+  if (!made) return null;
+  const { c, g } = made;
+  const hash = (x: number, y: number, s: number): number => {
+    let n = (x * 374761393 + y * 668265263 + s * 982451653) | 0;
+    n = (n ^ (n >>> 13)) * 1274126177;
+    return (((n ^ (n >>> 16)) >>> 0) % 100000) / 100000;
+  };
+  const smooth = (t: number) => t * t * (3 - 2 * t);
+  const noise = (u: number, v: number, cells: number, s: number): number => {
+    const x = u * cells;
+    const y = v * (cells / 2);
+    const x0 = Math.floor(x);
+    const y0 = Math.floor(y);
+    const fx = smooth(x - x0);
+    const fy = smooth(y - y0);
+    const wrap = (i: number) => ((i % cells) + cells) % cells;
+    const a = hash(wrap(x0), y0, s);
+    const b = hash(wrap(x0 + 1), y0, s);
+    const d = hash(wrap(x0), y0 + 1, s);
+    const e = hash(wrap(x0 + 1), y0 + 1, s);
+    return a + (b - a) * fx + (d - a) * fy + (a - b - d + e) * fx * fy;
+  };
+  const img = g.createImageData(w, h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const u = x / w;
+      const v = y / h;
+      let amp = 0.55;
+      let sum = 0;
+      let norm = 0;
+      for (let o = 0; o < 5; o++) {
+        sum += amp * noise(u, v, 4 << o, o + 3);
+        norm += amp;
+        amp *= 0.5;
+      }
+      const f = sum / norm;
+      const a = Math.min(Math.max((f - 0.5) / 0.22, 0), 1);
+      const i = (y * w + x) * 4;
+      img.data[i] = img.data[i + 1] = img.data[i + 2] = 255;
+      img.data[i + 3] = Math.round(a * a * 170);
+    }
+  }
+  g.putImageData(img, 0, 0);
+  return c;
+}
+
+/** The Sun as the System scale draws it: a white-hot core in layered warm bloom, on a transparent square. */
+export function sunBloomCanvas(size = 256): HTMLCanvasElement | null {
+  const made = canvas(size, size);
+  if (!made) return null;
+  const { c, g } = made;
+  const layer = (radius: number, stops: [number, string][]) => {
+    const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, radius);
+    for (const [at, col] of stops) grad.addColorStop(at, col);
+    g.fillStyle = grad;
+    g.fillRect(0, 0, size, size);
+  };
+  layer(size / 2, [[0, "rgba(255,214,150,0.30)"], [0.25, "rgba(255,170,90,0.12)"], [1, "rgba(255,140,60,0)"]]);
+  layer(size * 0.2, [[0, "rgba(255,250,235,0.95)"], [0.2, "rgba(255,226,170,0.55)"], [0.55, "rgba(255,180,100,0.16)"], [1, "rgba(255,150,70,0)"]]);
+  layer(size * 0.08, [[0, "rgba(255,255,255,1)"], [0.35, "rgba(255,248,225,0.95)"], [0.7, "rgba(255,225,170,0.4)"], [1, "rgba(255,210,150,0)"]]);
+  return c;
+}
+
+/** Pixels of a picture, read once, for sampling a sphere. */
+export type PixelMap = { w: number; h: number; data: Uint8ClampedArray };
+export function readPixels(img: CanvasImageSource & { width: number; height: number }, w: number, h: number): PixelMap | null {
+  const made = canvas(w, h);
+  if (!made) return null;
+  made.g.drawImage(img, 0, 0, w, h);
+  return { w, h, data: made.g.getImageData(0, 0, w, h).data };
+}
+
+/**
+ * The Earth as a round picture seen from space: the equirectangular map turned so (latDeg, lonDeg) is at the centre, clouds over it,
+ * soft light from the upper left and a blue glow round the edge. Used for the Earth marker in the Moon view.
+ */
+export function earthDiscImage(map: PixelMap, clouds: PixelMap | null, latDeg: number, lonDeg: number, size = 192): HTMLCanvasElement | null {
+  const made = canvas(size, size);
+  if (!made) return null;
+  const { c, g } = made;
+  const R = size * 0.37;
+  const C = size / 2;
+  const halo = g.createRadialGradient(C, C, R * 0.9, C, C, C);
+  halo.addColorStop(0, "rgba(90,160,255,0.55)");
+  halo.addColorStop(0.35, "rgba(70,130,255,0.18)");
+  halo.addColorStop(1, "rgba(60,110,255,0)");
+  g.fillStyle = halo;
+  g.fillRect(0, 0, size, size);
+  const img = g.getImageData(0, 0, size, size);
+  const la0 = (latDeg * Math.PI) / 180;
+  const sin0 = Math.sin(la0);
+  const cos0 = Math.cos(la0);
+  const sample = (m: PixelMap, lat: number, lon: number, i: number): number => {
+    const u = (((lon + 540) % 360) / 360) * m.w;
+    const v = ((90 - lat) / 180) * m.h;
+    return m.data[(Math.min(m.h - 1, Math.max(0, Math.floor(v))) * m.w + (Math.floor(u) % m.w)) * 4 + i];
+  };
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const nx = (x - C) / R;
+      const ny = (C - y) / R;
+      const r2 = nx * nx + ny * ny;
+      if (r2 > 1) continue;
+      const nz = Math.sqrt(1 - r2);
+      const lat = (Math.asin(Math.max(-1, Math.min(1, ny * cos0 + nz * sin0))) * 180) / Math.PI;
+      const lon = lonDeg + (Math.atan2(nx, nz * cos0 - ny * sin0) * 180) / Math.PI;
+      let r = sample(map, lat, lon, 0);
+      let gr = sample(map, lat, lon, 1);
+      let b = sample(map, lat, lon, 2);
+      if (clouds) {
+        const a = sample(clouds, lat, lon, 3) / 255;
+        r += (255 - r) * a * 0.5;
+        gr += (255 - gr) * a * 0.5;
+        b += (255 - b) * a * 0.5;
+      }
+      const light = 0.62 + 0.75 * Math.max(0, -0.45 * nx + 0.4 * ny + 0.8 * nz); // soft light from the upper left
+      const rim = Math.pow(1 - nz, 3) * 0.9; // blue haze at the limb
+      const i = (y * size + x) * 4;
+      img.data[i] = Math.min(255, r * light + rim * 70);
+      img.data[i + 1] = Math.min(255, gr * light + rim * 130);
+      img.data[i + 2] = Math.min(255, b * light + rim * 255);
+      img.data[i + 3] = 255;
     }
   }
   g.putImageData(img, 0, 0);

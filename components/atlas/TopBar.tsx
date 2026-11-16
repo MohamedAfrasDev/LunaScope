@@ -7,24 +7,25 @@ import { openCommandPalette } from "@/components/shell/CommandPalette";
 import { VIEWS, type ViewName } from "@/lib/explore/geometry";
 
 export type Scale = "moon" | "system" | "sky";
-export type PanelId = "sites" | "timeline" | "metrics" | "clearance" | "sky-path" | "compare" | "dates" | "evidence" | "analyse" | "runs" | "learn";
+export type PanelId = "planner" | "sites" | "timeline" | "metrics" | "clearance" | "sky-path" | "compare" | "dates" | "evidence" | "analyse" | "runs" | "learn";
 
 /** Panels that share the right-hand column: opening one closes the others. */
-export const RIGHT_PANELS: PanelId[] = ["metrics", "clearance", "sky-path", "compare", "dates", "evidence", "analyse", "runs", "learn"];
+export const RIGHT_PANELS: PanelId[] = ["planner", "metrics", "clearance", "sky-path", "compare", "dates", "evidence", "analyse", "runs", "learn"];
 
 /** Panels that need more room than the narrow right column. */
-export const WIDE_PANELS: PanelId[] = ["dates", "evidence", "analyse"];
+export const WIDE_PANELS: PanelId[] = ["planner", "dates", "evidence", "analyse"];
 
 /** Why Place a point is off on an offline copy. */
 const PLACE_OFFLINE_NOTE = "Needs the live science service. This copy is offline, so a new point cannot be computed. Run LunaScope on your computer to add your own points.";
 
 const SCALES: { id: Scale; label: string; ready: boolean; note: string }[] = [
   { id: "moon", label: "Moon", ready: true, note: "" },
-  { id: "system", label: "System", ready: false, note: "Arrives in a later phase" },
+  { id: "system", label: "System", ready: true, note: "" },
   { id: "sky", label: "Site sky", ready: true, note: "" },
 ];
 
 const PANELS: { id: PanelId; label: string }[] = [
+  { id: "planner", label: "Planner" },
   { id: "sites", label: "Sites" },
   { id: "timeline", label: "Timeline" },
   { id: "metrics", label: "Metrics" },
@@ -103,8 +104,7 @@ export function TopBar({
       <div id={menuId} hidden={compact && !menu} className={compact ? "flex w-full flex-wrap items-center gap-x-1 gap-y-1 border-t border-[var(--panel-edge)] pt-1.5" : "contents"}>
 
       <div role="group" aria-label="Scale" className="flex flex-wrap items-center gap-0.5 border-l border-[var(--panel-edge)] pl-2">
-        {/* a scale that is not built (System) is not offered at all */}
-        {SCALES.filter((s) => s.ready || s.id === "sky").map((s) => (
+        {SCALES.map((s) => (
           <button
             key={s.id}
             type="button"

@@ -25,7 +25,9 @@ import { targetLabel } from "@/lib/format";
 import { readSkyPalette, useColorScheme } from "@/lib/sky-palette";
 import { EARTH_IMAGE, PHOTO_LOOK, SUN_IMAGE } from "@/lib/atlas/sky-look";
 import { subLunarPoint, sphereDirection } from "@/lib/atlas/earth-orient";
-import { buildTerrainMesh, decodeHeights, shadeColors, sunVector, type TerrainPatch } from "@/lib/atlas/terrain";
+import { mountainWall } from "@/lib/atlas/mountain-wall";
+import { detailSampler, MOON_RADIUS_M, SYNTHETIC_RADIUS_KM, SYNTHETIC_SIZE, SYNTHETIC_STEP_M, syntheticHeights } from "@/lib/atlas/synthetic-ground";
+import { buildTerrainMesh, decodeHeights, SCENE_RADIUS, shadeColors, sunVector, type TerrainPatch } from "@/lib/atlas/terrain";
 import { discFromImage, earthCanvas, glowCanvas, hillsideCanvas, regolithCanvas } from "@/lib/atlas/textures";
 
 /**
@@ -155,7 +157,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
       const add = <T extends THREE_NS.Object3D>(o: T) => (scene.add(o), o);
 
       // ground disc, wall, ridge line
-      const regolith = photo ? regolithCanvas(512) : null;
+      const regolith = photo ? regolithCanvas(1024) : null;
       const regTex = regolith ? new THREE.CanvasTexture(regolith) : null;
       if (regTex) {
         regTex.wrapS = regTex.wrapT = THREE.RepeatWrapping;
@@ -189,10 +191,28 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
 
       // real ground: the DEM around the site as a mesh, shaded by how each patch faces the Sun (no cast shadows)
       let shade: ((sunAz: number, sunEl: number, direct: number) => void) | null = null;
-      if (photo && terrain) {
+      // the things drawn without vertex shading (the backing disc, the far skyline hills) follow the same lit or dark state
+      let lightHook: ((direct: number) => void) | null = null;
+      // the site's real DEM when it is available; otherwise an illustrative surface (craters, swells), so the ground is never a flat disc
+      if (photo) {
         try {
-          const heights = decodeHeights(terrain);
-          const mesh = buildTerrainMesh(heights, terrain.size, terrain.step_m, terrain.radius_km, terrain.reference_radius_m, k);
+          // The DEM's cells are 150 m wide, too coarse to show the craters and swells you would stand among, so its shape gets illustrative fine
+          // detail laid over it (craters with raised rims, gentle swells). Without a DEM the same ground stands in for it.
+          const mesh = terrain
+            ? buildTerrainMesh(decodeHeights(terrain), terrain.size, terrain.step_m, terrain.radius_km, terrain.reference_radius_m, k)
+            : buildTerrainMesh(syntheticHeights(siteName), SYNTHETIC_SIZE, SYNTHETIC_STEP_M, SYNTHETIC_RADIUS_KM, MOON_RADIUS_M, k);
+          if (terrain) {
+            const detail = detailSampler(siteName, SCENE_RADIUS);
+            const pos = mesh.positions;
+            for (let q = 0; q < pos.length; q += 3) {
+              // The detail may dent the ground (craters, hollows) but may not lift it above the line of sight: whether the Sun or the Earth is
+              // hidden by terrain is the service's skyline, and illustrative detail must never contradict it.
+              const dist = Math.hypot(pos[q], pos[q + 2]);
+              const dy = Math.min(detail(pos[q], pos[q + 2]) * k, 0.0004 * dist);
+              pos[q + 1] += dy;
+              if (pos[q + 1] < mesh.minY) mesh.minY = pos[q + 1];
+            }
+          }
           const tg = new THREE.BufferGeometry();
           tg.setAttribute("position", new THREE.BufferAttribute(mesh.positions, 3));
           tg.setAttribute("uv", new THREE.BufferAttribute(mesh.uvs, 2));
@@ -201,6 +221,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
           const colors = new Float32Array(mesh.positions.length);
           tg.setAttribute("color", new THREE.BufferAttribute(colors, 3));
           const tm = new THREE.MeshBasicMaterial({ ...(regTex ? { map: regTex } : {}), vertexColors: true, side: THREE.DoubleSide });
+          tm.color.setScalar(2.3); // the regolith picture is mid-grey: lift it so sunlit ground reads white
           add(new THREE.Mesh(tg, tm));
           disposables.push(tg, tm);
           groundMesh.position.y = mesh.minY - 0.05; // the flat disc stays only under holes
@@ -211,6 +232,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
             if (key === last) return;
             last = key;
             shadeColors(normals, sunVector(az, el), direct, colors);
+            lightHook?.(direct);
             tg.getAttribute("color").needsUpdate = true;
           };
         } catch {
@@ -218,16 +240,42 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
         }
       }
 
-      const wall = skylineWall(profile.azimuth_deg, profile.horizon_el_deg, R_WALL, FLOOR_EL, k);
+      // The skyline: its top edge is the service's profile exactly. In the photo look the body is drawn as rock (shaded rows, a lit crest,
+      // steep faces darker, mottling); the diagram look keeps the plain wall.
       const wallGeo = new THREE.BufferGeometry();
-      wallGeo.setAttribute("position", new THREE.BufferAttribute(wall.positions, 3));
-      wallGeo.setIndex(new THREE.BufferAttribute(wall.indices, 1));
-      if (hillTex) wallGeo.setAttribute("uv", new THREE.BufferAttribute(skylineWallUv(profile.azimuth_deg, profile.horizon_el_deg, 6, 0.18), 2));
-      const wallMat = new THREE.MeshBasicMaterial({ ...(hillTex ? { map: hillTex, color: PHOTO_LOOK.wall } : { color: pal.wall }), side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+      if (photo) {
+        const m = mountainWall(profile.azimuth_deg, profile.horizon_el_deg, R_WALL, FLOOR_EL, k);
+        wallGeo.setAttribute("position", new THREE.BufferAttribute(m.positions, 3));
+        wallGeo.setAttribute("color", new THREE.BufferAttribute(m.colors, 3));
+        wallGeo.setAttribute("uv", new THREE.BufferAttribute(m.uvs, 2));
+        wallGeo.setIndex(new THREE.BufferAttribute(m.indices, 1));
+      } else {
+        const wall = skylineWall(profile.azimuth_deg, profile.horizon_el_deg, R_WALL, FLOOR_EL, k);
+        wallGeo.setAttribute("position", new THREE.BufferAttribute(wall.positions, 3));
+        wallGeo.setIndex(new THREE.BufferAttribute(wall.indices, 1));
+        if (hillTex) wallGeo.setAttribute("uv", new THREE.BufferAttribute(skylineWallUv(profile.azimuth_deg, profile.horizon_el_deg, 6, 0.18), 2));
+      }
+      const wallMat = new THREE.MeshBasicMaterial({
+        ...(photo ? { color: PHOTO_LOOK.wall } : hillTex ? { map: hillTex, color: PHOTO_LOOK.wall } : { color: pal.wall }),
+        ...(photo ? { vertexColors: true } : {}),
+        side: THREE.DoubleSide,
+        polygonOffset: true,
+        polygonOffsetFactor: 1,
+        polygonOffsetUnits: 1,
+      });
       add(new THREE.Mesh(wallGeo, wallMat));
       disposables.push(wallGeo, wallMat);
+      if (photo) {
+        const wallLit = new THREE.Color(wallMat.color);
+        const groundLit = new THREE.Color(groundMat.color).multiplyScalar(2.3);
+        lightHook = (direct) => {
+          wallMat.color.copy(wallLit).multiplyScalar(direct > 0 ? 1.2 : 0.2);
+          groundMat.color.copy(groundLit).multiplyScalar(direct > 0 ? 1 : 0.2);
+        };
+      }
 
-      const ridgeMat = new THREE.LineBasicMaterial({ color: photo ? PHOTO_LOOK.ridge : pal.ridge });
+      // the crest line marks the service's skyline; in the photo look it is a thin pale edge, not a golden cap
+      const ridgeMat = new THREE.LineBasicMaterial({ color: photo ? PHOTO_LOOK.crest : pal.ridge, transparent: photo, opacity: photo ? 0.55 : 1 });
       disposables.push(ridgeMat);
       for (const run of skylineRuns(profile.azimuth_deg, profile.horizon_el_deg, R_WALL, k)) {
         const g = new THREE.BufferGeometry();
@@ -285,7 +333,8 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
       };
       for (const c of COMPASS) {
         const s = sprite(c.label, photo ? PHOTO_LOOK.compass : c.label === "N" ? pal.labelNorth : pal.label, photo ? 0.8 : 1.4);
-        s.position.set(...dirFromAzEl(c.az, exaggerate(0, k) + (photo ? 1.2 : 1.5), R_SKY + 0.6));
+        // in the photo look the letters sit on the ground, below the horizon, so they never lie across the hills like a sign
+        s.position.set(...dirFromAzEl(c.az, photo ? -2.4 : exaggerate(0, k) + 1.5, R_SKY + 0.6));
         add(s);
       }
       if (!photo) {
@@ -326,6 +375,8 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
             const tex = new THREE.CanvasTexture(dc);
             tex.colorSpace = THREE.SRGBColorSpace;
             discMat.map = tex;
+            discMat.color.setScalar(1.25); // push past 1 so the disc glows instead of looking flat
+            discMat.toneMapped = false;
             discMat.visible = true;
             discMat.needsUpdate = true;
             core.visible = false;
@@ -578,7 +629,7 @@ export function Sky3D({ profile, tracks, t, siteName, clock, bleed = false, mode
       cancelled = true;
       cleanup?.();
     };
-  }, [profile, tracks, k, scheme, bleed, terrain]);
+  }, [profile, tracks, k, scheme, bleed, terrain, siteName]);
 
   const btn = "rounded-md border border-border px-2.5 py-1 text-sm transition-colors hover:border-input hover:bg-muted";
   if (ok === false && bleed)

@@ -6,6 +6,8 @@ export const PHOTO_LOOK = {
   sky: "#000000",
   wall: "#d2cfc7",
   ridge: "#c9a24d",
+  /** The thin pale crest line on the skyline hills. */
+  crest: "#efece4",
   compass: "#9aa0b4",
   sunCore: "#fff6dc",
   light: "#ffffff",

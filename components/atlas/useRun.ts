@@ -9,7 +9,14 @@ import { targetKey, type RunTarget } from "@/lib/atlas/run-target";
 export type RunLoad =
   | { status: "loading"; stage: string; progress: number | null }
   | { status: "ready"; run: RunData; reference: string | null }
-  | { status: "error"; message: string; /** Starts the load again (for example after the service was restarted). */ retry: () => void };
+  | {
+      status: "error";
+      message: string;
+      /** Starts the load again (for example after the service was restarted). */
+      retry: () => void;
+      /** The service does not hold this run (it was restarted, or another stack is behind it): trying again cannot help. */
+      missing?: boolean;
+    };
 
 const POLL_MS = 1500;
 const LOADING: RunLoad = { status: "loading", stage: "Starting", progress: null };
@@ -56,6 +63,9 @@ export function useRun(target: RunTarget): RunLoad {
         if (target.kind === "reference" && !healed && e instanceof ApiError && e.status === 404) {
           healed = true;
           return void (await startReference());
+        }
+        if (target.kind === "run" && e instanceof ApiError && e.status === 404 && !ctl.signal.aborted) {
+          return set({ status: "error", message: "This service does not hold that run.", retry, missing: true });
         }
         fail(e);
       }

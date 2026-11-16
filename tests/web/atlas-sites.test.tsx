@@ -108,6 +108,8 @@ function fakeScene(over: Partial<SceneHandle> = {}) {
   const handle: SceneHandle = {
     fly: vi.fn(),
     flyToSite: vi.fn(),
+    dive: vi.fn(() => 0),
+    zoomOut: vi.fn(() => 0),
     project: vi.fn((lat: number) => ({ x: 200 + lat, y: 200, visible: lat !== -89.5 })),
     pick: vi.fn(() => null),
     onFrame: vi.fn((f: () => void) => {
@@ -118,6 +120,7 @@ function fakeScene(over: Partial<SceneHandle> = {}) {
     }),
     setClickHandler: vi.fn(),
     setSunTime: vi.fn(),
+    setPlayback: vi.fn(),
     ...over,
   };
   return { handle, frame: () => cb?.() };

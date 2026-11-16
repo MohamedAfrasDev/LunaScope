@@ -74,7 +74,7 @@ export function SiteSky({
   }
 
   return (
-    <div className="atlas-fade-in absolute inset-0" data-testid="site-sky">
+    <div className="absolute inset-0" data-testid="site-sky">
       <Sky3D
         bleed
         profile={horizon.profile}
@@ -91,6 +91,12 @@ export function SiteSky({
         onReady={onReady}
         onView={onView}
       />
+      <p className="atlas-panel atlas-label pointer-events-none absolute bottom-[9.5rem] left-1/2 z-10 max-w-md -translate-x-1/2 px-3 py-2 text-center text-[var(--ink-dim)]" data-testid="illustrative-ground">
+        {terrain.status === "ready"
+          ? "The large-scale shape is this site's terrain model (150 m cells). The craters and fine surface detail are illustrative."
+          : "Illustrative ground: this site's terrain model is not available, so the surface is a stand-in."}{" "}
+        The skyline and every visibility result are the service&apos;s.
+      </p>
     </div>
   );
 }
