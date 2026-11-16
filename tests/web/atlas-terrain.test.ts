@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { matchRoute } from "@/lib/bff";
-import { AMBIENT, SCENE_RADIUS, buildTerrainMesh, decodeHeights, shadeColors, sunVector } from "@/lib/atlas/terrain";
+import { NIGHT_LEVEL, SCENE_RADIUS, buildTerrainMesh, decodeHeights, shadeColors, sunVector } from "@/lib/atlas/terrain";
 
 function pack(values: number[]): string {
   const b = new Uint8Array(values.length * 2);
@@ -81,11 +81,11 @@ describe("shading", () => {
     const out = new Float32Array(6);
     const sun = sunVector(0, 30); // low in the north
     shadeColors([...toward, ...away], sun, 1, out);
-    expect(out[0]).toBeGreaterThan(out[3]);
-    expect(out[3]).toBeCloseTo(AMBIENT, 6); // facing away from the Sun: ambient only
+    expect(out[0]).toBeGreaterThan(out[3]); // the slope facing the Sun is brighter than the one facing away
+    expect(out[3]).toBeGreaterThan(0.3); // and with the Sun up, even that one stays well lit
     shadeColors([...toward, ...away], sun, 0, out);
-    expect(out[0]).toBeCloseTo(AMBIENT, 6);
-    expect(out[3]).toBeCloseTo(AMBIENT, 6);
+    expect(out[0]).toBeCloseTo(NIGHT_LEVEL, 6); // no Sun: dark everywhere
+    expect(out[3]).toBeCloseTo(NIGHT_LEVEL, 6);
   });
 });
 

@@ -7,13 +7,13 @@ import { openCommandPalette } from "@/components/shell/CommandPalette";
 import { VIEWS, type ViewName } from "@/lib/explore/geometry";
 
 export type Scale = "moon" | "system" | "sky";
-export type PanelId = "sites" | "timeline" | "metrics" | "clearance" | "sky-path" | "compare" | "dates" | "evidence" | "analyse" | "runs" | "learn";
+export type PanelId = "planner" | "sites" | "timeline" | "metrics" | "clearance" | "sky-path" | "compare" | "dates" | "evidence" | "analyse" | "runs" | "learn";
 
 /** Panels that share the right-hand column: opening one closes the others. */
-export const RIGHT_PANELS: PanelId[] = ["metrics", "clearance", "sky-path", "compare", "dates", "evidence", "analyse", "runs", "learn"];
+export const RIGHT_PANELS: PanelId[] = ["planner", "metrics", "clearance", "sky-path", "compare", "dates", "evidence", "analyse", "runs", "learn"];
 
 /** Panels that need more room than the narrow right column. */
-export const WIDE_PANELS: PanelId[] = ["dates", "evidence", "analyse"];
+export const WIDE_PANELS: PanelId[] = ["planner", "dates", "evidence", "analyse"];
 
 /** Why Place a point is off on an offline copy. */
 const PLACE_OFFLINE_NOTE = "Needs the live science service. This copy is offline, so a new point cannot be computed. Run LunaScope on your computer to add your own points.";
@@ -25,6 +25,7 @@ const SCALES: { id: Scale; label: string; ready: boolean; note: string }[] = [
 ];
 
 const PANELS: { id: PanelId; label: string }[] = [
+  { id: "planner", label: "Planner" },
   { id: "sites", label: "Sites" },
   { id: "timeline", label: "Timeline" },
   { id: "metrics", label: "Metrics" },

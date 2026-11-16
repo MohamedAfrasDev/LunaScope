@@ -104,17 +104,21 @@ export function sunVector(azDeg: number, elDeg: number): [number, number, number
   return [Math.cos(el) * Math.sin(az), Math.sin(el), -Math.cos(el) * Math.cos(az)];
 }
 
-export const AMBIENT = 0.34;
+/** How bright the ground is with no Sun on it (a little is left so the shape is not lost), and the level of sunlit flat ground. */
+export const NIGHT_LEVEL = 0.05;
+export const SUNLIT_LEVEL = 0.74;
 
 /**
- * Brightness per vertex from its normal: a floor of ambient light plus the cosine of the angle to the Sun. `direct` is 0 when the
- * service says the Sun is not visible from the site (below the horizon or behind terrain), so the ground is then only ambient.
+ * Brightness per vertex from its normal. `direct` is 0 when the service says the Sun is not visible from the site (below the horizon
+ * or behind terrain): the ground is then dark. With the Sun on it the ground is bright, near white, and slopes that face the Sun are
+ * brighter and slopes that face away are darker (sunlit regolith stays bright even in a low Sun, so the light is not simply the cosine).
  */
 export function shadeColors(normals: ArrayLike<number>, sun: [number, number, number], direct: number, out: Float32Array): Float32Array {
   const n = normals.length / 3;
   for (let i = 0; i < n; i++) {
-    const lambert = Math.max(0, normals[3 * i] * sun[0] + normals[3 * i + 1] * sun[1] + normals[3 * i + 2] * sun[2]);
-    const v = Math.min(1, AMBIENT + (1 - AMBIENT) * direct * lambert);
+    const facing = normals[3 * i] * sun[0] + normals[3 * i + 1] * sun[1] + normals[3 * i + 2] * sun[2];
+    const lit = Math.min(1, Math.max(0.3, SUNLIT_LEVEL + 0.26 * Math.max(-1, Math.min(1, facing * 6))));
+    const v = NIGHT_LEVEL + (lit - NIGHT_LEVEL) * (direct > 0 ? 1 : 0);
     out[3 * i] = v;
     out[3 * i + 1] = v;
     out[3 * i + 2] = v;

@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { toast } from "sonner";
 import type { Sky3DHandle } from "@/components/Sky3D";
 import { MoonOrbitHud } from "@/components/atlas/MoonOrbitHud";
+import { PlannerPanel } from "@/components/atlas/PlannerPanel";
 import { Presence } from "@/components/atlas/Presence";
 import { SystemDatePanel } from "@/components/atlas/SystemDatePanel";
 import { LearnPanel } from "@/components/atlas/LearnPanel";
@@ -88,13 +89,15 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
   const [defaultStart] = useState(() => Math.floor(Date.now() / 3600000) * 3600000);
   // a date picked in the System scale replaces the run window there, and playing it covers a month from that date
   const [pickedStart, setPickedStart] = useState<number | null>(null);
+  // the run the Planner started, so it can say "computing" until that run is the one loaded
+  const [plannerRun, setPlannerRun] = useState<string | null>(null);
   const orbitWindow = useMemo<RunWindow>(() => ({ startMs: pickedStart ?? defaultStart, totalS: 28 * 86400 }), [pickedStart, defaultStart]);
   // no run to play (the service is down): the clock plays the orbit preview instead, so the Moon scale and the System scale still move
   const orbitOnly = (scale === "system" && (!runData || pickedStart != null)) || (!runData && runLoad.status === "error");
   const clockWindow = orbitOnly ? orbitWindow : (runData?.window ?? null);
   const { clock, actions, reducedMotion } = useClock(clockWindow);
   // a link carrying analysis inputs (the classic share link) opens the Analyse panel with them filled in
-  const [open, setOpen] = useState<PanelId[]>(() => (new URLSearchParams(initialSearch).has(SHARE_PARAM) ? ["sites", "analyse"] : ["sites"]));
+  const [open, setOpen] = useState<PanelId[]>(() => (new URLSearchParams(initialSearch).has(SHARE_PARAM) ? ["sites", "analyse"] : ["sites", "planner"]));
   // on a phone nothing opens on its own, so the Moon is the first thing seen (adjusted once, during render, not in an effect)
   const [phoneSeen, setPhoneSeen] = useState(false);
   if (phone && !phoneSeen) {
@@ -452,6 +455,33 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
                     ) : (
                       gate("Sky path", () => toggle("sky-path"))
                     ))}
+                  {rightOpen === "planner" && (
+                    <Panel title="Planner" onClose={() => toggle("planner")} focused className="max-h-full" bodyClassName="atlas-prose">
+                      <PlannerPanel
+                        sites={sites}
+                        selectedId={selectedId}
+                        onSelect={select}
+                        runWindow={runData?.window ?? null}
+                        runLabel={runLabel}
+                        tracks={tracks}
+                        loadNote={
+                          runLoad.status === "loading"
+                            ? { kind: "loading", text: "Loading the run…" }
+                            : runLoad.status === "error"
+                              ? { kind: "error", text: `No run is loaded: ${runLoad.message}` }
+                              : null
+                        }
+                        canCompute={!offline}
+                        startedRunId={plannerRun}
+                        loadedRunId={readyRunId}
+                        onStarted={(id) => {
+                          setPlannerRun(id);
+                          chooseRun({ kind: "run", id });
+                        }}
+                        onEnterSky={tracks ? () => goScale("sky") : undefined}
+                      />
+                    </Panel>
+                  )}
                   {rightOpen === "runs" && <RunsPanel current={target} onChoose={chooseRun} onClose={() => toggle("runs")} />}
                   {rightOpen === "analyse" && (
                     <Panel title="Analyse" onClose={() => toggle("analyse")} focused className="max-h-full" bodyClassName="atlas-prose">
@@ -526,7 +556,7 @@ export function AtlasShell({ initialSearch = "" }: { initialSearch?: string } = 
       <h1 className="sr-only">LunaScope Atlas: the lunar south pole</h1>
       <ExploreLoader bleed onReady={onReady} />
       {!inSky && !inSystem && <PinLayer scene={scene} sites={sites} selectedId={selectedId} onSelect={select} />}
-      {scale === "moon" && !hidden && clockWindow && <MoonOrbitHud utcMs={clockWindow.startMs + clock.t * 1000} playing={clock.playing} rate={(clock.reverse ? -1 : 1) * speedSeconds(clock.speed)} lo={clockWindow.startMs} hi={clockWindow.startMs + clockWindow.totalS * 1000} />}
+      {scale === "moon" && !hidden && !rightOpen && clockWindow && <MoonOrbitHud utcMs={clockWindow.startMs + clock.t * 1000} playing={clock.playing} rate={(clock.reverse ? -1 : 1) * speedSeconds(clock.speed)} lo={clockWindow.startMs} hi={clockWindow.startMs + clockWindow.totalS * 1000} />}
       <Presence show={inSystem && !!clockWindow}>
         {clockWindow && <SystemView startMs={clockWindow.startMs} totalS={clockWindow.totalS} utcMs={clockWindow.startMs + clock.t * 1000} playing={clock.playing} rate={(clock.reverse ? -1 : 1) * speedSeconds(clock.speed)} />}
       </Presence>
